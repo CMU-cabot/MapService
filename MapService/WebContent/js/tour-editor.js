@@ -394,7 +394,7 @@ $hulop.editor = function () {
 				}
 			}
 			onNodeClick = feature => {
-				if (keyState.shiftKey) {
+				if (keyState.altKey) {
 					saveButton.show();
 					let td = $('#properties table td[key=waitingDestination]');
 					let node_id = feature && feature.get('node_id');
