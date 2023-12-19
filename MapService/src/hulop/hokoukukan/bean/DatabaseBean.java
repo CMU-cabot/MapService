@@ -419,6 +419,11 @@ public class DatabaseBean {
 		adapter.dumpEntries(os);
 	}
 
+	public static void saveFile(InputStream is, String path) {
+		adapter.saveAttachment(path, is);
+		FileFilter.onAttachmentChanged();
+	}
+
 	public static void main(String[] args) {
 		if (args.length > 0) {
 			String dir = args[0];

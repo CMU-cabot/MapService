@@ -116,6 +116,9 @@ public class AdminServlet extends HttpServlet {
 		final String dataType = request.getParameter("type");
 		if (dataType == null) {
 			return;
+		} else if ("file".equals(dataType)) {
+			DatabaseBean.saveFile(request.getInputStream(), request.getParameter("path"));
+			return;
 		}
 		for (Part part : request.getParts()) {
 			final String fileName = part.getSubmittedFileName();
