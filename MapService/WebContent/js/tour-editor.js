@@ -528,9 +528,11 @@ $hulop.editor = function () {
 			DESTINATION_KEYS.forEach(key => {
 				key in from && (to[key] = from[key]);
 			});
-			if (Object.keys(to).length > 2) {
-				destinations.push(to);
-			}
+			destinations.push(to);
+		});
+		destinations.sort((a, b) => {
+			let rc = a.floor - b.floor;
+			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
 		uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
 	}
