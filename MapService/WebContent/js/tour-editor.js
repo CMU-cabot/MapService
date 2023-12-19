@@ -55,7 +55,7 @@ $hulop.editor = function () {
 			}
 		});
 
-		$('#upload_button').click(event => $('#upload_file').click());
+		$('#upload_link').click(event => $('#upload_file').click());
 		let reader = new FileReader();
 		$('#upload_file').change(event => {
 			reader.readAsText(event.target.files[0]);

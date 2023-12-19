@@ -46,7 +46,8 @@
 	<div class="left row1 scroll">
 		<div id="help" class="inner">
 			<%=user%> <a href="tour-editor.jsp?logout=true">Log out</a>
-			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a> | <button id="upload_button">upload</button>
+			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a>
+			<a href="javascript:void(0)" id="upload_link">upload</a>
 			<input type="file" accept=".json" id="upload_file" style="display: none;">
 		</div>
 		<div id="list" class="inner"></div>
