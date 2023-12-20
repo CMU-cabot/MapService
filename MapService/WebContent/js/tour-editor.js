@@ -399,7 +399,7 @@ $hulop.editor = function () {
 			};
 			function add(name, editable, numeric) {
 				if (!added[name]) {
-					let value = dest[name] || '';
+					let value = name in dest ? dest[name] : '';
 					let row = $('<tr>', {
 						'class': editable ? 'editable' : 'read_only'
 					}).append($('<td>', {
@@ -472,21 +472,44 @@ $hulop.editor = function () {
 		};
 		function add(name, editable, numeric) {
 			if (!added[name]) {
-				let value = tour[name] || '';
+				let value = name in tour ? tour[name] : '';
+				let td;
+				if (typeof (value) == 'object') {
+					let table = $('<table>');
+					let tbody = $('<tbody>').appendTo(table);
+					Object.keys(value).forEach(key => {
+						let cols = [];
+						if (!Array.isArray(value)) {
+							cols.push($('<td>', {
+								'text': key
+							}))
+						};
+						cols.push($('<td>', {
+							'contenteditable': editable,
+							'text': value[key]
+						}));
+						$('<tr>', {
+							'class': editable ? 'editable' : 'read_only'
+						}).append(cols).appendTo(tbody);
+					});
+					td = $('<td>').append(table);
+				} else {
+					td = $('<td>', {
+						'on': {
+							'input': event => {
+								saveButton.show();
+								$(event.target).attr('modified', true);
+							}
+						},
+						'contenteditable': editable,
+						'text': value
+					});
+				}
 				let row = $('<tr>', {
 					'class': editable ? 'editable' : 'read_only'
 				}).append($('<td>', {
 					'text': name
-				}), $('<td>', {
-					'on': {
-						'input': event => {
-							saveButton.show();
-							$(event.target).attr('modified', true);
-						}
-					},
-					'contenteditable': editable,
-					'text': value
-				}).attr('key', name).attr('numeric', !!numeric));
+				}), td.attr('key', name).attr('numeric', !!numeric));
 				row.appendTo(tbody);
 				added[name] = true;
 			}

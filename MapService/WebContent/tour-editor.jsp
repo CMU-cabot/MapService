@@ -64,6 +64,24 @@
 #tour_list table th {
 	background-color: lightpink;
 }
+table td:has(table) {
+	padding: 0px;
+}
+table table {
+	border: 0px;
+}
+table table tr:first-child td {
+	border-top: 0px;
+}
+table table tr:last-child td {
+	border-bottom: 0px;
+}
+table table td:first-child {
+	border-left: 0px;
+}
+table table td:last-child {
+	border-right: 0px;
+}
 </style>
 <title>Tour Editor</title>
 </head>
