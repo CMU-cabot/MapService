@@ -45,18 +45,21 @@
 	--r0: 2em;
 	--r1: 25%;
 	--r2: 25%;
+	--gap: 10px;
 }
 .row0 {
 	height: var(--r0);
 }
 .row1 {
 	height: var(--r1);
+	margin-bottom: var(--gap);
 }
 .row2 {
 	height: var(--r2);
+	margin-bottom: var(--gap);
 }
 .bottom {
-	top: calc(var(--r0) + var(--r1) + var(--r2));
+	top: calc(var(--r0) + var(--r1) + var(--r2) + var(--gap) * 2);
 }
 #tour_list table th {
 	background-color: lightpink;
