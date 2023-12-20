@@ -26,7 +26,7 @@ $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
-	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'content', 'subtour', 'waitingDestination', 'waitingDestinationAngle'];
+	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'content', 'subtour', 'waitingDestination', 'waitingDestinationTitle', 'waitingDestinationAngle'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
 
 	function init(cb) {
@@ -49,7 +49,7 @@ $hulop.editor = function () {
 				}
 				downKey = event.keyCode;
 			},
-			'keyup': event => {
+			'keyup focus': event => {
 				keyState = event;
 				downKey = null;
 			}
@@ -404,6 +404,7 @@ $hulop.editor = function () {
 						td.text('');
 					}
 					td.attr('modified', true);
+					setWaitingDestinationTitle(true);
 					return true;
 				}
 			}
@@ -420,12 +421,22 @@ $hulop.editor = function () {
 			add('arrivalMessages', true);
 			add('content', true);
 			add('waitingDestination');
+			add('waitingDestinationTitle');
+			setWaitingDestinationTitle();
 			add('waitingDestinationAngle', true, true);
 			add('subtour', true);
 			Object.keys(dest).forEach(key => {
 				add(key);
 			});
 		}
+	}
+
+	function setWaitingDestinationTitle(setModified) {
+		let node_id = $('#properties table td[key=waitingDestination]').text();
+		let dest = node_id && lastData.destinations[node_id];
+		let tdTitle = $('#properties table td[key=waitingDestinationTitle]');
+		tdTitle.text((dest && dest.label) || '');
+		setModified && tdTitle.attr('modified', true);
 	}
 
 	function getFloor() {
