@@ -304,7 +304,7 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					console.log('click', tour);
-					// TODO
+					showTourProperty(tour);
 				}
 			}).append($('<td>', {
 				'text': getLabel(tour)
@@ -453,6 +453,47 @@ $hulop.editor = function () {
 				add(key);
 			});
 		}
+	}
+
+	function showTourProperty(tour) {
+		$('#properties').empty();
+		let table = $('<table>').appendTo($('#properties'));
+		$('<caption>', {
+			'text': getLabel(tour)
+		}).appendTo(table);
+		let thead = $('<thead>').appendTo(table);
+		let tbody = $('<tbody>').appendTo(table);
+		$('<tr>').append($('<th>', {
+			'text': 'Key'
+		}), $('<th>', {
+			'text': 'Value'
+		})).appendTo(thead);
+		let added = {
+		};
+		function add(name, editable, numeric) {
+			if (!added[name]) {
+				let value = tour[name] || '';
+				let row = $('<tr>', {
+					'class': editable ? 'editable' : 'read_only'
+				}).append($('<td>', {
+					'text': name
+				}), $('<td>', {
+					'on': {
+						'input': event => {
+							saveButton.show();
+							$(event.target).attr('modified', true);
+						}
+					},
+					'contenteditable': editable,
+					'text': value
+				}).attr('key', name).attr('numeric', !!numeric));
+				row.appendTo(tbody);
+				added[name] = true;
+			}
+		}
+		Object.keys(tour).forEach(key => {
+			add(key);
+		});
 	}
 
 	function setWaitingDestinationTitle() {
