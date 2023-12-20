@@ -26,7 +26,7 @@ $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
-	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'content', 'subtour', 'waitingDestination', 'waitingDestinationTitle', 'waitingDestinationAngle'];
+	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'content', 'subtour', 'waitingDestination', '#waitingDestination', 'waitingDestinationAngle'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
 
 	function init(cb) {
@@ -446,7 +446,7 @@ $hulop.editor = function () {
 			add('arrivalMessages', true);
 			add('content', true);
 			add('waitingDestination');
-			add('waitingDestinationTitle');
+			add('#waitingDestination');
 			add('waitingDestinationAngle', true, true);
 			add('subtour', true);
 			Object.keys(dest).forEach(key => {
@@ -522,7 +522,7 @@ $hulop.editor = function () {
 	function setWaitingDestinationTitle() {
 		let node_id = $('#properties table td[key=waitingDestination]').text();
 		let dest = node_id && lastData.destinations[node_id];
-		$('#properties table td[key=waitingDestinationTitle]').text((dest && dest.label) || '').attr('modified', true);
+		$('#properties table td[key=#waitingDestination]').text((dest && dest.label) || '').attr('modified', true);
 	}
 
 	function getFloor() {
@@ -611,12 +611,17 @@ $hulop.editor = function () {
 					lastData.destinations[node_id] = Object.assign(dest_out, dest_in);
 				}
 			});
-			// Reset waitingDestinationTitle
+			// Reset #waitingDestination
 			Object.keys(lastData.destinations).forEach(node_id => {
 				let dest = lastData.destinations[node_id];
 				let wd_id = dest.waitingDestination;
 				let wd = wd_id && lastData.destinations[wd_id];
-				dest.waitingDestinationTitle = (wd && wd.label) || '';
+				let label = wd && wd.label;
+				if (label) {
+					dest['#waitingDestination'] = label;
+				} else {
+					delete dest['#waitingDestination'];
+				}
 			});
 			lastData.tours = (data && data.tours) || [];
 			callback();
