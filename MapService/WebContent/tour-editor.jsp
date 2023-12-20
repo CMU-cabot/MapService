@@ -40,19 +40,45 @@
 		$hulop.map.init();
 	});
 </script>
+<style>
+:root {
+	--r0: 2em;
+	--r1: 25%;
+	--r2: 25%;
+}
+.row0 {
+	height: var(--r0);
+}
+.row1 {
+	height: var(--r1);
+}
+.row2 {
+	height: var(--r2);
+}
+.bottom {
+	top: calc(var(--r0) + var(--r1) + var(--r2));
+}
+#tour_list table th {
+	background-color: lightpink;
+}
+</style>
 <title>Tour Editor</title>
 </head>
 <body>
-	<div class="left row1 scroll">
+	<div class="left row0">
 		<div id="help" class="inner">
 			<%=user%> <a href="tour-editor.jsp?logout=true">Log out</a>
 			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a>
 			<a href="javascript:void(0)" id="upload_link">upload</a>
 			<input type="file" accept=".json" id="upload_file" style="display: none;">
 		</div>
+	</div>
+	<div class="left row1 scroll">
 		<div id="list" class="inner"></div>
 	</div>
-	<div class="left row2 scroll"></div>
+	<div class="left row2 scroll">
+		<div id="tour_list" class="inner"></div>
+	</div>
 	<div class="left bottom scroll">
 		<div id="properties" class="inner"></div>
 	</div>

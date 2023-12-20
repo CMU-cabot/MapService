@@ -128,7 +128,8 @@ $hulop.editor = function () {
 		}
 		initDestinations(landmarks);
 		importData(() => {
-			showFeatureList();
+			showDestinationList();
+			showTourList();
 			$hulop.indoor && $hulop.indoor.setStyle(getStyle);
 		});
 	}
@@ -256,7 +257,7 @@ $hulop.editor = function () {
 		return heights;
 	}
 
-	function showFeatureList() {
+	function showDestinationList() {
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
 		items.sort((a, b) => {
 			let rc = a.floor - b.floor;
@@ -272,7 +273,7 @@ $hulop.editor = function () {
 		$('<tr>').append($('<th>', {
 			'text': 'Floor'
 		}), $('<th>', {
-			'text': 'Name'
+			'text': 'Title'
 		})).appendTo(thead);
 		items.forEach(item => {
 			$('<tr>', {
@@ -286,6 +287,30 @@ $hulop.editor = function () {
 				'text': item.label
 			}).attr('node_id', item.value)).appendTo('#list tbody');
 		});
+	}
+
+	function showTourList() {
+		$('#tour_list').empty();
+		let table = $('<table>').appendTo($('#tour_list'));
+		$('<caption>', {
+			'text': 'Tours'
+		}).appendTo(table);
+		let thead = $('<thead>').appendTo(table);
+		let tbody = $('<tbody>').appendTo(table);
+		$('<tr>').append($('<th>', {
+			'text': 'Title'
+		})).appendTo(thead);
+		lastData.tours.forEach(tour => {
+			$('<tr>', {
+				'click': () => {
+					console.log('click', tour);
+					// TODO
+				}
+			}).append($('<td>', {
+				'text': getLabel(tour)
+			}).attr('tour_id', tour.id)).appendTo('#tour_list tbody');
+		});
+
 	}
 
 	let format = new ol.format.GeoJSON()
@@ -529,6 +554,7 @@ $hulop.editor = function () {
 				let wd = wd_id && lastData.destinations[wd_id];
 				dest.waitingDestinationTitle = (wd && wd.label) || '';
 			});
+			lastData.tours = (data && data.tours) || [];
 			callback();
 		});
 	}
@@ -536,7 +562,6 @@ $hulop.editor = function () {
 	function exportData() {
 		let data = {};
 		let destinations = data.destinations = [];
-		let tours = data.tours = [];
 		Object.keys(lastData.destinations).forEach(node_id => {
 			let from = lastData.destinations[node_id];
 			let to = {};
@@ -549,6 +574,7 @@ $hulop.editor = function () {
 			let rc = a.floor - b.floor;
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
+		data.tours = lastData.tours;
 		uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
 	}
 
@@ -558,7 +584,7 @@ $hulop.editor = function () {
 			'type': 'GET',
 			'url': path,
 			'dataType': 'json',
-			'success': (data) => {
+			'success': data => {
 				callback && callback(data);
 				$hulop.util.loading(false);
 			},
