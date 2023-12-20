@@ -404,7 +404,7 @@ $hulop.editor = function () {
 						td.text('');
 					}
 					td.attr('modified', true);
-					setWaitingDestinationTitle(true);
+					setWaitingDestinationTitle();
 					return true;
 				}
 			}
@@ -422,7 +422,6 @@ $hulop.editor = function () {
 			add('content', true);
 			add('waitingDestination');
 			add('waitingDestinationTitle');
-			setWaitingDestinationTitle();
 			add('waitingDestinationAngle', true, true);
 			add('subtour', true);
 			Object.keys(dest).forEach(key => {
@@ -431,12 +430,10 @@ $hulop.editor = function () {
 		}
 	}
 
-	function setWaitingDestinationTitle(setModified) {
+	function setWaitingDestinationTitle() {
 		let node_id = $('#properties table td[key=waitingDestination]').text();
 		let dest = node_id && lastData.destinations[node_id];
-		let tdTitle = $('#properties table td[key=waitingDestinationTitle]');
-		tdTitle.text((dest && dest.label) || '');
-		setModified && tdTitle.attr('modified', true);
+		$('#properties table td[key=waitingDestinationTitle]').text((dest && dest.label) || '').attr('modified', true);
 	}
 
 	function getFloor() {
@@ -524,6 +521,13 @@ $hulop.editor = function () {
 				if (dest_out) {
 					lastData.destinations[node_id] = Object.assign(dest_out, dest_in);
 				}
+			});
+			// Reset waitingDestinationTitle
+			Object.keys(lastData.destinations).forEach(node_id => {
+				let dest = lastData.destinations[node_id];
+				let wd_id = dest.waitingDestination;
+				let wd = wd_id && lastData.destinations[wd_id];
+				dest.waitingDestinationTitle = (wd && wd.label) || '';
 			});
 			callback();
 		});
