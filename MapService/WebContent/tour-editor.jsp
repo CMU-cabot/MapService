@@ -70,16 +70,16 @@ table td:has(table) {
 table table {
 	border: 0px;
 }
-table table tr:first-child td {
+table table > tbody > tr:first-child > td {
 	border-top: 0px;
 }
-table table tr:last-child td {
+table table > tbody > tr:last-child > td {
 	border-bottom: 0px;
 }
-table table td:first-child {
+table table > tbody > tr > td:first-child {
 	border-left: 0px;
 }
-table table td:last-child {
+table table tbody > tr > td:last-child {
 	border-right: 0px;
 }
 </style>

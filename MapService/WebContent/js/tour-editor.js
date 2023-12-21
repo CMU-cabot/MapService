@@ -375,7 +375,7 @@ $hulop.editor = function () {
 						$('#properties td[modified=true]').each((i, e) => {
 							let key = $(e).attr('key');
 							let value = $(e).text().trim();
-							if ($(e).attr('numeric') == 'true') {
+							if ($(e).attr('type') == 'number') {
 								if (value == '' || isNaN(value)) {
 									delete dest[key];
 									return;
@@ -411,9 +411,9 @@ $hulop.editor = function () {
 								$(event.target).attr('modified', true);
 							}
 						},
-						'contenteditable': options.editable,
+						'contenteditable': !!options.editable,
 						'text': value
-					}).attr('key', name).attr('numeric', options.type == 'number'));
+					}).attr('key', name).attr('type', options.type || 'string'));
 					if (options.hidden) {
 						row.css('display', 'none');
 					}
@@ -450,7 +450,7 @@ $hulop.editor = function () {
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
-			add('#waitingDestination', {label: 'waitingDestination'});
+			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
 			Object.keys(dest).forEach(key => {
@@ -474,29 +474,35 @@ $hulop.editor = function () {
 		})).appendTo(thead);
 		let added = {
 		};
-		function add(name, editable, numeric) {
+
+		function getInnerTable(value, options) {
+			let table = $('<table>');
+			let tbody = $('<tbody>').appendTo(table);
+			Object.keys(value).forEach(key => {
+				let cols = [$('<td>', {
+					'text': key
+				})];
+				if (typeof value[key] == 'object') {
+					cols.push($('<td>').append(getInnerTable(value[key], options)));
+				} else {
+					cols.push($('<td>', {
+						'contenteditable': !!options.editable,
+						'text': value[key]
+					}));
+				}
+				$('<tr>', {
+					'class': options.editable ? 'editable' : 'read_only'
+				}).append(cols).appendTo(tbody);
+			});
+			return table;
+		}
+
+		function add(name, options = {}) {
 			if (!added[name]) {
 				let value = name in tour ? tour[name] : '';
 				let td;
-				if (typeof (value) == 'object') {
-					let table = $('<table>');
-					let tbody = $('<tbody>').appendTo(table);
-					Object.keys(value).forEach(key => {
-						let cols = [];
-						if (!Array.isArray(value)) {
-							cols.push($('<td>', {
-								'text': key
-							}))
-						};
-						cols.push($('<td>', {
-							'contenteditable': editable,
-							'text': value[key]
-						}));
-						$('<tr>', {
-							'class': editable ? 'editable' : 'read_only'
-						}).append(cols).appendTo(tbody);
-					});
-					td = $('<td>').append(table);
+				if (typeof value == 'object') {
+					td = $('<td>').append(getInnerTable(value, options));
 				} else {
 					td = $('<td>', {
 						'on': {
@@ -505,15 +511,15 @@ $hulop.editor = function () {
 								$(event.target).attr('modified', true);
 							}
 						},
-						'contenteditable': editable,
+						'contenteditable': !!options.editable,
 						'text': value
 					});
 				}
 				let row = $('<tr>', {
-					'class': editable ? 'editable' : 'read_only'
+					'class': options.editable ? 'editable' : 'read_only'
 				}).append($('<td>', {
 					'text': name
-				}), td.attr('key', name).attr('numeric', !!numeric));
+				}), td.attr('key', name).attr('type', options.type || 'string'));
 				row.appendTo(tbody);
 				added[name] = true;
 			}
