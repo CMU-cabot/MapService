@@ -403,7 +403,7 @@ $hulop.editor = function () {
 					let row = $('<tr>', {
 						'class': options.editable ? 'editable' : 'read_only'
 					}).append($('<td>', {
-						'text': name
+						'text': options.label || name
 					}), $('<td>', {
 						'on': {
 							'input': event => {
@@ -450,7 +450,7 @@ $hulop.editor = function () {
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
-			add('#waitingDestination');
+			add('#waitingDestination', {label: 'waitingDestination'});
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
 			Object.keys(dest).forEach(key => {
@@ -639,7 +639,9 @@ $hulop.editor = function () {
 			let from = lastData.destinations[node_id];
 			let to = {};
 			DESTINATION_KEYS.forEach(key => {
-				key in from && (to[key] = from[key]);
+				if (key in from && from[key] != '') {
+					to[key] = from[key];
+				}
 			});
 			if (Object.keys(to).length > 2) {
 				destinations.push(to);
