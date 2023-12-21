@@ -374,15 +374,7 @@ $hulop.editor = function () {
 						saveButton.hide();
 						$('#properties td[modified=true]').each((i, e) => {
 							let key = $(e).attr('key');
-							let value = $(e).text().trim();
-							if ($(e).attr('type') == 'number') {
-								if (value == '' || isNaN(value)) {
-									delete dest[key];
-									return;
-								}
-								value = Number(value);
-							}
-							dest[key] = value;
+							setValue(dest, key, $(e).text().trim(), $(e).attr('type'))
 						});
 						feature.changed();
 						$('#properties td').removeAttr('modified');
@@ -413,7 +405,7 @@ $hulop.editor = function () {
 						},
 						'contenteditable': !!options.editable,
 						'text': value
-					}).attr('key', name).attr('type', options.type || 'string'));
+					}).attr('key', name).attr('type', options.type || ''));
 					if (options.hidden) {
 						row.css('display', 'none');
 					}
@@ -459,6 +451,33 @@ $hulop.editor = function () {
 		}
 	}
 
+	function setValue(obj, key, value, type) {
+		type = type || typeof obj[key];
+		if (type == 'number') {
+			if (value == '') {
+				delete obj[key];
+				return;
+			} else if (isNaN(value)) {
+				console.error('invalid number', value)
+				return;
+			}
+			value = Number(value);
+		} else if (type == 'boolean') {
+			if (value == '') {
+				delete obj[key];
+				return;
+			} else if (value == 'true') {
+				value = true;
+			} else if (value == 'false') {
+				vale = false;
+			} else {
+				console.error('invalid boolean', value)
+				return;
+			}
+		}
+		obj[key] = value;
+	}
+
 	function showTourProperty(tour) {
 		$('#properties').empty();
 		let table = $('<table>').appendTo($('#properties'));
@@ -472,6 +491,25 @@ $hulop.editor = function () {
 		}), $('<th>', {
 			'text': 'Value'
 		})).appendTo(thead);
+		let saveButton = $('<button>', {
+			'text': 'Save',
+			'on': {
+				'click': () => {
+					saveButton.hide();
+					$('#properties td[modified=true]').each((i, e) => {
+						let key = $(e).attr('key');
+						let tree = [];
+						$(e).parents('td[key]').each((i, e) => tree.unshift($(e).attr('key')));
+						let target = tour;
+						tree.forEach(key => target = target[key]);
+						setValue(target, key, $(e).text().trim(), $(e).attr('type'))
+					});
+					$('#properties td').removeAttr('modified');
+					exportData();
+				}
+			}
+		}).appendTo($('#properties'));
+		saveButton.hide();
 		let added = {
 		};
 
@@ -479,17 +517,24 @@ $hulop.editor = function () {
 			let table = $('<table>');
 			let tbody = $('<tbody>').appendTo(table);
 			Object.keys(value).forEach(key => {
-				let cols = [$('<td>', {
-					'text': key
-				})];
+				let td;
 				if (typeof value[key] == 'object') {
-					cols.push($('<td>').append(getInnerTable(value[key], options)));
+					td = $('<td>').append(getInnerTable(value[key], options));
 				} else {
-					cols.push($('<td>', {
+					td = $('<td>', {
+						'on': {
+							'input': event => {
+								saveButton.show();
+								$(event.target).attr('modified', true);
+							}
+						},
 						'contenteditable': !!options.editable,
 						'text': value[key]
-					}));
+					});
 				}
+				let cols = [$('<td>', {
+					'text': key
+				}), td.attr('key', key)];
 				$('<tr>', {
 					'class': options.editable ? 'editable' : 'read_only'
 				}).append(cols).appendTo(tbody);
@@ -513,19 +558,24 @@ $hulop.editor = function () {
 						},
 						'contenteditable': !!options.editable,
 						'text': value
-					});
+					}).attr('type', options.type || '');
 				}
 				let row = $('<tr>', {
 					'class': options.editable ? 'editable' : 'read_only'
 				}).append($('<td>', {
 					'text': name
-				}), td.attr('key', name).attr('type', options.type || 'string'));
+				}), td.attr('key', name));
 				row.appendTo(tbody);
 				added[name] = true;
 			}
 		}
+		add('id', { editable: true });
+		add('title-ja', { editable: true });
+		add('title-en', { editable: true });
+		add('debug', { editable: true, type: 'boolean' });
+		add('introduction', { editable: true });
 		Object.keys(tour).forEach(key => {
-			add(key);
+			add(key, { editable: true });
 		});
 	}
 
@@ -638,6 +688,26 @@ $hulop.editor = function () {
 		});
 	}
 
+	function clean(obj) {
+		if (typeof obj != 'object') {
+			return obj;
+		}
+		let result = Array.isArray(obj) ? [] : {};
+		Object.keys(obj).forEach(key => {
+			let value = clean(obj[key]);
+			if ([undefined, null, ''].includes(value)) {
+				return;
+			} else if (Array.isArray(obj)) {
+				result.push(value);
+			} else {
+				result[key] = value;
+			}
+		});
+		if (Object.keys(result).length > 0) {
+			return result;
+		}
+	}
+
 	function exportData() {
 		let data = {};
 		let destinations = data.destinations = [];
@@ -645,10 +715,9 @@ $hulop.editor = function () {
 			let from = lastData.destinations[node_id];
 			let to = {};
 			DESTINATION_KEYS.forEach(key => {
-				if (key in from && from[key] != '') {
-					to[key] = from[key];
-				}
+				to[key] = from[key];
 			});
+			to = clean(to);
 			if (Object.keys(to).length > 2) {
 				destinations.push(to);
 			}
@@ -657,7 +726,7 @@ $hulop.editor = function () {
 			let rc = a.floor - b.floor;
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
-		data.tours = lastData.tours;
+		data.tours = clean(lastData.tours) || [];
 		uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
 	}
 

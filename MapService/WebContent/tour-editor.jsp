@@ -89,6 +89,12 @@ table table > tbody > tr > td:first-child {
 table table tbody > tr > td:last-child {
 	border-right: 0px;
 }
+table table tr {
+	background-color: #eee;
+}
+table table td[contenteditable=true] {
+	background-color: #fff;
+}
 </style>
 <title>Tour Editor</title>
 </head>
