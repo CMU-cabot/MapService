@@ -397,11 +397,11 @@ $hulop.editor = function () {
 				'node': true,
 				'facility': true
 			};
-			function add(name, editable, numeric) {
+			function add(name, options = {}) {
 				if (!added[name]) {
 					let value = name in dest ? dest[name] : '';
 					let row = $('<tr>', {
-						'class': editable ? 'editable' : 'read_only'
+						'class': options.editable ? 'editable' : 'read_only'
 					}).append($('<td>', {
 						'text': name
 					}), $('<td>', {
@@ -411,9 +411,12 @@ $hulop.editor = function () {
 								$(event.target).attr('modified', true);
 							}
 						},
-						'contenteditable': editable,
+						'contenteditable': options.editable,
 						'text': value
-					}).attr('key', name).attr('numeric', !!numeric));
+					}).attr('key', name).attr('numeric', options.type == 'number'));
+					if (options.hidden) {
+						row.css('display', 'none');
+					}
 					row.appendTo(tbody);
 					added[name] = true;
 				}
@@ -442,14 +445,14 @@ $hulop.editor = function () {
 			add('short_description-en');
 			add('long_description-ja');
 			add('long_description-en');
-			add('startMessage', true);
-			add('arrivalMessages', true);
-			add('arrivalAngle', true, true);
-			add('content', true);
-			add('waitingDestination');
+			add('startMessage', { editable: true });
+			add('arrivalMessages', { editable: true });
+			add('arrivalAngle', { editable: true, type: 'number' });
+			add('content', { editable: true });
+			add('waitingDestination', { 'hidden': true });
 			add('#waitingDestination');
-			add('waitingDestinationAngle', true, true);
-			add('subtour', true);
+			add('waitingDestinationAngle', { editable: true, type: 'number' });
+			add('subtour', { editable: true });
 			Object.keys(dest).forEach(key => {
 				add(key);
 			});
