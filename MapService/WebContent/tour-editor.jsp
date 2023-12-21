@@ -42,10 +42,17 @@
 </script>
 <style>
 :root {
+	--left: 500px;
 	--r0: 2em;
 	--r1: 25%;
 	--r2: 25%;
 	--gap: 10px;
+}
+.left {
+	width: var(--left);
+}
+#map {
+	left: var(--left);
 }
 .row0 {
 	height: var(--r0);
