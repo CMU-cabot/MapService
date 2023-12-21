@@ -641,7 +641,9 @@ $hulop.editor = function () {
 			DESTINATION_KEYS.forEach(key => {
 				key in from && (to[key] = from[key]);
 			});
-			destinations.push(to);
+			if (Object.keys(to).length > 2) {
+				destinations.push(to);
+			}
 		});
 		destinations.sort((a, b) => {
 			let rc = a.floor - b.floor;
