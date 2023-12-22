@@ -729,9 +729,9 @@ $hulop.editor = function () {
 			});
 			to = clean(to);
 			if (Object.keys(to).length > 2) {
+				to['#title'] = getLabel(from);
 				destinations.push(to);
 			}
-			to['#title'] = getLabel(from);
 		});
 		destinations.sort((a, b) => {
 			let rc = a.floor - b.floor;
