@@ -388,7 +388,8 @@ $hulop.editor = function () {
 			let added = {
 				'label': true,
 				'node': true,
-				'facility': true
+				'facility': true,
+				'#title': true
 			};
 			function add(name, options = {}) {
 				if (!added[name]) {
