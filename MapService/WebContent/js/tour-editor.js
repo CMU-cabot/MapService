@@ -730,6 +730,7 @@ $hulop.editor = function () {
 			if (Object.keys(to).length > 2) {
 				destinations.push(to);
 			}
+			to['#title'] = getLabel(from);
 		});
 		destinations.sort((a, b) => {
 			let rc = a.floor - b.floor;
