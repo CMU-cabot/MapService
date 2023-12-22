@@ -27,6 +27,7 @@ $hulop.editor = function () {
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
 	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'arrivalAngle', 'content', 'subtour', 'waitingDestination', '#waitingDestination', 'waitingDestinationAngle'];
+	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
 
 	function init(cb) {
@@ -437,6 +438,9 @@ $hulop.editor = function () {
 			add('short_description-en');
 			add('long_description-ja');
 			add('long_description-en');
+			CATEGORY_KEYS.forEach(key => {
+				add(key);
+			});
 			add('startMessage', { editable: true });
 			add('arrivalMessages', { editable: true });
 			add('arrivalAngle', { editable: true, type: 'number' });
@@ -609,6 +613,10 @@ $hulop.editor = function () {
 					pron && landmark.exit_pron && (pron = pron + ' ' + landmark.exit_pron);
 					pron && (dest['title-' + lang + '-pron'] = pron);
 				}
+				CATEGORY_KEYS.forEach(key => {
+					let value = landmark.properties['hulop_' + key];
+					value && (dest[key] = value);
+				});
 			});
 		});
 		Object.keys(destinations).forEach(node_id => {
