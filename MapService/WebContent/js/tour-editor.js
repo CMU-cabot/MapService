@@ -421,6 +421,7 @@ $hulop.editor = function () {
 					let node_id = feature && feature.get('node_id');
 					if (node_id && lastData.destinations[node_id]) {
 						td.text(node_id);
+						$hulop.indoor.showFloor(lastData.destinations[node_id].floor);
 					} else {
 						td.text('');
 					}
