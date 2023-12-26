@@ -517,6 +517,7 @@ $hulop.editor = function () {
 		}).appendTo($('#properties'));
 		saveButton.hide();
 		let added = {
+			'navigationSetting': true
 		};
 
 		function getInnerTable(value, options) {
@@ -579,6 +580,8 @@ $hulop.editor = function () {
 		add('title-ja', { editable: true });
 		add('title-en', { editable: true });
 		add('debug', { editable: true, type: 'boolean' });
+		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
+		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('introduction', { editable: true });
 		Object.keys(tour).forEach(key => {
 			add(key, { editable: true });
