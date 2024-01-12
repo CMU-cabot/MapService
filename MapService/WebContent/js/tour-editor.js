@@ -607,7 +607,7 @@ $hulop.editor = function () {
 								$(event.target).attr('modified', true);
 							}
 						},
-						'contenteditable': editable,
+						'contenteditable': false,
 						'text': value[key]
 					});
 				}
@@ -708,7 +708,22 @@ $hulop.editor = function () {
 				added[name] = true;
 			}
 		}
-		add('tour_id', { editable: true });
+		onNodeClick = feature => {
+			if (keyState.altKey) {
+				saveButton.show();
+				let td = $('.destination_selected td[key=ref]');
+				let node_id = feature && feature.get('node_id');
+				if (node_id && lastData.destinations[node_id]) {
+					td.text(node_id);
+					$hulop.indoor.showFloor(lastData.destinations[node_id].floor);
+				} else {
+					td.text('');
+				}
+				td.attr('modified', true);
+				return true;
+			}
+		}
+	add('tour_id', { editable: true });
 		add('title-ja', { editable: true });
 		add('title-en', { editable: true });
 		add('title-ja-pron', { editable: true });
@@ -720,6 +735,10 @@ $hulop.editor = function () {
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
 		// Object.keys(tour).forEach(add);
+		$('#properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
+			$('.destination_selected').removeClass('destination_selected')
+			$(e.target).parents('#properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
+		});
 	}
 
 	function setWaitingDestinationTitle() {

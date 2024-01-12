@@ -125,7 +125,9 @@ table table td[contenteditable=true] {
 #menu li:hover {
 	background-color: #fee;
 }
-
+.destination_selected {
+	font-weight: bold;
+}
 </style>
 <title>Tour Editor</title>
 </head>
