@@ -512,6 +512,7 @@ $hulop.editor = function () {
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
 			// Object.keys(dest).forEach(add);
+			$('#properties tr td[key=#waitingDestination]').parent().addClass('destination_selected');
 		}
 	}
 
@@ -723,7 +724,7 @@ $hulop.editor = function () {
 				return true;
 			}
 		}
-	add('tour_id', { editable: true });
+		add('tour_id', { editable: true });
 		add('title-ja', { editable: true });
 		add('title-en', { editable: true });
 		add('title-ja-pron', { editable: true });
