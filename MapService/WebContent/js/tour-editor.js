@@ -417,7 +417,7 @@ $hulop.editor = function () {
 		let dest = lastData.destinations[feature.getId()];
 		if (dest) {
 			$hulop.indoor.showFloor(dest.floor);
-			let table = $('<table>').appendTo($('#properties'));
+			let table = $('<table>', { 'class': 'destination' }).appendTo($('#properties'));
 			$('<caption>', {
 				'text': dest.label
 			}).appendTo(table);
@@ -544,7 +544,7 @@ $hulop.editor = function () {
 
 	function showTourProperty(tour) {
 		$('#properties').empty();
-		let table = $('<table>').appendTo($('#properties'));
+		let table = $('<table>', { 'class': 'tour' }).appendTo($('#properties'));
 		$('<caption>', {
 			'text': getLabel(tour)
 		}).appendTo(table);
@@ -928,7 +928,7 @@ $hulop.editor = function () {
 			items.forEach(item => {
 				$('<li>', {
 					'text': item.text,
-					'class' : item.separator ? 'separator' : 'no-separator',
+					'class': item.separator ? 'separator' : 'no-separator',
 					'on': {
 						'click': e => callback(item)
 					}

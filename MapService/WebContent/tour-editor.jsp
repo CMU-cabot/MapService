@@ -96,6 +96,12 @@ table table tr {
 table table td[contenteditable=true] {
 	background-color: #fff;
 }
+#properties table.destination th {
+	background-color: lightskyblue;
+}
+#properties table.tour th {
+	background-color: lightpink;
+}
 #menu {
 	position: absolute;
 	margin: 0px;
