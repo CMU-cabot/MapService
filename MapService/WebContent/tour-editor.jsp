@@ -85,6 +85,7 @@ table table > tbody > tr:last-child > td {
 }
 table table > tbody > tr > td:first-child {
 	border-left: 0px;
+	width: 1px;
 }
 table table tbody > tr > td:last-child {
 	border-right: 0px;
@@ -95,6 +96,28 @@ table table tr {
 table table td[contenteditable=true] {
 	background-color: #fff;
 }
+#menu {
+	position: absolute;
+	margin: 0px;
+	padding: 0px;
+	min-width: 200px;
+	line-height: 12pt;
+	font-size: 9pt;
+	background-color: #efe;
+	border: 1pt solid #666;
+	box-shadow: 2px 2px 4px 0px #666;
+	color: #000;
+}
+#menu li {
+	list-style: none;
+	cursor: pointer;
+	padding: 2px;
+}
+
+#menu li:hover {
+	background-color: #fee;
+}
+
 </style>
 <title>Tour Editor</title>
 </head>

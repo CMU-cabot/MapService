@@ -55,6 +55,7 @@ $hulop.editor = function () {
 				downKey = null;
 			}
 		});
+		$('body').on('click', event => $('#menu').remove());
 
 		$('#upload_link').click(event => $('#upload_file').click());
 		let reader = new FileReader();
@@ -304,14 +305,61 @@ $hulop.editor = function () {
 		lastData.tours.forEach(tour => {
 			$('<tr>', {
 				'click': () => {
-					console.log('click', tour);
 					showTourProperty(tour);
 				}
 			}).append($('<td>', {
 				'text': getLabel(tour)
-			}).attr('tour_id', tour.id)).appendTo('#tour_list tbody');
+			})).appendTo('#tour_list tbody');
 		});
-
+		table.on('contextmenu', event => {
+			let index = $(event.target).parents('tbody tr').index();
+			let items = [];
+			if (index != -1) {
+				if (index > 0) {
+					items.push({
+						'text': 'Move up',
+						'index': index,
+						'move': -1
+					});
+				}
+				if (index < lastData.tours.length - 1) {
+					items.push({
+						'text': 'Move down',
+						'index': index,
+						'move': 1
+					});
+				}
+				items.push({
+					'text': 'Remove',
+					'index': index
+				});
+			}
+			items.push({
+				'text': 'Add',
+				'index': -1
+			});
+			createContextMenu(event, items, item => {
+				if (item.index == -1) {
+					lastData.tours.push({
+						'tour_id': 'tour_' + new Date().getTime(),
+						'destinations': []
+					});
+				} else {
+					let removed = lastData.tours.splice(item.index, 1)[0];
+					if (item.move) {
+						lastData.tours.splice(item.index + item.move, 0, removed);
+					}
+				}
+				showTourList();
+				if (item.index == -1) {
+					showTourProperty(lastData.tours[lastData.tours.length - 1]);
+				} else if (!item.move) {
+					$('#properties').empty();
+				}
+				exportData();
+			});
+			return false;
+		});
 	}
 
 	let format = new ol.format.GeoJSON()
@@ -451,9 +499,7 @@ $hulop.editor = function () {
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
-			Object.keys(dest).forEach(key => {
-				add(key);
-			});
+			// Object.keys(dest).forEach(add);
 		}
 	}
 
@@ -501,16 +547,9 @@ $hulop.editor = function () {
 			'text': 'Save',
 			'on': {
 				'click': () => {
-					saveButton.hide();
-					$('#properties td[modified=true]').each((i, e) => {
-						let key = $(e).attr('key');
-						let tree = [];
-						$(e).parents('td[key]').each((i, e) => tree.unshift($(e).attr('key')));
-						let target = tour;
-						tree.forEach(key => target = target[key]);
-						setValue(target, key, $(e).text().trim(), $(e).attr('type'))
-					});
-					$('#properties td').removeAttr('modified');
+					applyChanges();
+					let index = lastData.tours.indexOf(tour);
+					$('#tour_list table tbody tr:nth-child(' + (index + 1) + ') td').text(getLabel(tour));
 					exportData();
 				}
 			}
@@ -520,14 +559,35 @@ $hulop.editor = function () {
 			'navigationSetting': true
 		};
 
-		function getInnerTable(value, options) {
+		function applyChanges() {
+			saveButton.hide();
+			$('#properties td[modified=true]').each((i, e) => {
+				let key = $(e).attr('key');
+				let tree = [];
+				$(e).parents('td[key]').each((i, e) => tree.unshift($(e).attr('key')));
+				let target = tour;
+				tree.forEach(key => target = target[key]);
+				setValue(target, key, $(e).text().trim(), $(e).attr('type'))
+			});
+			$('#properties td').removeAttr('modified');
+		}
+
+		function getDestinationIndex(target) {
+			let name_key = $(target.parents('tr[name_key]').slice(-1)[0]).attr('name_key');
+			let reg = /destinations\.(\d+)/.exec(name_key);
+			return reg && Number(reg[1]);
+		}
+
+		function getInnerTable(name, value, options) {
 			let table = $('<table>');
 			let tbody = $('<tbody>').appendTo(table);
 			Object.keys(value).forEach(key => {
-				let td;
+				let name_key = name + '.' + key;
+				let editable = /^destinations\.\d+\.ref$/.test(name_key);
 				if (typeof value[key] == 'object') {
-					td = $('<td>').append(getInnerTable(value[key], options));
+					td = $('<td>').append(getInnerTable(name_key, value[key], options));
 				} else {
+					if (!editable) return;
 					td = $('<td>', {
 						'on': {
 							'input': event => {
@@ -535,7 +595,7 @@ $hulop.editor = function () {
 								$(event.target).attr('modified', true);
 							}
 						},
-						'contenteditable': !!options.editable,
+						'contenteditable': editable,
 						'text': value[key]
 					});
 				}
@@ -543,18 +603,18 @@ $hulop.editor = function () {
 					'text': key
 				}), td.attr('key', key)];
 				$('<tr>', {
-					'class': options.editable ? 'editable' : 'read_only'
-				}).append(cols).appendTo(tbody);
+					'class': editable ? 'editable' : 'read_only'
+				}).attr('name_key', name_key).append(cols).appendTo(tbody);
 			});
 			return table;
 		}
 
 		function add(name, options = {}) {
 			if (!added[name]) {
-				let value = name in tour ? tour[name] : '';
+				let value = name in tour ? tour[name] : options.default || '';
 				let td;
 				if (typeof value == 'object') {
-					td = $('<td>').append(getInnerTable(value, options));
+					td = $('<td>').append(getInnerTable(name, value, options));
 				} else {
 					td = $('<td>', {
 						'on': {
@@ -573,19 +633,66 @@ $hulop.editor = function () {
 					'text': name
 				}), td.attr('key', name));
 				row.appendTo(tbody);
+				if (options.is_array) {
+					row.on('contextmenu', event => {
+						let index = getDestinationIndex($(event.target));
+						let items = [];
+						if (index == null) {
+							items.push({
+								'text': 'Add',
+								'index': -1
+							});
+						} else {
+							if (index > 0) {
+								items.push({
+									'text': 'Move up',
+									'index': index,
+									'move': -1
+								});
+							}
+							if (index < tour[name].length - 1) {
+								items.push({
+									'text': 'Move down',
+									'index': index,
+									'move': 1
+								});
+							}
+							items.push({
+								'text': 'Remove',
+								'index': index
+							});
+						}
+						createContextMenu(event, items, item => {
+							applyChanges();
+							if (item.index == -1) {
+								tour[name].push({ 'ref': '' });
+							} else {
+								let removed = tour[name].splice(item.index, 1)[0];
+								if (item.move) {
+									tour[name].splice(item.index + item.move, 0, removed);
+								}
+							}
+							exportData();
+							showTourProperty(tour);
+						});
+						return false;
+					});
+				}
 				added[name] = true;
 			}
 		}
-		add('id', { editable: true });
+		add('tour_id', { editable: true });
 		add('title-ja', { editable: true });
 		add('title-en', { editable: true });
+		add('title-ja-pron', { editable: true });
 		add('debug', { editable: true, type: 'boolean' });
+		add('introduction-ja', { editable: true });
+		add('introduction-en', { editable: true });
+		add('introduction-ja-pron', { editable: true });
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
-		add('introduction', { editable: true });
-		Object.keys(tour).forEach(key => {
-			add(key, { editable: true });
-		});
+		add('destinations', { editable: false, is_array: true, default: [] });
+		// Object.keys(tour).forEach(add);
 	}
 
 	function setWaitingDestinationTitle() {
@@ -780,6 +887,27 @@ $hulop.editor = function () {
 				$hulop.util.loading(false);
 			}
 		});
+	}
+
+	function createContextMenu(e, items, callback) {
+		if ($('#menu').size() == 0) {
+			let menu = $('<ul>', {
+				'id': 'menu',
+				'css': {
+					'top': e.pageY + 'px',
+					'left': e.pageX + 'px'
+				}
+			});
+			items.forEach(item => {
+				$('<li>', {
+					'text': item.text,
+					'on': {
+						'click': e => callback(item)
+					}
+				}).appendTo(menu);
+			});
+			$('body').append(menu);
+		}
 	}
 
 	return {
