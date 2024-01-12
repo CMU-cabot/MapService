@@ -324,7 +324,8 @@ $hulop.editor = function () {
 					items.push({
 						'text': 'Move up',
 						'index': index,
-						'move_to': index - 1
+						'move_to': index - 1,
+						'separator': true
 					});
 				}
 				if (index < lastData.tours.length - 1) {
@@ -336,7 +337,8 @@ $hulop.editor = function () {
 					items.push({
 						'text': 'Move to bottom',
 						'index': index,
-						'move_to': lastData.tours.length - 1
+						'move_to': lastData.tours.length - 1,
+						'separator': true
 					});
 				}
 				items.push({
@@ -661,7 +663,8 @@ $hulop.editor = function () {
 								items.push({
 									'text': 'Move up',
 									'index': index,
-									'move_to': index - 1
+									'move_to': index - 1,
+									'separator': true
 								});
 							}
 							if (index < tour[name].length - 1) {
@@ -673,7 +676,8 @@ $hulop.editor = function () {
 								items.push({
 									'text': 'Move to bottom',
 									'index': index,
-									'move_to': tour[name].length - 1
+									'move_to': tour[name].length - 1,
+									'separator': true
 								});
 							}
 							items.push({
@@ -923,6 +927,7 @@ $hulop.editor = function () {
 			items.forEach(item => {
 				$('<li>', {
 					'text': item.text,
+					'class' : item.separator ? 'separator' : 'no-separator',
 					'on': {
 						'click': e => callback(item)
 					}

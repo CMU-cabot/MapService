@@ -113,7 +113,9 @@ table table td[contenteditable=true] {
 	cursor: pointer;
 	padding: 2px;
 }
-
+#menu li.separator {
+	border-bottom: 1px solid #666;
+}
 #menu li:hover {
 	background-color: #fee;
 }
