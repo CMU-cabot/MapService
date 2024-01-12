@@ -314,6 +314,11 @@ $hulop.editor = function () {
 		table.on('contextmenu', event => {
 			let index = $(event.target).parents('tbody tr').index();
 			let items = [];
+			items.push({
+				'text': 'Add',
+				'index': -1,
+				'separator': index != -1
+			});
 			if (index != -1) {
 				if (index > 0) {
 					items.push({
@@ -346,10 +351,6 @@ $hulop.editor = function () {
 					'index': index
 				});
 			}
-			items.push({
-				'text': 'Add',
-				'index': -1
-			});
 			createContextMenu(event, items, item => {
 				if (item.index == -1) {
 					let new_tour = {
