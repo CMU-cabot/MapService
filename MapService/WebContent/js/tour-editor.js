@@ -317,16 +317,26 @@ $hulop.editor = function () {
 			if (index != -1) {
 				if (index > 0) {
 					items.push({
+						'text': 'Move to top',
+						'index': index,
+						'move_to': 0
+					});
+					items.push({
 						'text': 'Move up',
 						'index': index,
-						'move': -1
+						'move_to': index - 1
 					});
 				}
 				if (index < lastData.tours.length - 1) {
 					items.push({
 						'text': 'Move down',
 						'index': index,
-						'move': 1
+						'move_to': index + 1
+					});
+					items.push({
+						'text': 'Move to bottom',
+						'index': index,
+						'move_to': lastData.tours.length - 1
 					});
 				}
 				items.push({
@@ -340,22 +350,21 @@ $hulop.editor = function () {
 			});
 			createContextMenu(event, items, item => {
 				if (item.index == -1) {
-					lastData.tours.push({
+					let new_tour = {
 						'tour_id': 'tour_' + new Date().getTime(),
 						'destinations': []
-					});
+					};
+					lastData.tours.push(new_tour);
+					showTourProperty(new_tour);
 				} else {
 					let removed = lastData.tours.splice(item.index, 1)[0];
-					if (item.move) {
-						lastData.tours.splice(item.index + item.move, 0, removed);
+					if ('move_to' in item) {
+						lastData.tours.splice(item.move_to, 0, removed);
+					} else {
+						$('#properties').empty();
 					}
 				}
 				showTourList();
-				if (item.index == -1) {
-					showTourProperty(lastData.tours[lastData.tours.length - 1]);
-				} else if (!item.move) {
-					$('#properties').empty();
-				}
 				exportData();
 			});
 			return false;
@@ -645,16 +654,26 @@ $hulop.editor = function () {
 						} else {
 							if (index > 0) {
 								items.push({
+									'text': 'Move to top',
+									'index': index,
+									'move_to': 0
+								});
+								items.push({
 									'text': 'Move up',
 									'index': index,
-									'move': -1
+									'move_to': index - 1
 								});
 							}
 							if (index < tour[name].length - 1) {
 								items.push({
 									'text': 'Move down',
 									'index': index,
-									'move': 1
+									'move_to': index + 1
+								});
+								items.push({
+									'text': 'Move to bottom',
+									'index': index,
+									'move_to': tour[name].length - 1
 								});
 							}
 							items.push({
@@ -665,15 +684,18 @@ $hulop.editor = function () {
 						createContextMenu(event, items, item => {
 							applyChanges();
 							if (item.index == -1) {
+								if (!tour[name]) {
+									tour[name] = [];
+								}
 								tour[name].push({ 'ref': '' });
 							} else {
 								let removed = tour[name].splice(item.index, 1)[0];
-								if (item.move) {
-									tour[name].splice(item.index + item.move, 0, removed);
+								if ('move_to' in item) {
+									tour[name].splice(item.move_to, 0, removed);
 								}
 							}
-							exportData();
 							showTourProperty(tour);
+							exportData();
 						});
 						return false;
 					});
