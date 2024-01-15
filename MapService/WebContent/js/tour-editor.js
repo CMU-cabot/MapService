@@ -544,6 +544,13 @@ $hulop.editor = function () {
 	}
 
 	function showTourProperty(tour) {
+		tour.destinations = tour.destinations || [];
+		tour.destinations.forEach(dest => {
+			let node_id = dest.ref || '';
+			let dest_data = node_id && lastData.destinations[node_id];
+			dest['ref'] = node_id;
+			dest['#ref'] = (dest_data && dest_data.label) || '';
+		});
 		$('#properties').empty();
 		let table = $('<table>', { 'class': 'tour' }).appendTo($('#properties'));
 		$('<caption>', {
@@ -596,7 +603,7 @@ $hulop.editor = function () {
 			let tbody = $('<tbody>').appendTo(table);
 			Object.keys(value).forEach(key => {
 				let name_key = name + '.' + key;
-				let editable = /^destinations\.\d+\.ref$/.test(name_key);
+				let editable = /^destinations\.\d+\.(ref|#ref)$/.test(name_key);
 				if (typeof value[key] == 'object') {
 					td = $('<td>').append(getInnerTable(name_key, value[key], options));
 				} else {
@@ -613,11 +620,14 @@ $hulop.editor = function () {
 					});
 				}
 				let cols = [$('<td>', {
-					'text': key
+					'text': /^destinations\.\d+\.(#ref)$/.test(name_key) ? 'ref' : key
 				}), td.attr('key', key)];
-				$('<tr>', {
+				let row = $('<tr>', {
 					'class': editable ? 'editable' : 'read_only'
 				}).attr('name_key', name_key).append(cols).appendTo(tbody);
+				if (/^destinations\.\d+\.(ref)$/.test(name_key)) {
+					row.css('display', 'none');
+				}
 			});
 			return table;
 		}
@@ -711,16 +721,21 @@ $hulop.editor = function () {
 		}
 		onNodeClick = feature => {
 			if (keyState.altKey) {
-				saveButton.show();
 				let td = $('.destination_selected td[key=ref]');
+				if (td.length == 0) {
+					return true;
+				}
+				saveButton.show();
 				let node_id = feature && feature.get('node_id');
-				if (node_id && lastData.destinations[node_id]) {
+				let dest = node_id && lastData.destinations[node_id];
+				if (dest) {
 					td.text(node_id);
-					$hulop.indoor.showFloor(lastData.destinations[node_id].floor);
+					$hulop.indoor.showFloor(dest.floor);
 				} else {
 					td.text('');
 				}
 				td.attr('modified', true);
+				td.parent().parent().find('td[key=#ref]').text((dest && dest.label) || '').attr('modified', true);
 				return true;
 			}
 		}
