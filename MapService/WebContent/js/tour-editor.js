@@ -512,7 +512,9 @@ $hulop.editor = function () {
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
 			// Object.keys(dest).forEach(add);
-			$('#properties tr td[key=#waitingDestination]').parent().addClass('destination_selected');
+			$('#properties tr td[key=#waitingDestination]').parent().addClass('destination_selected').on('click', e => {
+				showFeature($('#properties td[key=waitingDestination]').text());
+			});
 		}
 	}
 
@@ -754,7 +756,16 @@ $hulop.editor = function () {
 		$('#properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
 			$('.destination_selected').removeClass('destination_selected')
 			$(e.target).parents('#properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
+			showFeature($('.destination_selected td[key=ref]').text());
 		});
+	}
+
+	function showFeature(node_id) {
+		let feature = node_id && source.getFeatureById(node_id);
+		if (feature) {
+			$hulop.map.setCenter(ol.proj.transform(feature.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'));
+			$hulop.indoor.showFloor(feature.get('floor'));
+		}
 	}
 
 	function setWaitingDestinationTitle() {
