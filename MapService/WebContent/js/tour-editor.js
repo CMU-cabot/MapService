@@ -981,6 +981,7 @@ $hulop.editor = function () {
 				}).appendTo(menu);
 			});
 			$('body').append(menu);
+			$('#menu').css('top', Math.min(e.pageY, $('body').height() - $('#menu').height()) + 'px');
 		}
 	}
 
