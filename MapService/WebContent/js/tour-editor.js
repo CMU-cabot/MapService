@@ -163,6 +163,19 @@ $hulop.editor = function () {
 				}),
 				'zIndex': floor == heights[0] ? 1.01 : 1
 			});
+			let title_stroke = 'white';
+			let id = feature.getId();
+			let ref_cell = $('#properties td[key=ref], #properties td[key=waitingDestination]').filter((i, e) => $(e).text() == id);
+			let value_cell = $('#properties td[key=value]').filter((i, e) => $(e).text() == id);
+			if (ref_cell.length) {
+				title_stroke = 'yellow';
+				let index = ref_cell.parents('td[key]').attr('key');
+				if (index) {
+					title = index + '. ' + title;
+				}
+			} else if (value_cell.length) {
+				title_stroke = 'cyan';
+			}
 			if (title) {
 				style = [style, new ol.style.Style({
 					'text': new ol.style.Text({
@@ -174,7 +187,7 @@ $hulop.editor = function () {
 							'color': 'black'
 						}),
 						'stroke': new ol.style.Stroke({
-							'color': 'white',
+							'color': title_stroke,
 							'width': 3
 						})
 					})
@@ -366,6 +379,7 @@ $hulop.editor = function () {
 					} else {
 						$('#properties').empty();
 					}
+					$hulop.map.refresh();
 				}
 				showTourList();
 				exportData();
@@ -411,6 +425,7 @@ $hulop.editor = function () {
 		if (feature) {
 			showDestinationTable(feature);
 		}
+		$hulop.map.refresh();
 	}
 
 	function showDestinationTable(feature) {
@@ -488,6 +503,7 @@ $hulop.editor = function () {
 					}
 					td.attr('modified', true);
 					setWaitingDestinationTitle();
+					$hulop.map.refresh();
 					return true;
 				}
 			}
@@ -738,6 +754,7 @@ $hulop.editor = function () {
 				}
 				td.attr('modified', true);
 				td.parent().parent().find('td[key=#ref]').text((dest && dest.label) || '').attr('modified', true);
+				$hulop.map.refresh();
 				return true;
 			}
 		}
@@ -758,6 +775,7 @@ $hulop.editor = function () {
 			$(e.target).parents('#properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
 			showFeature($('.destination_selected td[key=ref]').text());
 		});
+		$hulop.map.refresh();
 	}
 
 	function showFeature(node_id) {
