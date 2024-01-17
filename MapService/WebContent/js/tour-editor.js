@@ -319,6 +319,7 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					showTourProperty(tour);
+					showFeature(tour.destinations && tour.destinations[0] && tour.destinations[0].ref);
 				}
 			}).append($('<td>', {
 				'text': getLabel(tour)
