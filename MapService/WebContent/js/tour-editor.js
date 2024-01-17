@@ -171,7 +171,7 @@ $hulop.editor = function () {
 				title_stroke = 'yellow';
 				let index = ref_cell.parents('td[key]').attr('key');
 				if (index) {
-					title = index + '. ' + title;
+					title = (ref_cell.length == 1 ? Number(index) + 1 : '*') + '. ' + title;
 				}
 			} else if (value_cell.length) {
 				title_stroke = 'cyan';
@@ -637,8 +637,14 @@ $hulop.editor = function () {
 						'text': value[key]
 					});
 				}
+				let label = key;
+				if (/^destinations\.\d+\.(#ref)$/.test(name_key)) {
+					label = 'ref';
+				} else if (/^destinations\.\d+$/.test(name_key)) {
+					label = Number(key) + 1;
+				}
 				let cols = [$('<td>', {
-					'text': /^destinations\.\d+\.(#ref)$/.test(name_key) ? 'ref' : key
+					'text': label
 				}), td.attr('key', key)];
 				let row = $('<tr>', {
 					'class': editable ? 'editable' : 'read_only'
