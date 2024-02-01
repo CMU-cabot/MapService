@@ -27,7 +27,7 @@ $hulop.editor = function () {
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
 	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'arrivalAngle', 'content', 'subtour', 'waitingDestination', '#waitingDestination', 'waitingDestinationAngle'];
-	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags'];
+	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags', 'building'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
 
 	function init(cb) {
