@@ -138,6 +138,8 @@ table table td[contenteditable=true] {
 			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a>
 			<a href="javascript:void(0)" id="upload_link">upload</a>
 			<input type="file" accept=".json" id="upload_file" style="display: none;">
+			|
+			<a href="./editor.jsp">Editor</a>
 		</div>
 	</div>
 	<div class="left row1 scroll">

@@ -49,7 +49,11 @@
 <body>
 	<div class="left row1 scroll">
 		<div id="help" class="inner">
-			<%=user%> <a href="editor.jsp?logout=true">Log out</a> | <a href="edit_password.jsp?redirect_url=editor.jsp">Change password</a>
+			<%=user%> <a href="editor.jsp?logout=true">Log out</a>
+			|
+			<a href="edit_password.jsp?redirect_url=editor.jsp">Change password</a>
+			|
+			<a href="./tour-editor.jsp">Tour Editor</a>
 			<fieldset>
 				<legend>(i18n_LOAD_DATA)</legend>
 				(i18n_MOVE_POINTER)
