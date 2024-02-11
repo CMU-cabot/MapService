@@ -26,7 +26,18 @@ $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
-	const DESTINATION_KEYS = ['floor', 'value', 'startMessage', 'arrivalMessages', 'arrivalAngle', 'content', 'subtour', 'waitingDestination', '#waitingDestination', 'waitingDestinationAngle'];
+	const DESTINATION_KEYS = [
+		'floor',
+		'value',
+		'startMessage',
+		'arrivalMessages',
+		'arrivalAngle',
+		'content',
+		'subtour',
+		'waitingDestination',
+		'#waitingDestination',
+		'waitingDestinationAngle'
+	];
 	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags', 'building'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
 
@@ -272,13 +283,32 @@ $hulop.editor = function () {
 		return heights;
 	}
 
-	function showDestinationList() {
+	function showDestinationList(floorFilter = null) {
+		$('#list').empty();
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
-		items.sort((a, b) => {
+
+		// show floor option
+		let allFloors = {};
+		items.forEach((dest) => { allFloors[dest.floor] = true; });
+		let floors = Object.keys(allFloors).sort();
+		$("<span>Floor: </span>").appendTo($("#list"));
+		let floorSelect = $('<select>', {
+			'change': (e) => {
+				showDestinationList(e.target.selectedOptions[0].label);
+			}
+		}).appendTo($("#list"));
+		floorSelect.append($("<option>", { 'text': "All" }));
+		floors.forEach((floor) => {
+			$("<option>", { 'text': floor }).appendTo(floorSelect);
+		});
+		floorSelect.val(floorFilter ? floorFilter : "All");
+
+		items = items.filter(item => {
+			return floorFilter == null || floorFilter == "All" || item.floor == floorFilter;
+		}).sort((a, b) => {
 			let rc = a.floor - b.floor;
 			return rc != 0 ? rc : a.label.localeCompare(b.label);
 		});
-		$('#list').empty();
 		let table = $('<table>').appendTo($('#list'));
 		$('<caption>', {
 			'text': 'Destinations'
