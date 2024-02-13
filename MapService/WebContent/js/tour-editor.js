@@ -583,7 +583,7 @@ $hulop.editor = function () {
 			} else if (value == 'true') {
 				value = true;
 			} else if (value == 'false') {
-				vale = false;
+				value = false;
 			} else {
 				console.error('invalid boolean', value)
 				return;
