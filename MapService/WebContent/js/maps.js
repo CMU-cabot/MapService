@@ -1601,6 +1601,20 @@ $hulop.map = function() {
 		}
 	}
 
+	function animate(center, duration=1000) {
+		lastCenter = center
+		animating = true;
+		map.getView().animate({
+			'center' : ol.proj.transform(center, 'EPSG:4326', 'EPSG:3857'),
+			'duration' : duration
+		}, function(completed) {
+			animating = false;
+			setTimeout(function() {
+				lastCenter && setCenter(lastCenter);
+			});
+		});
+	}
+
 	function devMode() {
 		return !$hulop.mobile || $hulop.mobile.getPreference('developer_mode');
 	}
@@ -1722,6 +1736,7 @@ $hulop.map = function() {
 		'doSearch' : doSearch,
 		'getPoiInfo' : getPoiInfo,
 		'setCenter' : setCenter,
+		'animate': animate,
 		'getCenter' : getCenter,
 		'setRotation' : setRotation,
 		'updateCenterOrientation' : updateCenterOrientation

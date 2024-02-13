@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="css/ol3.css">
 <link rel="stylesheet" href="openlayers/v4.6.5/ol.css">
 <link rel="stylesheet" href="jquery/jquery.mobile-1.4.5.min.css"/>
+<link rel="stylesheet" href="js/lib/fontawesome-free-6.5.1-web/css/all.min.css">
 <script type="text/javascript" src="jquery/jquery-1.11.3.min.js"></script>
 <script type="text/javascript" src="js/messages.js"></script>
 <script src="openlayers/v4.6.5/ol.js"></script>
@@ -44,8 +45,9 @@
 :root {
 	--left: 500px;
 	--r0: 2em;
-	--r1: 25%;
+	--r1: 10em;
 	--r2: 25%;
+	--r3: 25%;
 	--gap: 10px;
 }
 .left {
@@ -65,8 +67,12 @@
 	height: var(--r2);
 	margin-bottom: var(--gap);
 }
+.row3 {
+	height: var(--r3);
+	margin-bottom: var(--gap);
+}
 .bottom {
-	top: calc(var(--r0) + var(--r1) + var(--r2) + var(--gap) * 2);
+	top: calc(var(--r0) + var(--r1) + var(--r2) + var(--r3) + var(--gap) * 2);
 }
 #tour_list table th {
 	background-color: lightpink;
@@ -96,10 +102,10 @@ table table tr {
 table table td[contenteditable=true] {
 	background-color: #fff;
 }
-#properties table.destination th {
+#dest_properties table.destination th {
 	background-color: lightskyblue;
 }
-#properties table.tour th {
+#tour_properties table.tour th {
 	background-color: lightpink;
 }
 #menu {
@@ -128,6 +134,11 @@ table table td[contenteditable=true] {
 .destination_selected {
 	font-weight: bold;
 }
+
+.disabled-icon {
+    opacity: 0.25; /* Half opacity */
+    cursor: default !important;
+}
 </style>
 <title>Tour Editor</title>
 </head>
@@ -148,8 +159,11 @@ table table td[contenteditable=true] {
 	<div class="left row2 scroll">
 		<div id="tour_list" class="inner"></div>
 	</div>
+	<div class="left row3 scroll">
+		<div id="tour_properties" class="inner"></div>
+	</div>
 	<div class="left bottom scroll">
-		<div id="properties" class="inner"></div>
+		<div id="dest_properties" class="inner"></div>
 	</div>
 	<div id="map" class="ui-page-theme-a"></div>
 </body>
