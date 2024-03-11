@@ -1184,6 +1184,39 @@ $hulop.editor = function() {
 		}
 	}
 
+	function getSectorIcon(heading, angle, size=20, color=["#00cc00", "#006600", "#CC00CC", "#660066"]) {
+		isNaN(angle) && (angle = 180);
+		var fill = color[0], stroke = color[1];
+		if (heading < -180 || heading > 180 || angle < 0 || angle > 180) {
+			fill = color[2];
+			stroke = color[3];
+		}
+		var path = `M ${size} ${size*1.08} L ${size} ${size} `;
+		var ssize = Math.min(size, size * 0.6 * Math.sqrt(180 / angle));
+		for (var i = -angle; i < angle + 10; i += 10) {
+			i = Math.min(i, angle);
+			var r = i / 180 * Math.PI;
+			var x = size + Math.sin(r) * ssize;
+			var y = size - Math.cos(r) * ssize;
+			path += 'L ' + x + ' ' + y + ' ';
+		}
+		path += `L ${size} ${size} z`;
+
+		var src = 'data:image/svg+xml,' + escape('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="40px" height="40px">'
+				+ '<path stroke="' + stroke + '" stroke-width="2" stroke-opacity="0.75" fill="' + fill + '" fill-opacity="0.75" d="' + path + '"/></svg>');
+
+		style = new ol.style.Icon({
+				'src' : src,
+				'rotation' : heading * Math.PI / 180.0,
+				'rotateWithView' : true,
+				'anchor' : [ 0.5, 0.5 ],
+				'anchorXUnits' : 'fraction',
+				'anchorYUnits' : 'fraction',
+				'imgSize' : [ size*2, size*2 ]
+			});
+		return style;
+	}
+
 	function getStyle(feature) {
 		var floor = getFloor();
 		if ($hulop.area.getId(feature)) {
@@ -1248,6 +1281,31 @@ $hulop.editor = function() {
 				})];
 				var dir = feature.get('direction');
 
+				var geometry = feature.getGeometry();
+				// indicates link-node connection
+				geometry.forEachSegment(function (start, end) {
+					var dx = end[0] - start[0];
+					var dy = end[1] - start[1];
+					function normalizeDegree(d) {
+						while (d < -180) { d += 360; }
+						while (180 < d) { d -= 360; }
+						return d;
+					}
+					var rotation = normalizeDegree(90 - Math.atan2(dy, dx) / Math.PI * 180);
+					var rotation2 = normalizeDegree(270 - Math.atan2(dy, dx) / Math.PI * 180);
+					var angle = 30;
+					var size = 14;
+					var color = odd ? ["#0000ff", "#000066", "#0000ff", "#000066",] : ["#ff0000", "#660000", "#ff0000", "#660000"];
+					style.push(new ol.style.Style({
+						geometry: new ol.geom.Point(start),
+						image: getSectorIcon(rotation, angle, size, color)
+					}));
+					style.push(new ol.style.Style({
+						geometry: new ol.geom.Point(end),
+						image: getSectorIcon(rotation2, angle, size, color)
+					}));
+				});
+
 				if (dir == 2 || dir == 3) {
 				var geometry = feature.getGeometry();
 				  geometry.forEachSegment(function(start, end) {
@@ -1286,36 +1344,9 @@ $hulop.editor = function() {
 		} else if (feature.get('hulop_major_category') == '_nav_poi_') {
 			var heading = feature.get('hulop_heading') || 0;
 			var angle = feature.get('hulop_angle');
-			isNaN(angle) && (angle = 180);
-			var fill = "#00CC00", stroke = "#006600";
-			if (heading < -180 || heading > 180 || angle < 0 || angle > 180) {
-				fill = "#CC00CC";
-				stroke = "#660066";
-			}
-			var path = 'M 20 21.6 L 20 20 ';
-			var size = Math.min(20, 12 * Math.sqrt(180 / angle));
-			for (var i = -angle; i < angle + 10; i += 10) {
-				i = Math.min(i, angle);
-				var r = i / 180 * Math.PI;
-				var x = 20 + Math.sin(r) * size;
-				var y = 20 - Math.cos(r) * size;
-				path += 'L ' + x + ' ' + y + ' ';
-			}
-			path += 'L 20 20 z';
-
-			var src = 'data:image/svg+xml,' + escape('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="40px" height="40px">'
-					+ '<path stroke="' + stroke + '" stroke-width="2" stroke-opacity="0.75" fill="' + fill + '" fill-opacity="0.75" d="' + path + '"/></svg>');
 
 			style = new ol.style.Style({
-				'image' : new ol.style.Icon({
-					'src' : src,
-					'rotation' : heading * Math.PI / 180.0,
-					'rotateWithView' : true,
-					'anchor' : [ 0.5, 0.5 ],
-					'anchorXUnits' : 'fraction',
-					'anchorYUnits' : 'fraction',
-					'imgSize' : [ 40, 40 ]
-				}),
+				'image' : getSectorIcon(heading, angle),
 				'zIndex' : -1
 			});
 		} else if (feature.get('facil_id')) {
