@@ -46,6 +46,7 @@ $ find . -name README.md
 - [Google Gson version 2.7](https://github.com/google/gson) (Apache License v2.0)
 - [OpenLayers version 4.6.5](https://openlayers.org/) (BSD License)
 - [IBM Cloud Object Storage Java SDK version 2.0.0](https://github.com/ibm/ibm-cos-sdk-java) (Apache License v2.0)
+- [FontAwesome version 6.5.1](https://fontawesome.com/) (CC BY 4.0 License, SIL OFL 1.1 License, MIT License)
 
 ## Setup
 [SETUP.md](SETUP.md)

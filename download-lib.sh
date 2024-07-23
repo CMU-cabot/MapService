@@ -25,5 +25,8 @@ unzip -o 1.10.10.zip -x "DataTables-1.10.10/examples/**" && rm 1.10.10.zip
 curl -L -O https://github.com/evanplaice/jquery-csv/archive/v0.8.9.zip
 unzip -o v0.8.9.zip jquery-csv-0.8.9/src/* && rm v0.8.9.zip
 
+curl -L -O https://use.fontawesome.com/releases/v6.5.1/fontawesome-free-6.5.1-web.zip
+unzip -o fontawesome-free-6.5.1-web.zip && rm fontawesome-free-6.5.1-web.zip
+
 cd $pwd
 
