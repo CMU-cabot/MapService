@@ -366,14 +366,14 @@ $hulop.editor = function () {
 			function addIcon($element, className) {
 				let count = $element.find("i").length
 				let $icon = $('<i>')
-				    .addClass("fas")
-				    .addClass(className)
-				    .css('position', 'absolute')
-				    .css('right', (count*20+5)+'px')
-				    .css('top', '50%')
-				    .css('transform', 'translateY(-50%)')
-				    .css('cursor', 'pointer')
-				    .appendTo($element);
+					.addClass("fas")
+					.addClass(className)
+					.css('position', 'absolute')
+					.css('right', (count * 20 + 5) + 'px')
+					.css('top', '50%')
+					.css('transform', 'translateY(-50%)')
+					.css('cursor', 'pointer')
+					.appendTo($element);
 				return $icon;
 			}
 			$element = $(event.target);
@@ -396,12 +396,12 @@ $hulop.editor = function () {
 							}
 						})(index));
 					addIcon($element, 'fa-arrow-down')
-						.addClass((tag == 'TH' || index == length-1) ? 'disabled-icon' : null)
+						.addClass((tag == 'TH' || index == length - 1) ? 'disabled-icon' : null)
 						.prop('title', 'Down the tour')
 						.on('click', ((index) => {
 							return (event) => {
 								let removed = lastData.tours.splice(index, 1)[0];
-								lastData.tours.splice(index+1, 0, removed);
+								lastData.tours.splice(index + 1, 0, removed);
 								$('#tour_properties').empty();
 								$hulop.map.refresh();
 								showTourList();
@@ -414,7 +414,7 @@ $hulop.editor = function () {
 						.on('click', ((index) => {
 							return (event) => {
 								let removed = lastData.tours.splice(index, 1)[0];
-								lastData.tours.splice(index-1, 0, removed);
+								lastData.tours.splice(index - 1, 0, removed);
 								$('#tour_properties').empty();
 								$hulop.map.refresh();
 								showTourList();
@@ -536,7 +536,7 @@ $hulop.editor = function () {
 	let onNodeClick = null;
 	let showingFeature = null;
 
-	function showProperty(feature, skip_clear_event=false) {
+	function showProperty(feature, skip_clear_event = false) {
 		if (!skip_clear_event) {
 			if (onNodeClick && onNodeClick(feature)) return;
 			onNodeClick = null;
@@ -555,8 +555,8 @@ $hulop.editor = function () {
 
 	function destinationSelected(node_id) {
 		$('#list .destination_selected').removeClass("destination_selected")
-		$('#list td[node_id='+node_id+']')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-		$('#list td[node_id='+node_id+']').addClass("destination_selected")
+		$('#list td[node_id=' + node_id + ']')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+		$('#list td[node_id=' + node_id + ']').addClass("destination_selected")
 	}
 
 	function showDestinationTable(feature) {
@@ -820,14 +820,14 @@ $hulop.editor = function () {
 						function addIcon($element, className) {
 							let count = $element.find("i").length
 							let $icon = $('<i>')
-							    .addClass("fas")
-							    .addClass(className)
-							    .css('position', 'absolute')
-							    .css('right', (count*20+5)+'px')
-							    .css('top', '50%')
-							    .css('transform', 'translateY(-50%)')
-							    .css('cursor', 'pointer')
-							    .appendTo($element);
+								.addClass("fas")
+								.addClass(className)
+								.css('position', 'absolute')
+								.css('right', (count * 20 + 5) + 'px')
+								.css('top', '50%')
+								.css('transform', 'translateY(-50%)')
+								.css('cursor', 'pointer')
+								.appendTo($element);
 							return $icon;
 						}
 						$element = $(event.target);
@@ -850,12 +850,12 @@ $hulop.editor = function () {
 										}
 									})(index));
 								addIcon($element, 'fa-arrow-down')
-									.addClass((index == length-1) ? 'disabled-icon' : null)
+									.addClass((index == length - 1) ? 'disabled-icon' : null)
 									.prop('title', 'Down the tour')
 									.on('click', ((index) => {
 										return (event) => {
 											let removed = tour[name].splice(index, 1)[0];
-											tour[name].splice(index+1, 0, removed);
+											tour[name].splice(index + 1, 0, removed);
 											$('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
@@ -868,7 +868,7 @@ $hulop.editor = function () {
 									.on('click', ((index) => {
 										return (event) => {
 											let removed = tour[name].splice(index, 1)[0];
-											tour[name].splice(index-1, 0, removed);
+											tour[name].splice(index - 1, 0, removed);
 											$('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
