@@ -27,7 +27,7 @@ CMU-Cabotのナビゲーションシステムでは、POIはユーザーが特�
 ![](geojson-visual.png)
 
 サンプルのGeoJSONデータは以下のリンクから確認できます
-[MapData-sample.geojson](https://github.com/CMU-cabot/MapService/blob/master/SampleMap/MapData-sample.geojson)
+[MapData-sample.geojson](MapData-sample.geojson)
 
 一番下にあるPOIは以下のように定義される。
 
@@ -102,7 +102,7 @@ lang: ja
 
 #### レスポンス例
 
-別添資料「route-sample.json」に示す。
+[route-sample.json](route-sample.json)に示す。
 
 ##landmarks アクション
 指定された緯度と経度の距離内のランドマークを取得します。
