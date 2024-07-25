@@ -143,6 +143,7 @@ table table td[contenteditable=true] {
 
 #message-edit {
 	display: none;
+	z-index: 1;
 	position: fixed;
 	background-color: #0004;
 	left: 0;
