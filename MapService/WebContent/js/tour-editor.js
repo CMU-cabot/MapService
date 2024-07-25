@@ -641,6 +641,11 @@ $hulop.editor = function () {
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
+			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'Open Message Editor' }).css('width', '100%').on('click', event => {
+				MessageEditor(dest.messages, messages => {
+					console.log(messages);
+				});
+			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
 
 			$('#dest_properties tr td[key=#waitingDestination]').parent().on('click', e => {

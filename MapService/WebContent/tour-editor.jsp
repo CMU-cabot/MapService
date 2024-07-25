@@ -34,6 +34,7 @@
 <script type="text/javascript" src="js/FloorPlanOverlay.js"></script>
 <script type="text/javascript" src="js/indoor.js"></script>
 <script type="text/javascript" src="js/tour-editor.js"></script>
+<script type="text/javascript" src="js/tour-message-editor.js"></script>
 <script type="text/javascript" src="js/login-monitor.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
@@ -139,6 +140,44 @@ table table td[contenteditable=true] {
     opacity: 0.25; /* Half opacity */
     cursor: default !important;
 }
+
+#message-edit {
+	display: none;
+	position: fixed;
+	background-color: #0004;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+#message-form {
+	position: fixed;
+	overflow: auto;
+	background-color: #FFF;
+	font-size: 9pt;
+	left: 100px;
+	top: 20px;
+	right: 20px;
+	bottom: 20px;
+	padding: 10px;
+	border: 1px solid;
+	box-shadow: 5px 5px 5px;
+}
+
+.message {
+	margin-bottom: 2em;
+}
+
+.message input {
+	width: 100%;
+	box-sizing: border-box;
+	border: none;
+}
+
+table.message th {
+	background-color: lightskyblue;
+}
 </style>
 <title>Tour Editor</title>
 </head>
@@ -166,5 +205,20 @@ table table td[contenteditable=true] {
 		<div id="dest_properties" class="inner"></div>
 	</div>
 	<div id="map" class="ui-page-theme-a"></div>
+	<div id="message-edit">
+		<div id="message-form">
+			<h2 id="messages_title">Message Editor</h2>
+			<datalist id="message_types">
+				<option value="summary">summary</option>
+				<option value="startMessage">startMessage</option>
+				<option value="arriveMessage">arriveMessage</option>
+			</datalist>
+			<div id="messages"></div>
+			<div>
+				<button id="save_messages">OK</button>
+				<button id="cancel_messages">Cancel</button>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
