@@ -104,7 +104,7 @@ lang: ja
 
 [route-sample.json](route-sample.json)に示す。
 
-##landmarks アクション
+## landmarks アクション
 指定された緯度と経度の距離内のランドマークを取得します。
 
 #### リクエスト例
