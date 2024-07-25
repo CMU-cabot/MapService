@@ -1,9 +1,7 @@
 # Point of Interest (POI)の定義
-
 POIは、特定の場所や地点に関する情報を示すもので、AIスーツケースにおいてユーザーが目的地や重要な地点を識別するために使用されます。CMU-CabotのMapServiceでは、POIはGeoJSON形式で定義されています。
 
 ### GeoJSON形式のPOI
-
 GeoJSONは、地理空間データを表現するためのフォーマットで、JSON（JavaScript Object Notation）を基にしています。POIをGeoJSONで定義する際には、以下のような構造を持ちます。
 
 ```
@@ -22,14 +20,11 @@ GeoJSONは、地理空間データを表現するためのフォーマットで�
 ```
 
 ### CMU-CabotでのPOIの使用方法
-CMU-Cabotのナビゲーションシステムでは、POIはユーザーが特定の場所に移動する際の目的地として使用されます。以下はGeoJSON形式のPOIのビジュアル表現例です。![](figure1.png)このマークがPOI。
-
-![](geojson-visual.png)
-
-サンプルのGeoJSONデータは以下のリンクから確認できます
+CMU-Cabotのナビゲーションシステムでは、POIはユーザーが特定の場所に移動する際の目的地として使用されます。
+サンプルのGeoJSONデータは以下のリンクから確認できます。ヴィジュアルとコードの切り替えも可能です。この中で![](figure1.png)このマークがPOIです。
 [MapData-sample.geojson](MapData-sample.geojson)
 
-一番下にあるPOIは以下のように定義される。
+一番下にあるPOIは以下のように定義されます。
 
 ```
 {
@@ -101,7 +96,6 @@ lang: ja
 - `lang`: 言語設定（例：`ja`）。
 
 #### レスポンス例
-
 [route-sample.json](route-sample.json)に示す。
 
 ## landmarks アクション
@@ -126,6 +120,7 @@ lang: ja
 - `lang`: 言語設定（例：`ja`）。
 
 #### レスポンス例
+??????
 
 
 
