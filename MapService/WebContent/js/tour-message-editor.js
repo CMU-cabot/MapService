@@ -33,22 +33,21 @@ function MessageEditor(initial_messages = [], callback) {
         add_row('text:ja');
         add_row('text:ja-pron');
         thead.find('th:last').hover(event => {
-            $element = $(event.target);
-            $('#message-edit i').remove();
+            title = $(event.target);
+            $('#messages i').remove();
             parent_table = $(event.target).parents('table');
             let index = $('#messages table').index(parent_table);
             let length = $('#messages table').length;
-            console.log(`${index}/${length}`);
             if (event.type == 'mouseenter') {
-                $element.css('position', 'relative');
-                addIcon($element, 'fa-minus')
+                title.css('position', 'relative');
+                addIcon(title, 'fa-minus')
                     .prop('title', 'Remove the message')
                     .on('click', ((index) => {
                         return (event) => {
                             $(event.target).parents('table').remove();
                         }
                     })(index));
-                addIcon($element, 'fa-arrow-down')
+                addIcon(title, 'fa-arrow-down')
                     .addClass(index == length - 1 ? 'disabled-icon' : null)
                     .prop('title', 'Down the message')
                     .on('click', ((index) => {
@@ -56,7 +55,7 @@ function MessageEditor(initial_messages = [], callback) {
                             $('#messages table')[index + 1].after($('#messages table')[index])
                         }
                     })(index));
-                addIcon($element, 'fa-arrow-up')
+                addIcon(title, 'fa-arrow-up')
                     .addClass(index == 0 ? 'disabled-icon' : null)
                     .prop('title', 'Up the message')
                     .on('click', ((index) => {
@@ -95,20 +94,14 @@ function MessageEditor(initial_messages = [], callback) {
     }
 
     $('#messages').empty();
-    $('#messages_title').hover(event => {
-        $element = $(event.target);
-        $('#message-edit i').remove();
-        if (event.type == 'mouseenter') {
-            $element.css('position', 'relative');
-            addIcon($element, 'fa-plus')
-                .prop('title', 'Add a message')
-                .on('click', (() => {
-                    return (event) => {
-                        add_message();
-                    }
-                })());
-        }
-    });
+    $('#message-edit i').remove();
+    addIcon($('#messages_title').css('position', 'relative'), 'fa-plus')
+        .prop('title', 'Add a message')
+        .on('click', (() => {
+            return (event) => {
+                add_message();
+            }
+        })());
     initial_messages.forEach(message => {
         add_message(message);
     });
