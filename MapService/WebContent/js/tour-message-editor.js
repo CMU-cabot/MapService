@@ -107,10 +107,14 @@ function MessageEditor(initial_messages = [], callback) {
         let messages = [];
         $('#messages table').each((i, e) => {
             let message = {};
-            messages.push(message);
             $(e).find('input').each((i, e) => {
-                message[e.name] = e.value;
+                if (e.value != '') {
+                    message[e.name] = e.value;
+                }
             });
+            if (Object.keys(message).length > 0) {
+                messages.push(message);
+            }
         });
         return messages;
     }

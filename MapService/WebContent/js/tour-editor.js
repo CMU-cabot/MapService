@@ -29,8 +29,8 @@ $hulop.editor = function () {
 	const DESTINATION_KEYS = [
 		'floor',
 		'value',
-		'startMessage',
-		'arrivalMessages',
+		// 'startMessage',
+		// 'arrivalMessages',
 		'arrivalAngle',
 		'content',
 		'subtour',
@@ -633,8 +633,8 @@ $hulop.editor = function () {
 			CATEGORY_KEYS.forEach(key => {
 				add(key);
 			});
-			add('startMessage', { editable: true });
-			add('arrivalMessages', { editable: true });
+			// add('startMessage', { editable: true });
+			// add('arrivalMessages', { editable: true });
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
@@ -643,7 +643,8 @@ $hulop.editor = function () {
 			add('subtour', { editable: true });
 			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'Open Message Editor' }).css('width', '100%').on('click', event => {
 				MessageEditor(dest.messages, messages => {
-					console.log(messages);
+					dest.messages = messages;
+					exportData();
 				});
 			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
@@ -1125,6 +1126,14 @@ $hulop.editor = function () {
 					delete dest['#waitingDestination'];
 				}
 			});
+			// Copy messages into destination
+			(data.messages || []).forEach(message => {
+				let destination = 'parent' in message && lastData.destinations[message.parent];
+				if (destination) {
+					destination.messages = destination.messages || [];
+					destination.messages.push(message);
+				}
+			});
 			lastData.tours = (data && data.tours) || [];
 			callback();
 		});
@@ -1154,6 +1163,7 @@ $hulop.editor = function () {
 		console.log(lastData);
 		let data = {};
 		let destinations = data.destinations = [];
+		let messages = data.messages = [];
 		Object.keys(lastData.destinations).forEach(node_id => {
 			let from = lastData.destinations[node_id];
 			let to = {};
@@ -1161,6 +1171,11 @@ $hulop.editor = function () {
 				to[key] = from[key];
 			});
 			to = clean(to);
+			// Extract messages from destination
+			(from.messages || []).forEach(message => {
+				message.parent = from.value;
+				messages.push(message);
+			});
 			console.log([from, to]);
 			if (Object.keys(to).length > 2) {
 				to['#title'] = getLabel(from);
