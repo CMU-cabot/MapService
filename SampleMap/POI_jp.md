@@ -51,10 +51,10 @@ AIスーツケースのナビゲーションシステムでは、POIはユーザ
 ```
 
 # API 
+以下のAPIをハンドルしているのは[RouteSearchServlet](MapService/src/hulop/hokoukukan/servlet/RouteSearchServlet.java)。
 
 ## search アクション
 ユーザーが提供したfromおよびtoパラメータを使用してルート検索を行います。
-
 
 #### リクエスト例
 ```
