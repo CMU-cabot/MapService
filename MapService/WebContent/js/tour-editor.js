@@ -642,7 +642,7 @@ $hulop.editor = function () {
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
 			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'Open Message Editor' }).css('width', '100%').on('click', event => {
-				MessageEditor(dest.messages, messages => {
+				MessageEditor.open(dest.messages, messages => {
 					dest.messages = messages;
 					exportData();
 				});

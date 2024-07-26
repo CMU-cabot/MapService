@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-function MessageEditor(initial_messages = [], callback) {
+let MessageEditor = (function () {
 
     function add_message(message = {}) {
         let table = $('<table>', { 'class': 'message' }).appendTo($('#messages'));
@@ -119,24 +119,37 @@ function MessageEditor(initial_messages = [], callback) {
         return messages;
     }
 
-    $('#messages').empty();
-    $('#message-edit i').remove();
-    addIcon($('#messages_title').css('position', 'relative'), 'fa-plus')
-        .prop('title', 'Add a message')
-        .on('click', (() => {
-            return (event) => {
-                add_message();
-            }
-        })());
-    initial_messages.forEach(message => {
-        add_message(message);
-    });
-    $('#message-edit').show();
-    $('#save_messages').on('click', event => {
+    function open(initial_messages = [], callback = console.log) {
+        $('#messages').empty();
+        $('#message-edit i').remove();
+        addIcon($('#messages_title').css('position', 'relative'), 'fa-plus')
+            .prop('title', 'Add a message')
+            .on('click', (() => {
+                return (event) => {
+                    add_message();
+                }
+            })());
+        initial_messages.forEach(message => {
+            add_message(message);
+        });
+        $('#save_messages').on('click', event => {
+            close();
+            callback(get_messages());
+        });
+        $('#cancel_messages').on('click', event => {
+            close();
+        });
+        $('#message-edit').show();
+    }
+
+    function close() {
         $('#message-edit').hide();
-        callback(get_messages());
-    });
-    $('#cancel_messages').on('click', event => {
-        $('#message-edit').hide();
-    });
-}
+        $('#save_messages').off('click');
+        $('#cancel_messages').off('click');
+    }
+
+    return {
+        'open': open,
+        'close': close
+    }
+})();
