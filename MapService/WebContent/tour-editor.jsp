@@ -170,10 +170,15 @@ table table td[contenteditable=true] {
 	margin-bottom: 2em;
 }
 
-.message input {
+.message input, .message textarea {
 	width: 100%;
 	box-sizing: border-box;
 	border: none;
+}
+
+.message textarea {
+  resize: none;
+  overflow: hidden;
 }
 
 table.message th {

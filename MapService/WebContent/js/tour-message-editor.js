@@ -32,14 +32,22 @@ let MessageEditor = (function () {
             'text': 'Value'
         })).appendTo(thead);
         function add_row(key, type = 'text', list) {
-            let input_field = $('<input>', {
-                'type': type,
-                'name': key,
-                'value': message[key] || ''
-            });
-            if (list) {
-                input_field.attr('list', list);
+            let input_field;
+            if (type == 'textarea') {
+                input_field = $('<textarea>').on('input', event => {
+                    let e = $(event.target);
+                    e.css('height', '5px');
+                    e.css('height', e.prop('scrollHeight'));
+                });
+                setTimeout(() => input_field.css('height', input_field.prop('scrollHeight')));
+            } else {
+                input_field = $('<input>', { 'type': type });
+                if (list) {
+                    input_field.attr('list', list);
+                }
             }
+            input_field.attr('name', key);
+            input_field.val(message[key] || '');
             $('<tr>').append($('<td>', {
                 'text': key
             }), $('<td>').append(input_field)).appendTo(tbody);
@@ -51,9 +59,9 @@ let MessageEditor = (function () {
         add_row('timeUntil', 'time');
         add_row('dateFrom', 'date');
         add_row('dateUntil', 'date');
-        add_row('text:en');
-        add_row('text:ja');
-        add_row('text:ja-pron');
+        add_row('text:en', 'textarea');
+        add_row('text:ja', 'textarea');
+        add_row('text:ja-pron', 'textarea');
         thead.find('th:last').hover(event => {
             title = $(event.target);
             $('#messages i').remove();
@@ -107,9 +115,10 @@ let MessageEditor = (function () {
         let messages = [];
         $('#messages table').each((i, e) => {
             let message = {};
-            $(e).find('input').each((i, e) => {
-                if (e.value != '') {
-                    message[e.name] = e.value;
+            $(e).find('input,textarea').each((i, e) => {
+                let value = $(e).val();
+                if (value != '') {
+                    message[e.name] = value;
                 }
             });
             if (Object.keys(message).length > 0) {
