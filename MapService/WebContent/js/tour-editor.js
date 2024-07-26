@@ -1127,7 +1127,7 @@ $hulop.editor = function () {
 				}
 			});
 			// Copy messages into destination
-			(data.messages || []).forEach(message => {
+			(data && data.messages || []).forEach(message => {
 				let destination = 'parent' in message && lastData.destinations[message.parent];
 				if (destination) {
 					destination.messages = destination.messages || [];
