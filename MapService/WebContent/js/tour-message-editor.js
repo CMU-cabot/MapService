@@ -164,6 +164,12 @@ let MessageEditor = (function () {
         });
     });
 
+    $(document).on('keyup', event => {
+        if (event.keyCode == 27) {
+            close();
+        }
+    });
+
     return {
         'open': open,
         'close': close
