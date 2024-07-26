@@ -120,4 +120,5 @@ lang: ja
 - `lang`: 言語設定（例：`ja`）。
 
 #### レスポンス例
-??????
+
+[route-sample.json](route-sample.json)に示す。
