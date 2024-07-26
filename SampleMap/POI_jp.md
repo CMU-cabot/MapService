@@ -96,19 +96,21 @@ lang: ja
 - `user`: ユーザーID（例：`user_abc`）。
 - `lang`: 言語設定（例：`ja`）。
 
-#### レスポンス例
+#### レスポンス例 (日本科学未来館内ルート例)
 [route-sample.json](route-sample.json)に示す。
 
 ## landmarks アクション
 指定された緯度と経度の距離内のランドマークを取得します。
 
 #### リクエスト例
+routesearch?action=landmarks&user=test&lang=ja&lat=35.*****&lng=139.*****&dist=100
 ```json
 {
   "action": "landmarks",
-  "lat": 35.6895,
-  "lng": 139.6917,
-  "radius": 500,
+  "user": "test",
+  "lat": 35.*****,
+  "lng": 139.*****,
+  "dist": 100,
   "lang": "ja"
 }
 ```
@@ -117,9 +119,8 @@ lang: ja
 - `action`: 実行するアクション名（この場合は`landmarks`）。
 - `lat`: 緯度（例：35.6895）。
 - `lng`: 経度（例：139.6917）。
-- `radius`: 検索する半径（メートル単位、例：500）。
+- `dist`: 検索する半径（メートル単位、例：100）。
 - `lang`: 言語設定（例：`ja`）。
 
 #### レスポンス例
-
 [landmarks.json](landmarks.json)に示す。
