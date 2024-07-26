@@ -1230,6 +1230,7 @@ $hulop.editor = function () {
 		});
 	}
 
+	/* use icon instead of context menu
 	function createContextMenu(e, items, callback) {
 		if ($('#menu').size() == 0) {
 			let menu = $('<ul>', {
@@ -1252,6 +1253,7 @@ $hulop.editor = function () {
 			$('#menu').css('top', Math.min(e.pageY, $('body').height() - $('#menu').height()) + 'px');
 		}
 	}
+	*/
 
 	return {
 		'init': init
