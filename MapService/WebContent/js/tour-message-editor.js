@@ -157,6 +157,13 @@ let MessageEditor = (function () {
         $('#cancel_messages').off('click');
     }
 
+    $(window).resize(function () {
+        $('.message textarea').each((i, e) => {
+            $(e).css('height', '5px');
+            $(e).css('height', $(e).prop('scrollHeight'));
+        });
+    });
+
     return {
         'open': open,
         'close': close
