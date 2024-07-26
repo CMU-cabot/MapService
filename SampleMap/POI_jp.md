@@ -122,4 +122,4 @@ lang: ja
 
 #### レスポンス例
 
-[route-sample.json](route-sample.json)に示す。
+[landmarks.json](landmarks.json)に示す。
