@@ -1,0 +1,110 @@
+{
+    "last_updated": {
+        "_id": "last_updated",
+        "timestamp": {
+            "$numberLong": "168390*******"
+        }
+    },
+    "ja": [
+        {
+            "node": "EDITOR_node_*****",
+            "exit": "",
+            "node_height": 1,
+            "name": "一階受付",
+            "geometry": {
+                "coordinates": [
+                    139.0000000,
+                    35.0000000
+                ],
+                "type": "Point"
+            },
+            "node_coordinates": [
+                139.0000000,
+                35.0000000
+            ],
+            "category": "公共施設の情報",
+            "name_pron": "一階受付",
+            "properties": {
+                "名称:ja": "一階受付",
+                "file": "EDITOR",
+                "緯度経度桁数コード": "3",
+                "経度": "139.00.00.000",
+                "sub_category": "RECE",
+                "緯度": "35.00.00.000",
+                "名称": "",
+                "category": "公共施設の情報",
+                "major_category": "BUSINESS",
+                "施設ID": "EDITOR_poi_*****",
+                "building": "**"
+            },
+            "exit_pron": ""
+        },
+        {
+            "node": "EDITOR_node_*****",
+            "exit": "",
+            "node_height": 5,
+            "name": "コンビニ",
+            "geometry": {
+                "coordinates": [
+                    139.0000000,
+                    35.0000000
+                ],
+                "type": "Point"
+            },
+            "node_coordinates": [
+                139.0000000,
+                35.0000000
+            ],
+            "category": "公共施設の情報",
+            "name_pron": "コンビニ",
+            "properties": {
+                "緯度経度桁数コード": "3",
+                "sub_category": "STORE",
+                "名称": "",
+                "major_category": "SH_S",
+                "施設ID": "EDITOR_poi_*****",
+                "building": "**",
+                "tags": "Convenience store",
+                "名称:ja": "コンビニ",
+                "file": "EDITOR",
+                "経度": "139.00.00.000",
+                "名称:ja-Pron": "コンビニ",
+                "緯度": "35.00.00.000",
+                "category": "公共施設の情報"
+            },
+            "exit_pron": ""
+        },
+        {
+            "node": "EDITOR_node_*****",
+            "exit": "",
+            "node_height": 5,
+            "name": "",
+            "geometry": {
+                "coordinates": [
+                    139.0000000,
+                    35.0000000
+                ],
+                "type": "Point"
+            },
+            "node_coordinates": [
+                139.0000000,
+                35.0000000
+            ],
+            "category": "公共用トイレの情報",
+            "name_pron": "",
+            "properties": {
+                "file": "EDITOR",
+                "緯度経度桁数コード": "3",
+                "経度": "139.00.00.000",
+                "緯度": "35.00.00.000",
+                "有料無料の別": "1",
+                "多目的トイレ": "0",
+                "男女別": "2",
+                "category": "公共用トイレの情報",
+                "施設ID": "EDITOR_poi_*****",
+                "building": "**"
+            },
+            "exit_pron": ""
+        }
+    ]
+}
