@@ -331,6 +331,9 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
+					if (!keyState.altKey) {
+						$('#tour_properties .destination_selected').removeClass("destination_selected");
+					}
 					showProperty(item.node);
 				}
 			}).append($('<td>', {
