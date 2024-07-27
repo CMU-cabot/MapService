@@ -51,7 +51,7 @@ AIスーツケースのナビゲーションシステムでは、POIはユーザ
 ```
 
 # API 
-以下のAPIをハンドルしているのは[RouteSearchServlet](MapService/src/hulop/hokoukukan/servlet/RouteSearchServlet.java)。
+以下のAPIをハンドルしているのは[RouteSearchServlet.java](https://github.com/CMU-cabot/MapService/blob/cabot-hokoukukan_2018/MapService/src/hulop/hokoukukan/servlet/RouteSearchServlet.java)。
 
 ## search アクション
 ユーザーが提供したfromおよびtoパラメータを使用してルート検索を行います。
