@@ -82,6 +82,9 @@ $hulop.editor = function () {
 			if (feature === null) {
 				return;
 			}
+			if (!keyState.altKey) {
+				$('#tour_properties .destination_selected').removeClass("destination_selected");
+			}
 			showProperty(feature);
 		});
 
