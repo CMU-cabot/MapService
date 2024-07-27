@@ -854,9 +854,10 @@ $hulop.editor = function () {
 							$element.css('position', 'relative');
 							if (index != null) {
 								addIcon($element, 'fa-minus')
-									.prop('title', 'Remove the tour')
+									.prop('title', 'Remove the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
+											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											// $('#dest_properties').empty();
 											$hulop.map.refresh();
@@ -866,9 +867,10 @@ $hulop.editor = function () {
 									})(index));
 								addIcon($element, 'fa-arrow-down')
 									.addClass((index == length - 1) ? 'disabled-icon' : null)
-									.prop('title', 'Down the tour')
+									.prop('title', 'Down the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
+											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index + 1, 0, removed);
 											// $('#dest_properties').empty();
@@ -879,9 +881,10 @@ $hulop.editor = function () {
 									})(index));
 								addIcon($element, 'fa-arrow-up')
 									.addClass((index == 0) ? 'disabled-icon' : null)
-									.prop('title', 'Up the tour')
+									.prop('title', 'Up the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
+											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index - 1, 0, removed);
 											// $('#dest_properties').empty();
@@ -893,8 +896,9 @@ $hulop.editor = function () {
 							}
 							else {
 								addIcon($element, 'fa-plus')
-									.prop('title', 'Add a tour')
+									.prop('title', 'Add a tour destination')
 									.on('click', event => {
+										applyChanges();
 										if (!tour[name]) {
 											tour[name] = [];
 										}
