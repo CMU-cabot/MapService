@@ -50,7 +50,7 @@ AIスーツケースのナビゲーションシステムでは、POIはユーザ
 },
 ```
 
-# API 
+# MapService API 
 以下のAPIをハンドルしているのは[RouteSearchServlet.java](https://github.com/CMU-cabot/MapService/blob/cabot-hokoukukan_2018/MapService/src/hulop/hokoukukan/servlet/RouteSearchServlet.java)。
 
 ## search アクション
@@ -100,7 +100,7 @@ lang: ja
 [route-sample.json](route-sample.json)に示す。
 
 ## landmarks アクション
-指定された緯度と経度の距離内のランドマークを取得します。
+指定された緯度と経度の距離内のPOIを取得します。内部的にはMongoDBの[$near演算子](https://www.mongodb.com/docs/manual/reference/operator/query/near/)を用いて実装されています。
 
 #### リクエスト例
 routesearch?action=landmarks&user=test&lang=ja&lat=35.*****&lng=139.*****&dist=100
