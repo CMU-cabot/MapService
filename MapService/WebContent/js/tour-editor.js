@@ -359,7 +359,7 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					showTourProperty(tour);
-					$("#dest_properties").empty();
+					// $("#dest_properties").empty();
 					showingFeature = null;
 					showFeature(tour.destinations && tour.destinations[0] && tour.destinations[0].ref);
 				}
@@ -408,7 +408,7 @@ $hulop.editor = function () {
 							return (event) => {
 								let removed = lastData.tours.splice(index, 1)[0];
 								lastData.tours.splice(index + 1, 0, removed);
-								$('#tour_properties').empty();
+								// $('#tour_properties').empty();
 								$hulop.map.refresh();
 								showTourList();
 								exportData();
@@ -421,7 +421,7 @@ $hulop.editor = function () {
 							return (event) => {
 								let removed = lastData.tours.splice(index, 1)[0];
 								lastData.tours.splice(index - 1, 0, removed);
-								$('#tour_properties').empty();
+								// $('#tour_properties').empty();
 								$hulop.map.refresh();
 								showTourList();
 								exportData();
@@ -561,8 +561,11 @@ $hulop.editor = function () {
 
 	function destinationSelected(node_id) {
 		$('#list .destination_selected').removeClass("destination_selected")
-		$('#list td[node_id=' + node_id + ']')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-		$('#list td[node_id=' + node_id + ']').addClass("destination_selected")
+		let selector = $('#list td[node_id=' + node_id + ']');
+		if (selector.length > 0) {
+			selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			selector.addClass("destination_selected")
+		}
 	}
 
 	function showDestinationTable(feature) {
@@ -855,7 +858,7 @@ $hulop.editor = function () {
 									.on('click', ((index) => {
 										return (event) => {
 											let removed = tour[name].splice(index, 1)[0];
-											$('#dest_properties').empty();
+											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -868,7 +871,7 @@ $hulop.editor = function () {
 										return (event) => {
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index + 1, 0, removed);
-											$('#dest_properties').empty();
+											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -881,7 +884,7 @@ $hulop.editor = function () {
 										return (event) => {
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index - 1, 0, removed);
-											$('#dest_properties').empty();
+											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
