@@ -383,7 +383,8 @@ $hulop.editor = function () {
 				return $icon;
 			}
 			$element = $(event.target);
-			$element.find("i").remove();
+			// $element.find("i").remove();
+			$element.parents('table').find("i").remove();
 			let index = $(event.target).parents('tbody tr').index();
 			let length = table.find('td').length
 			let tag = $element.prop("tagName");
@@ -846,7 +847,8 @@ $hulop.editor = function () {
 							return $icon;
 						}
 						$element = $(event.target);
-						$element.find("i").remove();
+						// $element.find("i").remove();
+						$element.parents('table').find("i").remove();
 						let index = getDestinationIndex($element);
 						let length = $('#tour_properties td[key=destinations] tr:has(table)').length
 
