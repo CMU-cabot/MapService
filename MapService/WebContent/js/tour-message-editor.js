@@ -22,7 +22,7 @@
  ******************************************************************************/
 let MessageEditor = (function () {
 
-    function add_message(message = {}) {
+    function add_message(template = [], message = {}) {
         let table = $('<table>', { 'class': 'message' }).appendTo($('#messages'));
         let thead = $('<thead>').appendTo(table);
         let tbody = $('<tbody>').appendTo(table);
@@ -52,18 +52,8 @@ let MessageEditor = (function () {
                 'text': key
             }), $('<td>').append(input_field)).appendTo(tbody);
         }
-        add_row('type', 'text', 'message_types');
-        add_row('tags');
-        add_row('age_group');
-        add_row('timeFrom', 'time');
-        add_row('timeUntil', 'time');
-        add_row('dateFrom', 'date');
-        add_row('dateUntil', 'date');
-        // add_row('text:en', 'textarea');
-        // add_row('text:ja', 'textarea');
-        // add_row('text:ja-pron', 'textarea');
-        getTourLanguages(true).forEach(lang => {
-            add_row(`text:${lang}`, 'textarea');
+        template.forEach(args => {
+            add_row(...args);
         });
         thead.find('th:last').hover(event => {
             title = $(event.target);
@@ -131,18 +121,18 @@ let MessageEditor = (function () {
         return messages;
     }
 
-    function open(initial_messages = [], callback = console.log) {
+    function open(template = [], initial_messages = [], callback = console.log) {
         $('#messages').empty();
         $('#message-edit i').remove();
         addIcon($('#messages_title').css('position', 'relative'), 'fa-plus')
             .prop('title', 'Add a message')
             .on('click', (() => {
                 return (event) => {
-                    add_message();
+                    add_message(template);
                 }
             })());
         initial_messages.forEach(message => {
-            add_message(message);
+            add_message(template, message);
         });
         $('#save_messages').on('click', event => {
             close();

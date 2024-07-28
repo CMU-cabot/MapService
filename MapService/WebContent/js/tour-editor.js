@@ -22,11 +22,6 @@
  ******************************************************************************/
 window.$hulop || eval('let $hulop={};');
 
-function getTourLanguages(pron) {
-	// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
-	return pron ? ['ja', 'ja-pron', 'en'] : ['ja', 'en'];
-}
-
 $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
@@ -45,6 +40,11 @@ $hulop.editor = function () {
 	];
 	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags', 'building'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
+
+	function getLanguages(pron) {
+		// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
+		return pron ? ['ja', 'ja-pron', 'en'] : ['ja', 'en'];
+	}
 
 	function init(cb) {
 		callback = cb;
@@ -115,7 +115,7 @@ $hulop.editor = function () {
 			'action': 'landmarks',
 			'cache': false,
 			// 'lang': 'ja,en',
-			'lang': getTourLanguages().join(','),
+			'lang': getLanguages().join(','),
 			'lat': center[1],
 			'lng': center[0],
 			'dist': radius
@@ -642,17 +642,17 @@ $hulop.editor = function () {
 			// add('title-ja');
 			// add('title-en');
 			// add('title-ja-pron');
-			getTourLanguages(true).forEach(lang => {
+			getLanguages(true).forEach(lang => {
 				add(`title-${lang}`);
 			});
 			// add('short_description-ja');
 			// add('short_description-en');
-			getTourLanguages().forEach(lang => {
+			getLanguages().forEach(lang => {
 				add(`short_description-${lang}`);
 			});
 			// add('long_description-ja');
 			// add('long_description-en');
-			getTourLanguages().forEach(lang => {
+			getLanguages().forEach(lang => {
 				add(`long_description-${lang}`);
 			});
 			CATEGORY_KEYS.forEach(key => {
@@ -667,7 +667,19 @@ $hulop.editor = function () {
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
 			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'Open Message Editor' }).css('width', '100%').on('click', event => {
-				MessageEditor.open(dest.messages, messages => {
+				let template = [];
+				template.push(['type', 'text', 'message_types']);
+				template.push(['tags']);
+				template.push(['age_group']);
+				template.push(['timeFrom', 'time']);
+				template.push(['timeUntil', 'time']);
+				template.push(['dateFrom', 'date']);
+				template.push(['dateUntil', 'date']);
+				getLanguages(true).forEach(lang => {
+					template.push([`text:${lang}`, 'textarea']);
+				});
+
+				MessageEditor.open(template, dest.messages, messages => {
 					dest.messages = messages;
 					exportData();
 				});
@@ -999,14 +1011,14 @@ $hulop.editor = function () {
 		// add('title-ja', { editable: true });
 		// add('title-en', { editable: true });
 		// add('title-ja-pron', { editable: true });
-		getTourLanguages(true).forEach(lang => {
+		getLanguages(true).forEach(lang => {
 			add(`title-${lang}`, { editable: true });
 		});
 		add('debug', { editable: true, type: 'boolean' });
 		// add('introduction-ja', { editable: true });
 		// add('introduction-en', { editable: true });
 		// add('introduction-ja-pron', { editable: true });
-		getTourLanguages(true).forEach(lang => {
+		getLanguages(true).forEach(lang => {
 			add(`introduction-${lang}`, { editable: true });
 		});
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
@@ -1067,7 +1079,7 @@ $hulop.editor = function () {
 	function initDestinations(landmarks) {
 		let destinations = lastData.destinations = {};
 		// ['ja', 'en'].forEach(lang => {
-		getTourLanguages().forEach(lang => {
+		getLanguages().forEach(lang => {
 			landmarks[lang].forEach(landmark => {
 				landmark.long_description = landmark.properties['hulop_long_description_' + lang] || landmark.properties['hulop_long_description'];
 				let node_id = landmark.node;
