@@ -1094,8 +1094,11 @@ $hulop.editor = function () {
 		if (exit) {
 			name += ' ' + exit;
 		}
-		let i = ['ja', 'en'].indexOf(lang);
 		if (!name && obj.properties && obj.properties.facil_type == 10) {
+			let i = ['ja', 'en'].indexOf(lang);
+			if (i < 0) {
+				i = 1; // en
+			}
 			name = '';
 			switch (obj.properties['sex']) {
 				case 1:
