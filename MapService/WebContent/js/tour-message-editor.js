@@ -59,9 +59,12 @@ let MessageEditor = (function () {
         add_row('timeUntil', 'time');
         add_row('dateFrom', 'date');
         add_row('dateUntil', 'date');
-        add_row('text:en', 'textarea');
-        add_row('text:ja', 'textarea');
-        add_row('text:ja-pron', 'textarea');
+        // add_row('text:en', 'textarea');
+        // add_row('text:ja', 'textarea');
+        // add_row('text:ja-pron', 'textarea');
+        getTourLanguages(true).forEach(lang => {
+            add_row(`text:${lang}`, 'textarea');
+        });
         thead.find('th:last').hover(event => {
             title = $(event.target);
             $('#messages i').remove();

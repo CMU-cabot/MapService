@@ -22,6 +22,11 @@
  ******************************************************************************/
 window.$hulop || eval('let $hulop={};');
 
+function getTourLanguages(pron) {
+	// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
+	return pron ? ['ja', 'ja-pron', 'en'] : ['ja', 'en'];
+}
+
 $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
@@ -109,7 +114,8 @@ $hulop.editor = function () {
 		$hulop.route.callService({
 			'action': 'landmarks',
 			'cache': false,
-			'lang': 'ja,en',
+			// 'lang': 'ja,en',
+			'lang': getTourLanguages().join(','),
 			'lat': center[1],
 			'lng': center[0],
 			'dist': radius
@@ -633,13 +639,22 @@ $hulop.editor = function () {
 			}
 			add('value');
 			add('floor');
-			add('title-ja');
-			add('title-en');
-			add('title-ja-pron');
-			add('short_description-ja');
-			add('short_description-en');
-			add('long_description-ja');
-			add('long_description-en');
+			// add('title-ja');
+			// add('title-en');
+			// add('title-ja-pron');
+			getTourLanguages(true).forEach(lang => {
+				add(`title-${lang}`);
+			});
+			// add('short_description-ja');
+			// add('short_description-en');
+			getTourLanguages().forEach(lang => {
+				add(`short_description-${lang}`);
+			});
+			// add('long_description-ja');
+			// add('long_description-en');
+			getTourLanguages().forEach(lang => {
+				add(`long_description-${lang}`);
+			});
 			CATEGORY_KEYS.forEach(key => {
 				add(key);
 			});
@@ -981,13 +996,19 @@ $hulop.editor = function () {
 		}
 
 		add('tour_id', { editable: true });
-		add('title-ja', { editable: true });
-		add('title-en', { editable: true });
-		add('title-ja-pron', { editable: true });
+		// add('title-ja', { editable: true });
+		// add('title-en', { editable: true });
+		// add('title-ja-pron', { editable: true });
+		getTourLanguages(true).forEach(lang => {
+			add(`title-${lang}`, { editable: true });
+		});
 		add('debug', { editable: true, type: 'boolean' });
-		add('introduction-ja', { editable: true });
-		add('introduction-en', { editable: true });
-		add('introduction-ja-pron', { editable: true });
+		// add('introduction-ja', { editable: true });
+		// add('introduction-en', { editable: true });
+		// add('introduction-ja-pron', { editable: true });
+		getTourLanguages(true).forEach(lang => {
+			add(`introduction-${lang}`, { editable: true });
+		});
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
@@ -1045,7 +1066,8 @@ $hulop.editor = function () {
 
 	function initDestinations(landmarks) {
 		let destinations = lastData.destinations = {};
-		['ja', 'en'].forEach(lang => {
+		// ['ja', 'en'].forEach(lang => {
+		getTourLanguages().forEach(lang => {
 			landmarks[lang].forEach(landmark => {
 				landmark.long_description = landmark.properties['hulop_long_description_' + lang] || landmark.properties['hulop_long_description'];
 				let node_id = landmark.node;
