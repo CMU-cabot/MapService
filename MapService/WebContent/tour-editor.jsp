@@ -199,16 +199,16 @@ table.message th {
 		</div>
 	</div>
 	<div class="left row1 scroll">
-		<div id="list" class="inner"></div>
-	</div>
-	<div class="left row2 scroll">
-		<div id="dest_properties" class="inner"></div>
-	</div>
-	<div class="left row3 scroll">
 		<div id="tour_list" class="inner"></div>
 	</div>
-	<div class="left bottom scroll">
+	<div class="left row2 scroll">
 		<div id="tour_properties" class="inner"></div>
+	</div>
+	<div class="left row3 scroll">
+		<div id="list" class="inner"></div>
+	</div>
+	<div class="left bottom scroll">
+		<div id="dest_properties" class="inner"></div>
 	</div>
 	<div id="map" class="ui-page-theme-a"></div>
 	<div id="message-edit">
