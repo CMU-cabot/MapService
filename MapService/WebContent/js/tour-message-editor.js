@@ -63,24 +63,21 @@ let MessageEditor = (function () {
             let length = $('#messages table').length;
             if (event.type == 'mouseenter') {
                 title.css('position', 'relative');
-                addIcon(title, 'fa-minus')
-                    .prop('title', 'Remove the message')
+                addIcon(title, 'fa-minus', 'Remove the message')
                     .on('click', ((index) => {
                         return (event) => {
                             $(event.target).parents('table').remove();
                         }
                     })(index));
-                addIcon(title, 'fa-arrow-down')
+                addIcon(title, 'fa-arrow-down', 'Down the message')
                     .addClass(index == length - 1 ? 'disabled-icon' : null)
-                    .prop('title', 'Down the message')
                     .on('click', ((index) => {
                         return (event) => {
                             $('#messages table')[index + 1].after($('#messages table')[index])
                         }
                     })(index));
-                addIcon(title, 'fa-arrow-up')
+                addIcon(title, 'fa-arrow-up', 'Up the message')
                     .addClass(index == 0 ? 'disabled-icon' : null)
-                    .prop('title', 'Up the message')
                     .on('click', ((index) => {
                         return (event) => {
                             $('#messages table')[index - 1].before($('#messages table')[index])
@@ -90,7 +87,7 @@ let MessageEditor = (function () {
         });
     }
 
-    function addIcon($element, className) {
+    function addIcon($element, className, title) {
         let count = $element.find("i").length
         let $icon = $('<i>')
             .addClass("fas")
@@ -101,7 +98,8 @@ let MessageEditor = (function () {
             .css('transform', 'translateY(-50%)')
             .css('cursor', 'pointer')
             .appendTo($element);
-        return $icon;
+        return $icon.prop('title', title);
+
     }
 
     function get_messages() {
@@ -124,8 +122,7 @@ let MessageEditor = (function () {
     function open(template = [], initial_messages = [], callback = console.log) {
         $('#messages').empty();
         $('#message-edit i').remove();
-        addIcon($('#messages_title').css('position', 'relative'), 'fa-plus')
-            .prop('title', 'Add a message')
+        addIcon($('#messages_title').css('position', 'relative'), 'fa-plus', 'Add a message')
             .on('click', (() => {
                 return (event) => {
                     add_message(template);

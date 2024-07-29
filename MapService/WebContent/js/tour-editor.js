@@ -374,86 +374,66 @@ $hulop.editor = function () {
 			})).appendTo('#tour_list tbody');
 		});
 
-		table.find('th, td').hover(event => {
-			function addIcon($element, className) {
-				let count = $element.find("i").length
-				let $icon = $('<i>')
-					.addClass("fas")
-					.addClass(className)
-					.css('position', 'absolute')
-					.css('right', (count * 20 + 5) + 'px')
-					.css('top', '50%')
-					.css('transform', 'translateY(-50%)')
-					.css('cursor', 'pointer')
-					.appendTo($element);
-				return $icon;
-			}
+		table.find('td').hover(event => {
 			$element = $(event.target);
 			// $element.find("i").remove();
-			$element.parents('table').find("i").remove();
+			$element.parents('tbody').find("i").remove();
 			let index = $(event.target).parents('tbody tr').index();
 			let length = table.find('td').length
 			let tag = $element.prop("tagName");
 			if (event.type == 'mouseenter') {
 				$element.css('position', 'relative');
-				if (tag == 'TD') {
-					addIcon($element, 'fa-minus')
-						.prop('title', 'Remove the tour')
-						.on('click', ((index) => {
-							return (event) => {
-								let removed = lastData.tours.splice(index, 1)[0];
-								$('#tour_properties').empty();
-								$hulop.map.refresh();
-								showTourList();
-								exportData();
-							}
-						})(index));
-					addIcon($element, 'fa-arrow-down')
-						.addClass((tag == 'TH' || index == length - 1) ? 'disabled-icon' : null)
-						.prop('title', 'Down the tour')
-						.on('click', ((index) => {
-							return (event) => {
-								let removed = lastData.tours.splice(index, 1)[0];
-								lastData.tours.splice(index + 1, 0, removed);
-								// $('#tour_properties').empty();
-								$hulop.map.refresh();
-								showTourList();
-								exportData();
-							}
-						})(index));
-					addIcon($element, 'fa-arrow-up')
-						.addClass((tag == 'TH' || index == 0) ? 'disabled-icon' : null)
-						.prop('title', 'Up the tour')
-						.on('click', ((index) => {
-							return (event) => {
-								let removed = lastData.tours.splice(index, 1)[0];
-								lastData.tours.splice(index - 1, 0, removed);
-								// $('#tour_properties').empty();
-								$hulop.map.refresh();
-								showTourList();
-								exportData();
-							}
-						})(index));
-				}
-				if (tag == 'TH') {
-					addIcon($element, 'fa-plus')
-						.prop('title', 'Add a tour')
-						.on('click', event => {
-							let new_tour = {
-								'tour_id': 'tour_' + new Date().getTime(),
-								'destinations': []
-							};
-							lastData.tours.push(new_tour);
+				addIcon($element, 'fa-minus', 'Remove the tour')
+					.on('click', ((index) => {
+						return (event) => {
+							let removed = lastData.tours.splice(index, 1)[0];
+							$('#tour_properties').empty();
+							$hulop.map.refresh();
 							showTourList();
-							showTourProperty(new_tour);
 							exportData();
-						});
-				}
+						}
+					})(index));
+				addIcon($element, 'fa-arrow-down', 'Down the tour')
+					.addClass((tag == 'TH' || index == length - 1) ? 'disabled-icon' : null)
+					.on('click', ((index) => {
+						return (event) => {
+							let removed = lastData.tours.splice(index, 1)[0];
+							lastData.tours.splice(index + 1, 0, removed);
+							// $('#tour_properties').empty();
+							$hulop.map.refresh();
+							showTourList();
+							exportData();
+						}
+					})(index));
+				addIcon($element, 'fa-arrow-up', 'Up the tour')
+					.addClass((tag == 'TH' || index == 0) ? 'disabled-icon' : null)
+					.on('click', ((index) => {
+						return (event) => {
+							let removed = lastData.tours.splice(index, 1)[0];
+							lastData.tours.splice(index - 1, 0, removed);
+							// $('#tour_properties').empty();
+							$hulop.map.refresh();
+							showTourList();
+							exportData();
+						}
+					})(index));
 			}
 			if (event.type == 'mouseleave') {
 				$element.find("i").remove();
 			}
 		});
+
+		addIcon(thead.find('th').css('position', 'relative'), 'fa-plus', 'Add a tour')
+			.on('click', event => {
+				let new_tour = {
+					'tour_id': 'tour_' + new Date().getTime(),
+					'destinations': []
+				};
+				lastData.tours.push(new_tour);
+				showTourList();
+				showTourProperty(new_tour);
+				exportData();
+			});
 
 		/* use icon instead of context menu
 		table.on('contextmenu', event => {
@@ -859,31 +839,17 @@ $hulop.editor = function () {
 				}), td.attr('key', name));
 				row.appendTo(tbody);
 				if (options.is_array) {
-					row.find('> td:not(:has(tr)), td:not(:has(*)):last-child').hover(event => {
-						function addIcon($element, className) {
-							let count = $element.find("i").length
-							let $icon = $('<i>')
-								.addClass("fas")
-								.addClass(className)
-								.css('position', 'absolute')
-								.css('right', (count * 20 + 5) + 'px')
-								.css('top', '50%')
-								.css('transform', 'translateY(-50%)')
-								.css('cursor', 'pointer')
-								.appendTo($element);
-							return $icon;
-						}
+					row.find('td:not(:has(*)):last-child').hover(event => {
 						$element = $(event.target);
 						// $element.find("i").remove();
-						$element.parents('table').find("i").remove();
+						$element.parents('tbody').find("td:last i").remove();
 						let index = getDestinationIndex($element);
 						let length = $('#tour_properties td[key=destinations] tr:has(table)').length
 
 						if (event.type == 'mouseenter') {
 							$element.css('position', 'relative');
 							if (index != null) {
-								addIcon($element, 'fa-minus')
-									.prop('title', 'Remove the tour destination')
+								addIcon($element, 'fa-minus', 'Remove the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
 											applyChanges();
@@ -894,9 +860,8 @@ $hulop.editor = function () {
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-down')
+								addIcon($element, 'fa-arrow-down', 'Down the tour destination')
 									.addClass((index == length - 1) ? 'disabled-icon' : null)
-									.prop('title', 'Down the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
 											applyChanges();
@@ -908,9 +873,8 @@ $hulop.editor = function () {
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-up')
+								addIcon($element, 'fa-arrow-up', 'Up the tour destination')
 									.addClass((index == 0) ? 'disabled-icon' : null)
-									.prop('title', 'Up the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
 											applyChanges();
@@ -923,24 +887,22 @@ $hulop.editor = function () {
 										}
 									})(index));
 							}
-							else {
-								addIcon($element, 'fa-plus')
-									.prop('title', 'Add a tour destination')
-									.on('click', event => {
-										applyChanges();
-										if (!tour[name]) {
-											tour[name] = [];
-										}
-										tour[name].push({ 'ref': '' });
-										showTourProperty(tour);
-										exportData();
-									});
-							}
 						}
 						if (event.type == 'mouseleave') {
 							$element.find("i").remove();
 						}
 					});
+
+					addIcon(row.find('td:first').css('position', 'relative'), 'fa-plus', 'Add a tour destination')
+						.on('click', event => {
+							applyChanges();
+							if (!tour[name]) {
+								tour[name] = [];
+							}
+							tour[name].push({ 'ref': '' });
+							showTourProperty(tour);
+							exportData();
+						});
 
 					/* use icons instead of context menu
 					row.on('contextmenu', event => {
@@ -1306,6 +1268,20 @@ $hulop.editor = function () {
 		}
 	}
 	*/
+
+	function addIcon($element, className, title) {
+		let count = $element.find("i").length
+		let $icon = $('<i>')
+			.addClass("fas")
+			.addClass(className)
+			.css('position', 'absolute')
+			.css('right', (count * 20 + 5) + 'px')
+			.css('top', '50%')
+			.css('transform', 'translateY(-50%)')
+			.css('cursor', 'pointer')
+			.appendTo($element);
+		return $icon.prop('title', title);
+	}
 
 	return {
 		'init': init
