@@ -680,7 +680,7 @@ $hulop.editor = function () {
 							td.text(node_id);
 							$hulop.indoor.showFloor(lastData.destinations[node_id].floor);
 						} else {
-							td.text(node_id);
+							td.text(node_id || '');
 						}
 						td.attr('modified', true);
 						setWaitingDestinationTitle();
