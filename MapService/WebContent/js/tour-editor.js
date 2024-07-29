@@ -29,8 +29,8 @@ $hulop.editor = function () {
 	const DESTINATION_KEYS = [
 		'floor',
 		'value',
-		'startMessage',
-		'arrivalMessages',
+		// 'startMessage',
+		// 'arrivalMessages',
 		'arrivalAngle',
 		'content',
 		'subtour',
@@ -40,6 +40,11 @@ $hulop.editor = function () {
 	];
 	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags', 'building'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
+
+	function getLanguages(pron) {
+		// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
+		return pron ? ['ja', 'ja-pron', 'en'] : ['ja', 'en'];
+	}
 
 	function init(cb) {
 		callback = cb;
@@ -82,6 +87,9 @@ $hulop.editor = function () {
 			if (feature === null) {
 				return;
 			}
+			if (!keyState.altKey) {
+				$('#tour_properties .destination_selected').removeClass("destination_selected");
+			}
 			showProperty(feature);
 		});
 
@@ -106,7 +114,8 @@ $hulop.editor = function () {
 		$hulop.route.callService({
 			'action': 'landmarks',
 			'cache': false,
-			'lang': 'ja,en',
+			// 'lang': 'ja,en',
+			'lang': getLanguages().join(','),
 			'lat': center[1],
 			'lng': center[0],
 			'dist': radius
@@ -328,6 +337,9 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
+					if (!keyState.altKey) {
+						$('#tour_properties .destination_selected').removeClass("destination_selected");
+					}
 					showProperty(item.node);
 				}
 			}).append($('<td>', {
@@ -353,7 +365,7 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					showTourProperty(tour);
-					$("#dest_properties").empty();
+					// $("#dest_properties").empty();
 					showingFeature = null;
 					showFeature(tour.destinations && tour.destinations[0] && tour.destinations[0].ref);
 				}
@@ -362,85 +374,66 @@ $hulop.editor = function () {
 			})).appendTo('#tour_list tbody');
 		});
 
-		table.find('th, td').hover(event => {
-			function addIcon($element, className) {
-				let count = $element.find("i").length
-				let $icon = $('<i>')
-				    .addClass("fas")
-				    .addClass(className)
-				    .css('position', 'absolute')
-				    .css('right', (count*20+5)+'px')
-				    .css('top', '50%')
-				    .css('transform', 'translateY(-50%)')
-				    .css('cursor', 'pointer')
-				    .appendTo($element);
-				return $icon;
-			}
+		table.find('td').hover(event => {
 			$element = $(event.target);
-			$element.find("i").remove();
+			// $element.find("i").remove();
+			$element.parents('tbody').find("i").remove();
 			let index = $(event.target).parents('tbody tr').index();
 			let length = table.find('td').length
 			let tag = $element.prop("tagName");
 			if (event.type == 'mouseenter') {
 				$element.css('position', 'relative');
-				if (tag == 'TD') {
-					addIcon($element, 'fa-minus')
-						.prop('title', 'Remove the tour')
-						.on('click', ((index) => {
-							return (event) => {
-								let removed = lastData.tours.splice(index, 1)[0];
-								$('#tour_properties').empty();
-								$hulop.map.refresh();
-								showTourList();
-								exportData();
-							}
-						})(index));
-					addIcon($element, 'fa-arrow-down')
-						.addClass((tag == 'TH' || index == length-1) ? 'disabled-icon' : null)
-						.prop('title', 'Down the tour')
-						.on('click', ((index) => {
-							return (event) => {
-								let removed = lastData.tours.splice(index, 1)[0];
-								lastData.tours.splice(index+1, 0, removed);
-								$('#tour_properties').empty();
-								$hulop.map.refresh();
-								showTourList();
-								exportData();
-							}
-						})(index));
-					addIcon($element, 'fa-arrow-up')
-						.addClass((tag == 'TH' || index == 0) ? 'disabled-icon' : null)
-						.prop('title', 'Up the tour')
-						.on('click', ((index) => {
-							return (event) => {
-								let removed = lastData.tours.splice(index, 1)[0];
-								lastData.tours.splice(index-1, 0, removed);
-								$('#tour_properties').empty();
-								$hulop.map.refresh();
-								showTourList();
-								exportData();
-							}
-						})(index));
-				}
-				if (tag == 'TH') {
-					addIcon($element, 'fa-plus')
-						.prop('title', 'Add a tour')
-						.on('click', event => {
-							let new_tour = {
-								'tour_id': 'tour_' + new Date().getTime(),
-								'destinations': []
-							};
-							lastData.tours.push(new_tour);
+				addIcon($element, 'fa-minus', 'Remove the tour')
+					.on('click', ((index) => {
+						return (event) => {
+							let removed = lastData.tours.splice(index, 1)[0];
+							$('#tour_properties').empty();
+							$hulop.map.refresh();
 							showTourList();
-							showTourProperty(new_tour);
 							exportData();
-						});
-				}
+						}
+					})(index));
+				addIcon($element, 'fa-arrow-down', 'Down the tour')
+					.addClass((tag == 'TH' || index == length - 1) ? 'disabled-icon' : null)
+					.on('click', ((index) => {
+						return (event) => {
+							let removed = lastData.tours.splice(index, 1)[0];
+							lastData.tours.splice(index + 1, 0, removed);
+							// $('#tour_properties').empty();
+							$hulop.map.refresh();
+							showTourList();
+							exportData();
+						}
+					})(index));
+				addIcon($element, 'fa-arrow-up', 'Up the tour')
+					.addClass((tag == 'TH' || index == 0) ? 'disabled-icon' : null)
+					.on('click', ((index) => {
+						return (event) => {
+							let removed = lastData.tours.splice(index, 1)[0];
+							lastData.tours.splice(index - 1, 0, removed);
+							// $('#tour_properties').empty();
+							$hulop.map.refresh();
+							showTourList();
+							exportData();
+						}
+					})(index));
 			}
 			if (event.type == 'mouseleave') {
 				$element.find("i").remove();
 			}
 		});
+
+		addIcon(thead.find('th').css('position', 'relative'), 'fa-plus', 'Add a tour')
+			.on('click', event => {
+				let new_tour = {
+					'tour_id': 'tour_' + new Date().getTime(),
+					'destinations': []
+				};
+				lastData.tours.push(new_tour);
+				showTourList();
+				showTourProperty(new_tour);
+				exportData();
+			});
 
 		/* use icon instead of context menu
 		table.on('contextmenu', event => {
@@ -536,7 +529,7 @@ $hulop.editor = function () {
 	let onNodeClick = null;
 	let showingFeature = null;
 
-	function showProperty(feature, skip_clear_event=false) {
+	function showProperty(feature, skip_clear_event = false) {
 		if (!skip_clear_event) {
 			if (onNodeClick && onNodeClick(feature)) return;
 			onNodeClick = null;
@@ -555,8 +548,11 @@ $hulop.editor = function () {
 
 	function destinationSelected(node_id) {
 		$('#list .destination_selected').removeClass("destination_selected")
-		$('#list td[node_id='+node_id+']')[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-		$('#list td[node_id='+node_id+']').addClass("destination_selected")
+		let selector = $('#list td[node_id=' + node_id + ']');
+		if (selector.length > 0) {
+			selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			selector.addClass("destination_selected")
+		}
 	}
 
 	function showDestinationTable(feature) {
@@ -623,24 +619,51 @@ $hulop.editor = function () {
 			}
 			add('value');
 			add('floor');
-			add('title-ja');
-			add('title-en');
-			add('title-ja-pron');
-			add('short_description-ja');
-			add('short_description-en');
-			add('long_description-ja');
-			add('long_description-en');
+			// add('title-ja');
+			// add('title-en');
+			// add('title-ja-pron');
+			getLanguages(true).forEach(lang => {
+				add(`title-${lang}`);
+			});
+			// add('short_description-ja');
+			// add('short_description-en');
+			getLanguages().forEach(lang => {
+				add(`short_description-${lang}`);
+			});
+			// add('long_description-ja');
+			// add('long_description-en');
+			getLanguages().forEach(lang => {
+				add(`long_description-${lang}`);
+			});
 			CATEGORY_KEYS.forEach(key => {
 				add(key);
 			});
-			add('startMessage', { editable: true });
-			add('arrivalMessages', { editable: true });
+			// add('startMessage', { editable: true });
+			// add('arrivalMessages', { editable: true });
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
+			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'messages...' }).css('width', '100%').on('click', event => {
+				let template = [];
+				template.push(['type', 'text', 'message_types']);
+				template.push(['tags']);
+				template.push(['age_group']);
+				template.push(['timeFrom', 'time']);
+				template.push(['timeUntil', 'time']);
+				template.push(['dateFrom', 'date']);
+				template.push(['dateUntil', 'date']);
+				getLanguages(true).forEach(lang => {
+					template.push([`text:${lang}`, 'textarea']);
+				});
+
+				MessageEditor.open(template, dest.messages, messages => {
+					dest.messages = messages;
+					exportData();
+				});
+			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
 
 			$('#dest_properties tr td[key=#waitingDestination]').parent().on('click', e => {
@@ -816,83 +839,70 @@ $hulop.editor = function () {
 				}), td.attr('key', name));
 				row.appendTo(tbody);
 				if (options.is_array) {
-					row.find('> td:not(:has(tr)), td:not(:has(*)):last-child').hover(event => {
-						function addIcon($element, className) {
-							let count = $element.find("i").length
-							let $icon = $('<i>')
-							    .addClass("fas")
-							    .addClass(className)
-							    .css('position', 'absolute')
-							    .css('right', (count*20+5)+'px')
-							    .css('top', '50%')
-							    .css('transform', 'translateY(-50%)')
-							    .css('cursor', 'pointer')
-							    .appendTo($element);
-							return $icon;
-						}
+					row.find('td:not(:has(*)):last-child').hover(event => {
 						$element = $(event.target);
-						$element.find("i").remove();
+						// $element.find("i").remove();
+						$element.parents('tbody').find("td:last i").remove();
 						let index = getDestinationIndex($element);
 						let length = $('#tour_properties td[key=destinations] tr:has(table)').length
 
 						if (event.type == 'mouseenter') {
 							$element.css('position', 'relative');
 							if (index != null) {
-								addIcon($element, 'fa-minus')
-									.prop('title', 'Remove the tour')
+								addIcon($element, 'fa-minus', 'Remove the tour destination')
 									.on('click', ((index) => {
 										return (event) => {
+											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
-											$('#dest_properties').empty();
+											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-down')
-									.addClass((index == length-1) ? 'disabled-icon' : null)
-									.prop('title', 'Down the tour')
+								addIcon($element, 'fa-arrow-down', 'Down the tour destination')
+									.addClass((index == length - 1) ? 'disabled-icon' : null)
 									.on('click', ((index) => {
 										return (event) => {
+											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
-											tour[name].splice(index+1, 0, removed);
-											$('#dest_properties').empty();
+											tour[name].splice(index + 1, 0, removed);
+											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-up')
+								addIcon($element, 'fa-arrow-up', 'Up the tour destination')
 									.addClass((index == 0) ? 'disabled-icon' : null)
-									.prop('title', 'Up the tour')
 									.on('click', ((index) => {
 										return (event) => {
+											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
-											tour[name].splice(index-1, 0, removed);
-											$('#dest_properties').empty();
+											tour[name].splice(index - 1, 0, removed);
+											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
 										}
 									})(index));
-							}
-							else {
-								addIcon($element, 'fa-plus')
-									.prop('title', 'Add a tour')
-									.on('click', event => {
-										if (!tour[name]) {
-											tour[name] = [];
-										}
-										tour[name].push({ 'ref': '' });
-										showTourProperty(tour);
-										exportData();
-									});
 							}
 						}
 						if (event.type == 'mouseleave') {
 							$element.find("i").remove();
 						}
 					});
+
+					addIcon(row.find('td:first').css('position', 'relative'), 'fa-plus', 'Add a tour destination')
+						.on('click', event => {
+							applyChanges();
+							if (!tour[name]) {
+								tour[name] = [];
+							}
+							tour[name].push({ 'ref': '' });
+							showTourProperty(tour);
+							exportData();
+						});
 
 					/* use icons instead of context menu
 					row.on('contextmenu', event => {
@@ -960,13 +970,19 @@ $hulop.editor = function () {
 		}
 
 		add('tour_id', { editable: true });
-		add('title-ja', { editable: true });
-		add('title-en', { editable: true });
-		add('title-ja-pron', { editable: true });
+		// add('title-ja', { editable: true });
+		// add('title-en', { editable: true });
+		// add('title-ja-pron', { editable: true });
+		getLanguages(true).forEach(lang => {
+			add(`title-${lang}`, { editable: true });
+		});
 		add('debug', { editable: true, type: 'boolean' });
-		add('introduction-ja', { editable: true });
-		add('introduction-en', { editable: true });
-		add('introduction-ja-pron', { editable: true });
+		// add('introduction-ja', { editable: true });
+		// add('introduction-en', { editable: true });
+		// add('introduction-ja-pron', { editable: true });
+		getLanguages(true).forEach(lang => {
+			add(`introduction-${lang}`, { editable: true });
+		});
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
@@ -1024,7 +1040,8 @@ $hulop.editor = function () {
 
 	function initDestinations(landmarks) {
 		let destinations = lastData.destinations = {};
-		['ja', 'en'].forEach(lang => {
+		// ['ja', 'en'].forEach(lang => {
+		getLanguages().forEach(lang => {
 			landmarks[lang].forEach(landmark => {
 				landmark.long_description = landmark.properties['hulop_long_description_' + lang] || landmark.properties['hulop_long_description'];
 				let node_id = landmark.node;
@@ -1073,8 +1090,11 @@ $hulop.editor = function () {
 		if (exit) {
 			name += ' ' + exit;
 		}
-		let i = ['ja', 'en'].indexOf(lang);
 		if (!name && obj.properties && obj.properties.facil_type == 10) {
+			let i = ['ja', 'en'].indexOf(lang);
+			if (i < 0) {
+				i = 1; // en
+			}
 			name = '';
 			switch (obj.properties['sex']) {
 				case 1:
@@ -1120,6 +1140,14 @@ $hulop.editor = function () {
 					delete dest['#waitingDestination'];
 				}
 			});
+			// Copy messages into destination
+			(data && data.messages || []).forEach(message => {
+				let destination = 'parent' in message && lastData.destinations[message.parent];
+				if (destination) {
+					destination.messages = destination.messages || [];
+					destination.messages.push(message);
+				}
+			});
 			lastData.tours = (data && data.tours) || [];
 			callback();
 		});
@@ -1149,6 +1177,7 @@ $hulop.editor = function () {
 		console.log(lastData);
 		let data = {};
 		let destinations = data.destinations = [];
+		let messages = data.messages = [];
 		Object.keys(lastData.destinations).forEach(node_id => {
 			let from = lastData.destinations[node_id];
 			let to = {};
@@ -1156,6 +1185,11 @@ $hulop.editor = function () {
 				to[key] = from[key];
 			});
 			to = clean(to);
+			// Extract messages from destination
+			(from.messages || []).forEach(message => {
+				message.parent = from.value;
+				messages.push(message);
+			});
 			console.log([from, to]);
 			if (Object.keys(to).length > 2) {
 				to['#title'] = getLabel(from);
@@ -1210,6 +1244,7 @@ $hulop.editor = function () {
 		});
 	}
 
+	/* use icon instead of context menu
 	function createContextMenu(e, items, callback) {
 		if ($('#menu').size() == 0) {
 			let menu = $('<ul>', {
@@ -1231,6 +1266,21 @@ $hulop.editor = function () {
 			$('body').append(menu);
 			$('#menu').css('top', Math.min(e.pageY, $('body').height() - $('#menu').height()) + 'px');
 		}
+	}
+	*/
+
+	function addIcon($element, className, title) {
+		let count = $element.find("i").length
+		let $icon = $('<i>')
+			.addClass("fas")
+			.addClass(className)
+			.css('position', 'absolute')
+			.css('right', (count * 20 + 5) + 'px')
+			.css('top', '50%')
+			.css('transform', 'translateY(-50%)')
+			.css('cursor', 'pointer')
+			.appendTo($element);
+		return $icon.prop('title', title);
 	}
 
 	return {
