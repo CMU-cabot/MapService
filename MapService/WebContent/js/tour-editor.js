@@ -646,7 +646,7 @@ $hulop.editor = function () {
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
-			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'Open Message Editor' }).css('width', '100%').on('click', event => {
+			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'messages ...' }).css('width', '100%').on('click', event => {
 				let template = [];
 				template.push(['type', 'text', 'message_types']);
 				template.push(['tags']);
