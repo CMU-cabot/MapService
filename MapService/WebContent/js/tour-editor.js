@@ -87,9 +87,6 @@ $hulop.editor = function () {
 			if (feature === null) {
 				return;
 			}
-			if (!keyState.altKey) {
-				$('#tour_properties .destination_selected').removeClass("destination_selected");
-			}
 			showProperty(feature);
 		});
 
@@ -337,9 +334,6 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
-					if (!keyState.altKey) {
-						$('#tour_properties .destination_selected').removeClass("destination_selected");
-					}
 					showProperty(item.node);
 				}
 			}).append($('<td>', {
@@ -1021,6 +1015,7 @@ $hulop.editor = function () {
 					}
 					return true;
 				}
+				$('#tour_properties .destination_selected').removeClass("destination_selected");
 			}
 		});
 		$('#tour_properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
@@ -1051,6 +1046,7 @@ $hulop.editor = function () {
 					showProperty(feature, true);
 					return true;
 				}
+				$('#tour_properties .destination_selected').removeClass("destination_selected");
 			}
 		});
 		$hulop.map.refresh();
