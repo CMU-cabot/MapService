@@ -572,6 +572,10 @@ $hulop.editor = function () {
 			})).appendTo(thead);
 			let saveButton = $('<button>', {
 				'text': 'Save',
+				'css': {
+					'position': 'sticky',
+					'bottom': '0px'
+				},
 				'on': {
 					'click': () => {
 						saveButton.hide();
@@ -741,6 +745,10 @@ $hulop.editor = function () {
 		})).appendTo(thead);
 		let saveButton = $('<button>', {
 			'text': 'Save',
+			'css': {
+				'position': 'sticky',
+				'bottom': '0px'
+			},
 			'on': {
 				'click': () => {
 					applyChanges();
