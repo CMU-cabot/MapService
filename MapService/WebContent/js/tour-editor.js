@@ -996,6 +996,18 @@ $hulop.editor = function () {
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
 		// Object.keys(tour).forEach(add);
+		$('#tour_properties td[key=destinations]').prev().on('click', e => {
+			$('.destination_selected').removeClass('destination_selected');
+			$(e.target).addClass('destination_selected');
+			onNodeClick = feature => {
+				if (keyState.altKey && keyState.metaKey) {
+					if ($('#tour_properties td[key=destinations]').prev().hasClass('destination_selected')) {
+						addTourDestination(feature);
+					}
+					return true;
+				}
+			}
+		});
 		$('#tour_properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
 			$('.destination_selected').removeClass('destination_selected')
 			$(e.target).parents('#tour_properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
@@ -1009,21 +1021,12 @@ $hulop.editor = function () {
 					if (td.length == 0) {
 						return true;
 					}
-					let node_id = feature && feature.get('node_id');
-					let dest = node_id && lastData.destinations[node_id];
 					if (keyState.metaKey) {
-						if (dest) {
-							applyChanges();
-							tour['destinations'].push({
-								'ref': node_id,
-								'#ref': dest.label || ''
-							});
-							showTourProperty(tour);
-							exportData();
-							$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
-						}
+						addTourDestination(feature);
 						return true;
 					}
+					let node_id = feature && feature.get('node_id');
+					let dest = node_id && lastData.destinations[node_id];
 					saveButton.show();
 					if (dest) {
 						td.text(node_id);
@@ -1040,6 +1043,21 @@ $hulop.editor = function () {
 			}
 		});
 		$hulop.map.refresh();
+	}
+
+	function addTourDestination(feature) {
+		let node_id = feature && feature.get('node_id');
+		let dest = node_id && lastData.destinations[node_id];
+		if (dest) {
+			applyChanges();
+			tour['destinations'].push({
+				'ref': node_id,
+				'#ref': dest.label || ''
+			});
+			showTourProperty(tour);
+			exportData();
+			$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
+		}
 	}
 
 	function showFeature(node_id) {
