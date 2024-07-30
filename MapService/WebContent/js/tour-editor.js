@@ -902,6 +902,7 @@ $hulop.editor = function () {
 							tour[name].push({ 'ref': '' });
 							showTourProperty(tour);
 							exportData();
+							$('#tour_properties td[key=destinations] > table > tbody > tr:last td').trigger('click');
 						});
 
 					/* use icons instead of context menu
