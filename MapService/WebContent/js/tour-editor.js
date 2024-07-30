@@ -1002,16 +1002,29 @@ $hulop.editor = function () {
 			node_id = $('.destination_selected td[key=ref]').text();
 			showFeature(node_id);
 			let feature = node_id && source.getFeatureById(node_id);
-			showProperty(feature);
+			showProperty(feature, true);
 			onNodeClick = feature => {
 				if (keyState.altKey) {
 					let td = $('.destination_selected td[key=ref]');
 					if (td.length == 0) {
 						return true;
 					}
-					saveButton.show();
 					let node_id = feature && feature.get('node_id');
 					let dest = node_id && lastData.destinations[node_id];
+					if (keyState.metaKey) {
+						if (dest) {
+							applyChanges();
+							tour['destinations'].push({
+								'ref': node_id,
+								'#ref': dest.label || ''
+							});
+							showTourProperty(tour);
+							exportData();
+							$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
+						}
+						return true;
+					}
+					saveButton.show();
 					if (dest) {
 						td.text(node_id);
 						$hulop.indoor.showFloor(dest.floor);
