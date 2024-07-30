@@ -718,6 +718,7 @@ $hulop.editor = function () {
 	}
 
 	function showTourProperty(tour) {
+		onNodeClick = null;
 		tour.destinations = tour.destinations || [];
 		tour.destinations.forEach(dest => {
 			let node_id = dest.ref || '';
