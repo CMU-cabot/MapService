@@ -1010,9 +1010,7 @@ $hulop.editor = function () {
 			$(e.target).addClass('destination_selected');
 			onNodeClick = feature => {
 				if (keyState.altKey) {
-					if ($('#tour_properties td[key=destinations]').prev().hasClass('destination_selected')) {
-						addTourDestination(feature);
-					}
+					addTourDestination(feature);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
