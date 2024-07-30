@@ -978,6 +978,21 @@ $hulop.editor = function () {
 			}
 		}
 
+		function addTourDestination(feature) {
+			let node_id = feature && feature.get('node_id');
+			let dest = node_id && lastData.destinations[node_id];
+			if (dest) {
+				applyChanges();
+				tour['destinations'].push({
+					'ref': node_id,
+					'#ref': dest.label || ''
+				});
+				showTourProperty(tour);
+				exportData();
+				$('#tour_properties td[key=destinations]').prev().trigger('click');
+			}
+		}
+
 		add('tour_id', { editable: true });
 		// add('title-ja', { editable: true });
 		// add('title-en', { editable: true });
@@ -1000,7 +1015,7 @@ $hulop.editor = function () {
 			$('.destination_selected').removeClass('destination_selected');
 			$(e.target).addClass('destination_selected');
 			onNodeClick = feature => {
-				if (keyState.altKey && keyState.metaKey) {
+				if (keyState.altKey) {
 					if ($('#tour_properties td[key=destinations]').prev().hasClass('destination_selected')) {
 						addTourDestination(feature);
 					}
@@ -1021,10 +1036,6 @@ $hulop.editor = function () {
 					if (td.length == 0) {
 						return true;
 					}
-					if (keyState.metaKey) {
-						addTourDestination(feature);
-						return true;
-					}
 					let node_id = feature && feature.get('node_id');
 					let dest = node_id && lastData.destinations[node_id];
 					saveButton.show();
@@ -1043,21 +1054,6 @@ $hulop.editor = function () {
 			}
 		});
 		$hulop.map.refresh();
-	}
-
-	function addTourDestination(feature) {
-		let node_id = feature && feature.get('node_id');
-		let dest = node_id && lastData.destinations[node_id];
-		if (dest) {
-			applyChanges();
-			tour['destinations'].push({
-				'ref': node_id,
-				'#ref': dest.label || ''
-			});
-			showTourProperty(tour);
-			exportData();
-			$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
-		}
 	}
 
 	function showFeature(node_id) {
