@@ -40,6 +40,7 @@ $hulop.editor = function () {
 	];
 	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags', 'building'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
+	let imported_json;
 
 	function getLanguages(pron) {
 		// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
@@ -78,7 +79,12 @@ $hulop.editor = function () {
 		$('#upload_file').change(event => {
 			reader.readAsText(event.target.files[0]);
 		});
-		reader.onload = event => uploadJSONData(event.target.result, JSONDATA_PATH, () => location.reload());
+		// reader.onload = event => uploadJSONData(event.target.result, JSONDATA_PATH, () => location.reload());
+		reader.onload = event => {
+			imported_json = JSON.parse(event.target.result);
+			prepareData($hulop.map.getCenter(), $hulop.config.MAX_RADIUS || 1000);
+			$('#upload').show();
+		};
 
 
 		// Map event listeners
@@ -1236,7 +1242,13 @@ $hulop.editor = function () {
 		}
 	}
 
-	function exportData() {
+	$(document).ready(() => {
+		$('#upload button').on('click', event => {
+			exportData(true);
+		});
+	});
+
+	function exportData(force) {
 		console.log(lastData);
 		let data = {};
 		let destinations = data.destinations = [];
@@ -1265,11 +1277,22 @@ $hulop.editor = function () {
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
 		data.tours = clean(lastData.tours) || [];
-		uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
-		console.log(data);
+		// if (force) {
+		if (force || $('#upload').is(':hidden')) {
+			$('#upload').hide();
+			uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
+			console.log(data);
+		} else {
+			$('#upload').show();
+		}
 	}
 
 	function downloadJSONData(path, callback) {
+		if (imported_json) {
+			callback && callback(imported_json);
+			imported_json = null;
+			return;
+		}
 		$hulop.util.loading(true);
 		$.ajax({
 			'type': 'GET',

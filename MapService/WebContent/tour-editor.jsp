@@ -191,6 +191,10 @@ table.message th {
 	font-size: 8pt;
 	margin-bottom: -12px;
 }
+
+#upload {
+	display: none;
+}
 </style>
 <title>Tour Editor</title>
 </head>
@@ -199,8 +203,9 @@ table.message th {
 		<div id="help" class="inner">
 			<%=user%> <a href="tour-editor.jsp?logout=true">Log out</a>
 			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a>
-			<a href="javascript:void(0)" id="upload_link">upload</a>
+			<a href="javascript:void(0)" id="upload_link">import</a>
 			<input type="file" accept=".json" id="upload_file" style="display: none;">
+			<span id="upload">| <button>upload</button></span>
 			|
 			<a href="./editor.jsp">Editor</a>
 		</div>
