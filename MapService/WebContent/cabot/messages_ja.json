@@ -7,7 +7,23 @@
         "value": "属性",
         "floor": "階層",
         "destinations": "目的地",
-        "save": "保存"
+        "save": "保存",
+        "messages___": "メッセージ...",
+        "remove_tour": "このツアーを削除",
+        "down_tour": "このツアーを下に移動",
+        "up_tour": "このツアーを上に移動",
+        "add_tour": "ツアーを追加",
+        "remove_tour_destination": "このツアー目的地を削除",
+        "down_tour_destination": "このツアー目的地を下に移動",
+        "up_tour_destination": "このツアー目的地を上に移動",
+        "add_tour_destination": "ツアー目的地を追加",
+        "remove_message": "このメッセージを削除",
+        "down_message": "このメッセージを下に移動",
+        "up_message": "このメッセージを上に移動",
+        "add_message": "メッセージを追加",
+        "search": "検索",
+        "message_editor": "メッセージを編集",
+        "cancel": "キャンセル"
     },
     "keynames": [
         {

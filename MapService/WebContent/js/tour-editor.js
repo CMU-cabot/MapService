@@ -415,7 +415,7 @@ $hulop.editor = function () {
 			let tag = $element.prop("tagName");
 			if (event.type == 'mouseenter') {
 				$element.css('position', 'relative');
-				addIcon($element, 'fa-minus', 'Remove the tour')
+				addIcon($element, 'fa-minus', Touri18n._('remove_tour'))
 					.on('click', ((index) => {
 						return (event) => {
 							let removed = lastData.tours.splice(index, 1)[0];
@@ -425,7 +425,7 @@ $hulop.editor = function () {
 							exportData();
 						}
 					})(index));
-				addIcon($element, 'fa-arrow-down', 'Down the tour')
+				addIcon($element, 'fa-arrow-down', Touri18n._('down_tour'))
 					.addClass((tag == 'TH' || index == length - 1) ? 'disabled-icon' : null)
 					.on('click', ((index) => {
 						return (event) => {
@@ -437,7 +437,7 @@ $hulop.editor = function () {
 							exportData();
 						}
 					})(index));
-				addIcon($element, 'fa-arrow-up', 'Up the tour')
+				addIcon($element, 'fa-arrow-up', Touri18n._('up_tour'))
 					.addClass((tag == 'TH' || index == 0) ? 'disabled-icon' : null)
 					.on('click', ((index) => {
 						return (event) => {
@@ -455,7 +455,7 @@ $hulop.editor = function () {
 			}
 		});
 
-		addIcon(thead.find('th').css('position', 'relative'), 'fa-plus', 'Add a tour')
+		addIcon(thead.find('th').css('position', 'relative'), 'fa-plus', Touri18n._('add_tour'))
 			.on('click', event => {
 				let new_tour = {
 					'tour_id': 'tour_' + new Date().getTime(),
@@ -682,7 +682,7 @@ $hulop.editor = function () {
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
-			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'messages...' }).css('width', '100%').on('click', event => {
+			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': Touri18n._('messages___') }).css('width', '100%').on('click', event => {
 				let template = [];
 				template.push(['type', 'text', 'message_types']);
 				template.push(['tags']);
@@ -891,7 +891,7 @@ $hulop.editor = function () {
 						if (event.type == 'mouseenter') {
 							$element.css('position', 'relative');
 							if (index != null) {
-								addIcon($element, 'fa-minus', 'Remove the tour destination')
+								addIcon($element, 'fa-minus', Touri18n._('remove_tour_destination'))
 									.on('click', ((index) => {
 										return (event) => {
 											applyChanges();
@@ -902,7 +902,7 @@ $hulop.editor = function () {
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-down', 'Down the tour destination')
+								addIcon($element, 'fa-arrow-down', Touri18n._('down_tour_destination'))
 									.addClass((index == length - 1) ? 'disabled-icon' : null)
 									.on('click', ((index) => {
 										return (event) => {
@@ -915,7 +915,7 @@ $hulop.editor = function () {
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-up', 'Up the tour destination')
+								addIcon($element, 'fa-arrow-up', Touri18n._('up_tour_destination'))
 									.addClass((index == 0) ? 'disabled-icon' : null)
 									.on('click', ((index) => {
 										return (event) => {
@@ -935,7 +935,7 @@ $hulop.editor = function () {
 						}
 					});
 
-					addIcon(row.find('td:first').css('position', 'relative'), 'fa-plus', 'Add a tour destination')
+					addIcon(row.find('td:first').css('position', 'relative'), 'fa-plus', Touri18n._('add_tour_destination'))
 						.on('click', event => {
 							applyChanges();
 							if (!tour[name]) {

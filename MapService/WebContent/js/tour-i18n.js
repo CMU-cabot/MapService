@@ -64,6 +64,12 @@ let Touri18n = (function () {
         return messages[key] || `(${key});`
     }
 
+    $(document).ready(() => {
+        for (const [key, value] of Object.entries(messages)) {
+            $(`[i18n=${key}]`).text(value);
+        }
+    });
+
     return {
         'translate': translate,
         '_': getMessage

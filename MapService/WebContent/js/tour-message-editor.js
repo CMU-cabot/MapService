@@ -63,20 +63,20 @@ let MessageEditor = (function () {
             let length = $('#messages table').length;
             if (event.type == 'mouseenter') {
                 title.css('position', 'relative');
-                addIcon(title, 'fa-minus', 'Remove the message')
+                addIcon(title, 'fa-minus', Touri18n._('remove_message'))
                     .on('click', ((index) => {
                         return (event) => {
                             $(event.target).parents('table').remove();
                         }
                     })(index));
-                addIcon(title, 'fa-arrow-down', 'Down the message')
+                addIcon(title, 'fa-arrow-down', Touri18n._('down_message'))
                     .addClass(index == length - 1 ? 'disabled-icon' : null)
                     .on('click', ((index) => {
                         return (event) => {
                             $('#messages table')[index + 1].after($('#messages table')[index])
                         }
                     })(index));
-                addIcon(title, 'fa-arrow-up', 'Up the message')
+                addIcon(title, 'fa-arrow-up', Touri18n._('up_message'))
                     .addClass(index == 0 ? 'disabled-icon' : null)
                     .on('click', ((index) => {
                         return (event) => {
@@ -122,7 +122,7 @@ let MessageEditor = (function () {
     function open(template = [], initial_messages = [], callback = console.log) {
         $('#messages').empty();
         $('#message-edit i').remove();
-        addIcon($('#messages_title').css('position', 'relative'), 'fa-plus', 'Add a message')
+        addIcon($('#messages_title').css('position', 'relative'), 'fa-plus', Touri18n._('add_message'))
             .on('click', (() => {
                 return (event) => {
                     add_message(template);

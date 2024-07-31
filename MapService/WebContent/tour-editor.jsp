@@ -207,13 +207,13 @@ table.message th {
 <body>
 	<div class="left row0">
 		<div id="help" class="inner">
-			<%=user%> <a href="tour-editor.jsp?logout=true">Log out</a>
-			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a>
-			<a href="javascript:void(0)" id="upload_link">import</a>
+			<%=user%> <a href="tour-editor.jsp?logout=true" i18n="log_out">Log out</a>
+			| <span i18n="raw_data">Raw data</span> <a href="cabot/tourdata.json" download="tourdata.json" i18n="download">download</a>
+			<a href="javascript:void(0)" id="upload_link" i18n="import">import</a>
 			<input type="file" accept=".json" id="upload_file" style="display: none;">
-			<span id="upload">| <button>upload</button></span>
+			<span id="upload">| <button i18n="upload">upload</button></span>
 			|
-			<a href="./editor.jsp">Editor</a>
+			<a href="./editor.jsp" i18n="editor">Editor</a>
 		</div>
 	</div>
 	<div class="left row1 scroll">
@@ -224,7 +224,7 @@ table.message th {
 	</div>
 	<div class="left row3 scroll">
 		<div id="search_destination">
-			<label>search <input type="search" id="search_text"/></label>
+			<label><span i18n="search">Search</span> <input type="search" id="search_text"/></label>
 		</div>
 		<div id="list" class="inner"></div>
 	</div>
@@ -234,7 +234,7 @@ table.message th {
 	<div id="map" class="ui-page-theme-a"></div>
 	<div id="message-edit">
 		<div id="message-form">
-			<h2 id="messages_title">Message Editor</h2>
+			<h2 id="messages_title" i18n="message_editor">Message Editor</h2>
 			<datalist id="message_types">
 				<option value="summary">summary</option>
 				<option value="startMessage">startMessage</option>
@@ -242,8 +242,8 @@ table.message th {
 			</datalist>
 			<div id="messages"></div>
 			<div id="buttons">
-				<button id="save_messages">OK</button>
-				<button id="cancel_messages">Cancel</button>
+				<button id="save_messages" i18n="ok">OK</button>
+				<button id="cancel_messages" i18n="cancel">Cancel</button>
 			</div>
 		</div>
 	</div>

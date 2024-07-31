@@ -7,7 +7,20 @@
         "value": "Value",
         "floor": "Floor",
         "destinations": "Destinations",
-        "save": "Save"
+        "save": "Save",
+        "messages___": "messages...",
+        "remove_tour": "Remove the tour",
+        "down_tour": "Down the tour",
+        "up_tour": "Up the tour",
+        "add_tour": "Add a tour",
+        "remove_tour_destination": "Remove the tour destination",
+        "down_tour_destination": "Down the tour destination",
+        "up_tour_destination": "Up the tour destination",
+        "add_tour_destination": "Add a tour destination",
+        "remove_message": "Remove the message",
+        "down_message": "Down the message",
+        "up_message": "Up the message",
+        "add_message": "Add a message"
     },
     "keynames": [
         {
