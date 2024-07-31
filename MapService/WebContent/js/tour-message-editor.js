@@ -126,11 +126,13 @@ let MessageEditor = (function () {
             .on('click', (() => {
                 return (event) => {
                     add_message(template);
+                    Touri18n.translate("#message-edit");
                 }
             })());
         initial_messages.forEach(message => {
             add_message(template, message);
         });
+        Touri18n.translate("#message-edit");
         $('#save_messages').on('click', event => {
             close();
             callback(get_messages());

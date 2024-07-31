@@ -33,6 +33,7 @@
 <script type="text/javascript" src="js/maps.js"></script>
 <script type="text/javascript" src="js/FloorPlanOverlay.js"></script>
 <script type="text/javascript" src="js/indoor.js"></script>
+<script type="text/javascript" src="js/tour-i18n.js"></script>
 <script type="text/javascript" src="js/tour-editor.js"></script>
 <script type="text/javascript" src="js/tour-message-editor.js"></script>
 <script type="text/javascript" src="js/login-monitor.js"></script>

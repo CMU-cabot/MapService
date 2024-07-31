@@ -701,6 +701,7 @@ $hulop.editor = function () {
 				});
 			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
+			Touri18n.translate("#dest_properties");
 
 			$('#dest_properties tr td[key=#waitingDestination]').parent().on('click', e => {
 				$('.destination_selected').removeClass('destination_selected')
@@ -1044,6 +1045,8 @@ $hulop.editor = function () {
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
 		// Object.keys(tour).forEach(add);
+		Touri18n.translate("#tour_properties");
+
 		$('#tour_properties td[key=destinations]').prev().on('click', e => {
 			$('.destination_selected').removeClass('destination_selected');
 			$(e.target).addClass('destination_selected');
