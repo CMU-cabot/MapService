@@ -291,9 +291,41 @@ $hulop.editor = function () {
 		return heights;
 	}
 
+	$(document).ready(() => {
+		let timeoutID;
+		$('#search_text').on('input', event => {
+			timeoutID && clearTimeout(timeoutID);
+			timeoutID = setTimeout(showDestinationList, 250);
+		});
+	});
+
 	function showDestinationList(floorFilter = null) {
 		$('#list').empty();
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
+		items = items.filter(item => {
+			let text = $('#search_text').val().toLowerCase();
+			if (text == '') {
+				return true;
+			}
+			function find(target) {
+				if (target) {
+					if (Array.isArray(target)) {
+						for (const child of target) {
+							if (find(child)) {
+								return true;
+							}
+						}
+					} else {
+						for (const [key, value] of Object.entries(target)) {
+							if (typeof (value) == 'string' && value.toLowerCase().includes(text)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+			return find(item) || find(item.facility) || find(item.messages);
+		});
 
 		// show floor option
 		/*

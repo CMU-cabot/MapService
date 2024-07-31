@@ -184,6 +184,13 @@ table table td[contenteditable=true] {
 table.message th {
 	background-color: lightskyblue;
 }
+
+#search_destination {
+	text-align: right;
+	padding-right: 10px;
+	font-size: 8pt;
+	margin-bottom: -12px;
+}
 </style>
 <title>Tour Editor</title>
 </head>
@@ -205,6 +212,9 @@ table.message th {
 		<div id="tour_properties" class="inner"></div>
 	</div>
 	<div class="left row3 scroll">
+		<div id="search_destination">
+			<label>search <input type="search" id="search_text"/></label>
+		</div>
 		<div id="list" class="inner"></div>
 	</div>
 	<div class="left bottom scroll">
