@@ -44,13 +44,16 @@ let Touri18n = (function () {
             if (!parent_selector || parent_selector == item.parent_selector) {
                 for (const [key, value] of Object.entries(item.keys)) {
                     let node = $(`${item.parent_selector} [${item.key_name}=${key.replaceAll(':', '\\:')}]`);
-                    if (node.length > 0 && !node.prop('_translated')) {
-                        let label = node.prop('tagName') == 'TD' ? node.prev() : node.parent().prev();
-                        // console.log(`${label.text()} => ${value.text}`);
-                        label.contents().first()[0].nodeValue = value.text;
-                        node.prop('title', value.help);
-                        node.prop('_translated', true);
-                    }
+                    node.each((i, e) => {
+                        let node = $(e);
+                        if (!node.prop('_translated')) {
+                            let label = node.prop('tagName') == 'TD' ? node.prev() : node.parent().prev();
+                            // console.log(`${label.text()} => ${value.text}`);
+                            label.contents().first()[0].nodeValue = value.text;
+                            node.prop('title', value.help);
+                            node.prop('_translated', true);
+                        }
+                    });
                 }
             }
         });
