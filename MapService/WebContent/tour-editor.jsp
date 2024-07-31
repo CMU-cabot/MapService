@@ -167,6 +167,11 @@ table table td[contenteditable=true] {
 	box-shadow: 5px 5px 5px;
 }
 
+#message-form #buttons {
+	position: sticky;
+	bottom: 0px;
+}
+
 .message {
 	margin-bottom: 2em;
 }
@@ -236,7 +241,7 @@ table.message th {
 				<option value="arriveMessage">arriveMessage</option>
 			</datalist>
 			<div id="messages"></div>
-			<div>
+			<div id="buttons">
 				<button id="save_messages">OK</button>
 				<button id="cancel_messages">Cancel</button>
 			</div>
