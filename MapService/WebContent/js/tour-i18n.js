@@ -22,7 +22,7 @@
  ******************************************************************************/
 let Touri18n = (function () {
     let defaultLang = $hulop.messages.defaultLang == 'ja' ? 'ja' : 'en';
-    let messages = [];
+    let messages = {}, keynames = [];
 
     $.ajax({
         'type': 'get',
@@ -30,7 +30,8 @@ let Touri18n = (function () {
         'url': `cabot/messages_${defaultLang}.json`,
         'dataType': 'json',
         'success': function (data) {
-            messages = data;
+            messages = data.messages || {};
+            keynames = data.keynames || [];
             console.log(`defaultlang ${defaultLang}`);
             console.log(data);
         },
@@ -40,7 +41,7 @@ let Touri18n = (function () {
     });
 
     function translate(parent_selector) {
-        messages.forEach(item => {
+        keynames.forEach(item => {
             if (!parent_selector || parent_selector == item.parent_selector) {
                 for (const [key, value] of Object.entries(item.keys)) {
                     let node = $(`${item.parent_selector} [${item.key_name}=${key.replaceAll(':', '\\:')}]`);
@@ -59,7 +60,12 @@ let Touri18n = (function () {
         });
     }
 
+    function getMessage(key) {
+        return messages[key] || `(${key});`
+    }
+
     return {
-        'translate': translate
+        'translate': translate,
+        '_': getMessage
     }
 })();

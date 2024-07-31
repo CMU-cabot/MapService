@@ -27,9 +27,9 @@ let MessageEditor = (function () {
         let thead = $('<thead>').appendTo(table);
         let tbody = $('<tbody>').appendTo(table);
         $('<tr>').append($('<th>', {
-            'text': 'Key'
+            'text': Touri18n._('key')
         }), $('<th>', {
-            'text': 'Value'
+            'text': Touri18n._('value')
         })).appendTo(thead);
         function add_row(key, type = 'text', list) {
             let input_field;

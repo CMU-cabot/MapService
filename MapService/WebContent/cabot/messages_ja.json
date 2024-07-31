@@ -1,180 +1,192 @@
-[
-    {
-        "parent_selector": "#tour_properties",
-        "key_name": "key",
-        "keys": {
-            "tour_id": {
-                "text": "ツアーID",
-                "help": "tour_idの説明"
-            },
-            "title-ja": {
-                "text": "タイトル 日本語",
-                "help": "title-jaの説明"
-            },
-            "title-ja-pron": {
-                "text": "タイトル 日本語読み",
-                "help": "title-ja-pronの説明"
-            },
-            "title-en": {
-                "text": "タイトル 英語",
-                "help": "title-enの説明"
-            },
-            "debug": {
-                "text": "デバッグモード",
-                "help": "debugの説明"
-            },
-            "introduction-ja": {
-                "text": "紹介文 日本語",
-                "help": "introduction-jaの説明"
-            },
-            "introduction-ja-pron": {
-                "text": "紹介文 日本語読み",
-                "help": "introduction-ja-pronの説明"
-            },
-            "introduction-en": {
-                "text": "紹介文 英語",
-                "help": "introduction-enの説明"
-            },
-            "enableSubtourOnHandle": {
-                "text": "ハンドルでサブツアーを利用する",
-                "help": "enableSubtourOnHandleの説明"
-            },
-            "showContentWhenArrive": {
-                "text": "到着時に内容を表示する",
-                "help": "showContentWhenArriveの説明"
-            },
-            "destinations": {
-                "text": "目的地",
-                "help": "destinationsの説明"
-            }
-        }
+{
+    "messages": {
+        "no_name": "(無名)",
+        "tours": "ツアー",
+        "title": "名称",
+        "key": "項目名",
+        "value": "属性",
+        "floor": "階層",
+        "destinations": "目的地",
+        "save": "保存"
     },
-    {
-        "parent_selector": "#dest_properties",
-        "key_name": "key",
-        "keys": {
-            "value": {
-                "text": "ノードID",
-                "help": "valueの説明"
-            },
-            "floor": {
-                "text": "フロア",
-                "help": "floorの説明"
-            },
-            "title-ja": {
-                "text": "タイトル 日本語",
-                "help": "title-jaの説明"
-            },
-            "title-ja-pron": {
-                "text": "タイトル 日本語読み",
-                "help": "title-ja-pronの説明"
-            },
-            "title-en": {
-                "text": "タイトル 英語",
-                "help": "title-enの説明"
-            },
-            "short_description-ja": {
-                "text": "短い説明 日本語",
-                "help": "short_description-jaの説明"
-            },
-            "short_description-en": {
-                "text": "短い説明 英語",
-                "help": "short_description-enの説明"
-            },
-            "long_description-ja": {
-                "text": "長い説明 日本語",
-                "help": "long_description-jaの説明"
-            },
-            "long_description-en": {
-                "text": "長い説明 日本語",
-                "help": "long_description-enの説明"
-            },
-            "major_category": {
-                "text": "メジャーカテゴリー",
-                "help": "major_categoryの説明"
-            },
-            "sub_category": {
-                "text": "サブカテゴリー",
-                "help": "sub_categoryの説明"
-            },
-            "minor_category": {
-                "text": "マイナーカテゴリー",
-                "help": "minor_categoryの説明"
-            },
-            "tags": {
-                "text": "タグ",
-                "help": "tagsの説明"
-            },
-            "building": {
-                "text": "建物",
-                "help": "buildingの説明"
-            },
-            "arrivalAngle": {
-                "text": "到着角度",
-                "help": "arrivalAngleの説明"
-            },
-            "content": {
-                "text": "内容",
-                "help": "contentの説明"
-            },
-            "#waitingDestination": {
-                "text": "待機目的地",
-                "help": "waitingDestinationの説明"
-            },
-            "waitingDestinationAngle": {
-                "text": "待機目的地角度",
-                "help": "waitingDestinationAngleの説明"
-            },
-            "subtour": {
-                "text": "サブツアー",
-                "help": "subtourの説明"
+    "keynames": [
+        {
+            "parent_selector": "#tour_properties",
+            "key_name": "key",
+            "keys": {
+                "tour_id": {
+                    "text": "ツアーID",
+                    "help": "tour_idの説明"
+                },
+                "title-ja": {
+                    "text": "タイトル 日本語",
+                    "help": "title-jaの説明"
+                },
+                "title-ja-pron": {
+                    "text": "タイトル 日本語読み",
+                    "help": "title-ja-pronの説明"
+                },
+                "title-en": {
+                    "text": "タイトル 英語",
+                    "help": "title-enの説明"
+                },
+                "debug": {
+                    "text": "デバッグモード",
+                    "help": "debugの説明"
+                },
+                "introduction-ja": {
+                    "text": "紹介文 日本語",
+                    "help": "introduction-jaの説明"
+                },
+                "introduction-ja-pron": {
+                    "text": "紹介文 日本語読み",
+                    "help": "introduction-ja-pronの説明"
+                },
+                "introduction-en": {
+                    "text": "紹介文 英語",
+                    "help": "introduction-enの説明"
+                },
+                "enableSubtourOnHandle": {
+                    "text": "ハンドルでサブツアーを利用する",
+                    "help": "enableSubtourOnHandleの説明"
+                },
+                "showContentWhenArrive": {
+                    "text": "到着時に内容を表示する",
+                    "help": "showContentWhenArriveの説明"
+                },
+                "destinations": {
+                    "text": "目的地",
+                    "help": "destinationsの説明"
+                }
+            }
+        },
+        {
+            "parent_selector": "#dest_properties",
+            "key_name": "key",
+            "keys": {
+                "value": {
+                    "text": "ノードID",
+                    "help": "valueの説明"
+                },
+                "floor": {
+                    "text": "フロア",
+                    "help": "floorの説明"
+                },
+                "title-ja": {
+                    "text": "タイトル 日本語",
+                    "help": "title-jaの説明"
+                },
+                "title-ja-pron": {
+                    "text": "タイトル 日本語読み",
+                    "help": "title-ja-pronの説明"
+                },
+                "title-en": {
+                    "text": "タイトル 英語",
+                    "help": "title-enの説明"
+                },
+                "short_description-ja": {
+                    "text": "短い説明 日本語",
+                    "help": "short_description-jaの説明"
+                },
+                "short_description-en": {
+                    "text": "短い説明 英語",
+                    "help": "short_description-enの説明"
+                },
+                "long_description-ja": {
+                    "text": "長い説明 日本語",
+                    "help": "long_description-jaの説明"
+                },
+                "long_description-en": {
+                    "text": "長い説明 日本語",
+                    "help": "long_description-enの説明"
+                },
+                "major_category": {
+                    "text": "メジャーカテゴリー",
+                    "help": "major_categoryの説明"
+                },
+                "sub_category": {
+                    "text": "サブカテゴリー",
+                    "help": "sub_categoryの説明"
+                },
+                "minor_category": {
+                    "text": "マイナーカテゴリー",
+                    "help": "minor_categoryの説明"
+                },
+                "tags": {
+                    "text": "タグ",
+                    "help": "tagsの説明"
+                },
+                "building": {
+                    "text": "建物",
+                    "help": "buildingの説明"
+                },
+                "arrivalAngle": {
+                    "text": "到着角度",
+                    "help": "arrivalAngleの説明"
+                },
+                "content": {
+                    "text": "内容",
+                    "help": "contentの説明"
+                },
+                "#waitingDestination": {
+                    "text": "待機目的地",
+                    "help": "waitingDestinationの説明"
+                },
+                "waitingDestinationAngle": {
+                    "text": "待機目的地角度",
+                    "help": "waitingDestinationAngleの説明"
+                },
+                "subtour": {
+                    "text": "サブツアー",
+                    "help": "subtourの説明"
+                }
+            }
+        },
+        {
+            "parent_selector": "#message-edit",
+            "key_name": "name",
+            "keys": {
+                "type": {
+                    "text": "タイプ",
+                    "help": "typeの説明"
+                },
+                "tags": {
+                    "text": "タグ",
+                    "help": "tagsの説明"
+                },
+                "age_group": {
+                    "text": "年齢グループ",
+                    "help": "age_groupの説明"
+                },
+                "timeFrom": {
+                    "text": "開始時間",
+                    "help": "timeFromの説明"
+                },
+                "timeUntil": {
+                    "text": "終了時間",
+                    "help": "timeUntilの説明"
+                },
+                "dateFrom": {
+                    "text": "開始日付",
+                    "help": "dateFromの説明"
+                },
+                "dateUntil": {
+                    "text": "終了日付",
+                    "help": "dateUntilの説明"
+                },
+                "text:ja": {
+                    "text": "テキスト 日本語",
+                    "help": "text:jaの説明"
+                },
+                "text:ja-pron": {
+                    "text": "テキスト 日本語読み",
+                    "help": "text:ja-pronの説明"
+                },
+                "text:en": {
+                    "text": "テキスト 英語",
+                    "help": "text:enの説明"
+                }
             }
         }
-    },
-    {
-        "parent_selector": "#message-edit",
-        "key_name": "name",
-        "keys": {
-            "type": {
-                "text": "タイプ",
-                "help": "typeの説明"
-            },
-            "tags": {
-                "text": "タグ",
-                "help": "tagsの説明"
-            },
-            "age_group": {
-                "text": "年齢グループ",
-                "help": "age_groupの説明"
-            },
-            "timeFrom": {
-                "text": "開始時間",
-                "help": "timeFromの説明"
-            },
-            "timeUntil": {
-                "text": "終了時間",
-                "help": "timeUntilの説明"
-            },
-            "dateFrom": {
-                "text": "開始日付",
-                "help": "dateFromの説明"
-            },
-            "dateUntil": {
-                "text": "終了日付",
-                "help": "dateUntilの説明"
-            },
-            "text:ja": {
-                "text": "テキスト 日本語",
-                "help": "text:jaの説明"
-            },
-            "text:ja-pron": {
-                "text": "テキスト 日本語読み",
-                "help": "text:ja-pronの説明"
-            },
-            "text:en": {
-                "text": "テキスト 英語",
-                "help": "text:enの説明"
-            }
-        }
-    }
-]
+    ]
+}

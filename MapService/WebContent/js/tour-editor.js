@@ -160,7 +160,7 @@ $hulop.editor = function () {
 	}
 
 	function getLabel(dest) {
-		return dest && (dest['title-' + $hulop.messages.defaultLang] || dest['title-ja'] || dest['title-en'] || '(No name)');
+		return dest && (dest['title-' + $hulop.messages.defaultLang] || dest['title-ja'] || dest['title-en'] || Touri18n._('no_name'));
 	}
 
 	function getStyle(feature) {
@@ -359,14 +359,14 @@ $hulop.editor = function () {
 		});
 		let table = $('<table>').appendTo($('#list'));
 		$('<caption>', {
-			'text': 'Destinations'
+			'text': Touri18n._('destinations')
 		}).appendTo(table);
 		let thead = $('<thead>').appendTo(table);
 		let tbody = $('<tbody>').appendTo(table);
 		$('<tr>').append($('<th>', {
-			'text': 'Floor'
+			'text': Touri18n._('floor')
 		}), $('<th>', {
-			'text': 'Title'
+			'text': Touri18n._('title')
 		})).appendTo(thead);
 		items.forEach(item => {
 			$('<tr>', {
@@ -386,12 +386,12 @@ $hulop.editor = function () {
 		$('#tour_list').empty();
 		let table = $('<table>').appendTo($('#tour_list'));
 		$('<caption>', {
-			'text': 'Tours'
+			'text': Touri18n._('tours')
 		}).appendTo(table);
 		let thead = $('<thead>').appendTo(table);
 		let tbody = $('<tbody>').appendTo(table);
 		$('<tr>').append($('<th>', {
-			'text': 'Title',
+			'text': Touri18n._('title')
 		})).appendTo(thead);
 		lastData.tours.forEach(tour => {
 			$('<tr>', {
@@ -598,12 +598,12 @@ $hulop.editor = function () {
 			let thead = $('<thead>').appendTo(table);
 			let tbody = $('<tbody>').appendTo(table);
 			$('<tr>').append($('<th>', {
-				'text': 'Key'
+				'text': Touri18n._('key')
 			}), $('<th>', {
-				'text': 'Value'
+				'text': Touri18n._('value')
 			})).appendTo(thead);
 			let saveButton = $('<button>', {
-				'text': 'Save',
+				'text': Touri18n._('save'),
 				'css': {
 					'position': 'sticky',
 					'bottom': '0px'
@@ -773,12 +773,12 @@ $hulop.editor = function () {
 		let thead = $('<thead>').appendTo(table);
 		let tbody = $('<tbody>').appendTo(table);
 		$('<tr>').append($('<th>', {
-			'text': 'Key'
+			'text': Touri18n._('key')
 		}), $('<th>', {
-			'text': 'Value'
+			'text': Touri18n._('value')
 		})).appendTo(thead);
 		let saveButton = $('<button>', {
-			'text': 'Save',
+			'text': Touri18n._('save'),
 			'css': {
 				'position': 'sticky',
 				'bottom': '0px'
