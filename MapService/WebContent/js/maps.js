@@ -1611,7 +1611,7 @@ $hulop.map = function() {
 			animating = false;
 			setTimeout(function() {
 				lastCenter && setCenter(lastCenter);
-				complete_callback && complete_callback()
+				complete_callback && complete_callback();
 			});
 		});
 	}
