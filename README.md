@@ -31,7 +31,27 @@ Please visit *MapService* folder for more details about MapService application.
 *SampleMap* folder contains sample map and GeoJSON data.
 
 -----
+## How to use (macOS)
+### Setup
+```
+$ bash ./download-lib.sh
+```
+### launch mongodb
+```
+$ docker-compose -f docker-compose-mongo.yaml build
+$ docker-compose -f docker-compose-mongo.yaml up
+```
 
+#### trouble shooting
+##### mongodb-1  | chown: changing ownership of ‘/data/db’: Permission denied
+```
+sudo chown -R root <path to mongodb/database>
+sudo chmod -R 777 <path to mongodb/database>
+```
+
+### launch MapService
+
+-----
 ## About
 [About HULOP](https://github.com/hulop/00Readme)
 
