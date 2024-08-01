@@ -60,8 +60,8 @@ let Touri18n = (function () {
         });
     }
 
-    function getMessage(key) {
-        return messages[key] || `(${key});`
+    function getMessage(key, default_text) {
+        return messages[key] || default_text || `(${key});`
     }
 
     $(document).ready(() => {
