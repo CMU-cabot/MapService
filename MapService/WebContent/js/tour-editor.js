@@ -375,7 +375,7 @@ $hulop.editor = function () {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
 						$hulop.indoor.showFloor(item.floor);
 					});
-					showProperty(item.node);
+					showProperty(item.node, false, true);
 				}
 			}).append($('<td>', {
 				'text': item.floor
@@ -566,7 +566,7 @@ $hulop.editor = function () {
 	let onNodeClick = null;
 	let showingFeature = null;
 
-	function showProperty(feature, skip_clear_event = false) {
+	function showProperty(feature, skip_clear_event = false, no_scroll = false) {
 		if (!skip_clear_event) {
 			if (onNodeClick && onNodeClick(feature)) return;
 			onNodeClick = null;
@@ -577,17 +577,17 @@ $hulop.editor = function () {
 		$hulop.editor.editingFeature = feature; // for debug
 		if (feature) {
 			showDestinationTable(feature);
-			destinationSelected(feature.getId());
+			destinationSelected(feature.getId(), no_scroll);
 		}
 		showingFeature = feature;
 		$hulop.map.refresh();
 	}
 
-	function destinationSelected(node_id) {
+	function destinationSelected(node_id, no_scroll = false) {
 		$('#list .destination_selected').removeClass("destination_selected")
 		let selector = $('#list td[node_id=' + node_id + ']');
 		if (selector.length > 0) {
-			selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			no_scroll || selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
 			selector.addClass("destination_selected")
 		}
 	}
