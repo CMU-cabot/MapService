@@ -306,6 +306,7 @@ $hulop.editor = function () {
 	});
 
 	function showDestinationList(floorFilter = null) {
+		let selected_node = $('#list .destination_selected').attr('node_id');
 		$('#list').empty();
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
 		items = items.filter(item => {
@@ -382,6 +383,7 @@ $hulop.editor = function () {
 				'text': item.label
 			}).attr('node_id', item.value)).appendTo('#list tbody');
 		});
+		selected_node && destinationSelected(selected_node);
 	}
 
 	function showTourList() {
