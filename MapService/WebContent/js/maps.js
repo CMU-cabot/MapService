@@ -1601,7 +1601,7 @@ $hulop.map = function() {
 		}
 	}
 
-	function animate(center, duration=1000) {
+	function animate(center, duration=1000, complete_callback) {
 		lastCenter = center
 		animating = true;
 		map.getView().animate({
@@ -1611,6 +1611,7 @@ $hulop.map = function() {
 			animating = false;
 			setTimeout(function() {
 				lastCenter && setCenter(lastCenter);
+				complete_callback && complete_callback()
 			});
 		});
 	}

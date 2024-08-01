@@ -371,8 +371,9 @@ $hulop.editor = function () {
 		items.forEach(item => {
 			$('<tr>', {
 				'click': () => {
-					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
-					showProperty(item.node);
+					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
+						showProperty(item.node);
+					});
 				}
 			}).append($('<td>', {
 				'text': item.floor
@@ -1095,8 +1096,9 @@ $hulop.editor = function () {
 	function showFeature(node_id) {
 		let feature = node_id && source.getFeatureById(node_id);
 		if (feature) {
-			$hulop.map.animate(ol.proj.transform(feature.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
-			$hulop.indoor.showFloor(feature.get('floor'));
+			$hulop.map.animate(ol.proj.transform(feature.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
+				$hulop.indoor.showFloor(feature.get('floor'));
+			});
 		}
 	}
 
