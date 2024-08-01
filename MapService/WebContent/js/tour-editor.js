@@ -372,8 +372,9 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
-						showProperty(item.node);
+						$hulop.indoor.showFloor(item.floor);
 					});
+					showProperty(item.node);
 				}
 			}).append($('<td>', {
 				'text': item.floor
