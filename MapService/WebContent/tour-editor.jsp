@@ -33,6 +33,7 @@
 <script type="text/javascript" src="js/maps.js"></script>
 <script type="text/javascript" src="js/FloorPlanOverlay.js"></script>
 <script type="text/javascript" src="js/indoor.js"></script>
+<script type="text/javascript" src="js/tour-i18n.js"></script>
 <script type="text/javascript" src="js/tour-editor.js"></script>
 <script type="text/javascript" src="js/tour-message-editor.js"></script>
 <script type="text/javascript" src="js/login-monitor.js"></script>
@@ -166,6 +167,11 @@ table table td[contenteditable=true] {
 	box-shadow: 5px 5px 5px;
 }
 
+#message-form #buttons {
+	position: sticky;
+	bottom: 0px;
+}
+
 .message {
 	margin-bottom: 2em;
 }
@@ -184,45 +190,60 @@ table table td[contenteditable=true] {
 table.message th {
 	background-color: lightskyblue;
 }
+
+#search_destination {
+	text-align: right;
+	padding-right: 10px;
+	font-size: 8pt;
+	margin-bottom: -12px;
+}
+
+#upload {
+	display: none;
+}
 </style>
 <title>Tour Editor</title>
 </head>
 <body>
 	<div class="left row0">
 		<div id="help" class="inner">
-			<%=user%> <a href="tour-editor.jsp?logout=true">Log out</a>
-			| Raw data <a href="cabot/tourdata.json" download="tourdata.json">download</a>
-			<a href="javascript:void(0)" id="upload_link">upload</a>
+			<%=user%> <a href="tour-editor.jsp?logout=true" i18n="log_out">Log out</a>
+			| <span i18n="raw_data">Raw data</span> <a href="cabot/tourdata.json" download="tourdata.json" i18n="download">download</a>
+			<a href="javascript:void(0)" id="upload_link" i18n="import">import</a>
 			<input type="file" accept=".json" id="upload_file" style="display: none;">
+			<span id="upload">| <button i18n="upload">upload</button></span>
 			|
-			<a href="./editor.jsp">Editor</a>
+			<a href="./editor.jsp" i18n="editor">Editor</a>
 		</div>
 	</div>
 	<div class="left row1 scroll">
-		<div id="list" class="inner"></div>
-	</div>
-	<div class="left row2 scroll">
-		<div id="dest_properties" class="inner"></div>
-	</div>
-	<div class="left row3 scroll">
 		<div id="tour_list" class="inner"></div>
 	</div>
-	<div class="left bottom scroll">
+	<div class="left row2 scroll">
 		<div id="tour_properties" class="inner"></div>
+	</div>
+	<div class="left row3 scroll">
+		<div id="search_destination">
+			<label><span i18n="search">Search</span> <input type="search" id="search_text"/></label>
+		</div>
+		<div id="list" class="inner"></div>
+	</div>
+	<div class="left bottom scroll">
+		<div id="dest_properties" class="inner"></div>
 	</div>
 	<div id="map" class="ui-page-theme-a"></div>
 	<div id="message-edit">
 		<div id="message-form">
-			<h2 id="messages_title">Message Editor</h2>
+			<h2 id="messages_title" i18n="message_editor">Message Editor</h2>
 			<datalist id="message_types">
 				<option value="summary">summary</option>
 				<option value="startMessage">startMessage</option>
 				<option value="arriveMessage">arriveMessage</option>
 			</datalist>
 			<div id="messages"></div>
-			<div>
-				<button id="save_messages">OK</button>
-				<button id="cancel_messages">Cancel</button>
+			<div id="buttons">
+				<button id="save_messages" i18n="ok">OK</button>
+				<button id="cancel_messages" i18n="cancel">Cancel</button>
 			</div>
 		</div>
 	</div>

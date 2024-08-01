@@ -40,6 +40,7 @@ $hulop.editor = function () {
 	];
 	const CATEGORY_KEYS = ['major_category', 'sub_category', 'minor_category', 'tags', 'building'];
 	let lastData, map, source, callback, editingFeature, downKey, keyState = {};
+	let imported_json;
 
 	function getLanguages(pron) {
 		// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
@@ -78,7 +79,12 @@ $hulop.editor = function () {
 		$('#upload_file').change(event => {
 			reader.readAsText(event.target.files[0]);
 		});
-		reader.onload = event => uploadJSONData(event.target.result, JSONDATA_PATH, () => location.reload());
+		// reader.onload = event => uploadJSONData(event.target.result, JSONDATA_PATH, () => location.reload());
+		reader.onload = event => {
+			imported_json = JSON.parse(event.target.result);
+			prepareData($hulop.map.getCenter(), $hulop.config.MAX_RADIUS || 1000);
+			$('#upload').show();
+		};
 
 
 		// Map event listeners
@@ -86,9 +92,6 @@ $hulop.editor = function () {
 			let feature = getEventFeature(event);
 			if (feature === null) {
 				return;
-			}
-			if (!keyState.altKey) {
-				$('#tour_properties .destination_selected').removeClass("destination_selected");
 			}
 			showProperty(feature);
 		});
@@ -157,7 +160,7 @@ $hulop.editor = function () {
 	}
 
 	function getLabel(dest) {
-		return dest && (dest['title-' + $hulop.messages.defaultLang] || dest['title-ja'] || dest['title-en'] || '(No name)');
+		return dest && (dest['title-' + $hulop.messages.defaultLang] || dest['title-ja'] || dest['title-en'] || Touri18n._('no_name'));
 	}
 
 	function getStyle(feature) {
@@ -294,9 +297,42 @@ $hulop.editor = function () {
 		return heights;
 	}
 
+	$(document).ready(() => {
+		let timeoutID;
+		$('#search_text').on('input', event => {
+			timeoutID && clearTimeout(timeoutID);
+			timeoutID = setTimeout(showDestinationList, 250);
+		});
+	});
+
 	function showDestinationList(floorFilter = null) {
+		let selected_node = $('#list .destination_selected').attr('node_id');
 		$('#list').empty();
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
+		items = items.filter(item => {
+			let text = $('#search_text').val().toLowerCase();
+			if (text == '') {
+				return true;
+			}
+			function find(target) {
+				if (target) {
+					if (Array.isArray(target)) {
+						for (const child of target) {
+							if (find(child)) {
+								return true;
+							}
+						}
+					} else {
+						for (const [key, value] of Object.entries(target)) {
+							if (typeof (value) == 'string' && value.toLowerCase().includes(text)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+			return find(item) || find(item.facility) || find(item.messages);
+		});
 
 		// show floor option
 		/*
@@ -324,22 +360,21 @@ $hulop.editor = function () {
 		});
 		let table = $('<table>').appendTo($('#list'));
 		$('<caption>', {
-			'text': 'Destinations'
+			'text': Touri18n._('destinations')
 		}).appendTo(table);
 		let thead = $('<thead>').appendTo(table);
 		let tbody = $('<tbody>').appendTo(table);
 		$('<tr>').append($('<th>', {
-			'text': 'Floor'
+			'text': Touri18n._('floor')
 		}), $('<th>', {
-			'text': 'Title'
+			'text': Touri18n._('title')
 		})).appendTo(thead);
 		items.forEach(item => {
 			$('<tr>', {
 				'click': () => {
-					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
-					if (!keyState.altKey) {
-						$('#tour_properties .destination_selected').removeClass("destination_selected");
-					}
+					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
+						$hulop.indoor.showFloor(item.floor);
+					});
 					showProperty(item.node);
 				}
 			}).append($('<td>', {
@@ -348,18 +383,20 @@ $hulop.editor = function () {
 				'text': item.label
 			}).attr('node_id', item.value)).appendTo('#list tbody');
 		});
+		// selected_node && destinationSelected(selected_node);
+		selected_node && $(`#list [node_id=${selected_node}]`).addClass('destination_selected');
 	}
 
 	function showTourList() {
 		$('#tour_list').empty();
 		let table = $('<table>').appendTo($('#tour_list'));
 		$('<caption>', {
-			'text': 'Tours'
+			'text': Touri18n._('tours')
 		}).appendTo(table);
 		let thead = $('<thead>').appendTo(table);
 		let tbody = $('<tbody>').appendTo(table);
 		$('<tr>').append($('<th>', {
-			'text': 'Title',
+			'text': Touri18n._('title')
 		})).appendTo(thead);
 		lastData.tours.forEach(tour => {
 			$('<tr>', {
@@ -383,7 +420,7 @@ $hulop.editor = function () {
 			let tag = $element.prop("tagName");
 			if (event.type == 'mouseenter') {
 				$element.css('position', 'relative');
-				addIcon($element, 'fa-minus', 'Remove the tour')
+				addIcon($element, 'fa-minus', Touri18n._('remove_tour'))
 					.on('click', ((index) => {
 						return (event) => {
 							let removed = lastData.tours.splice(index, 1)[0];
@@ -393,7 +430,7 @@ $hulop.editor = function () {
 							exportData();
 						}
 					})(index));
-				addIcon($element, 'fa-arrow-down', 'Down the tour')
+				addIcon($element, 'fa-arrow-down', Touri18n._('down_tour'))
 					.addClass((tag == 'TH' || index == length - 1) ? 'disabled-icon' : null)
 					.on('click', ((index) => {
 						return (event) => {
@@ -405,7 +442,7 @@ $hulop.editor = function () {
 							exportData();
 						}
 					})(index));
-				addIcon($element, 'fa-arrow-up', 'Up the tour')
+				addIcon($element, 'fa-arrow-up', Touri18n._('up_tour'))
 					.addClass((tag == 'TH' || index == 0) ? 'disabled-icon' : null)
 					.on('click', ((index) => {
 						return (event) => {
@@ -423,7 +460,7 @@ $hulop.editor = function () {
 			}
 		});
 
-		addIcon(thead.find('th').css('position', 'relative'), 'fa-plus', 'Add a tour')
+		addIcon(thead.find('th').css('position', 'relative'), 'fa-plus', Touri18n._('add_tour'))
 			.on('click', event => {
 				let new_tour = {
 					'tour_id': 'tour_' + new Date().getTime(),
@@ -550,7 +587,11 @@ $hulop.editor = function () {
 		$('#list .destination_selected').removeClass("destination_selected")
 		let selector = $('#list td[node_id=' + node_id + ']');
 		if (selector.length > 0) {
-			selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			let rcTD = selector[0].getBoundingClientRect();
+			let rcDIV = $('#list').parent()[0].getBoundingClientRect();
+			if (rcTD.top < rcDIV.top || rcTD.bottom > rcDIV.bottom) {
+				selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
 			selector.addClass("destination_selected")
 		}
 	}
@@ -566,12 +607,16 @@ $hulop.editor = function () {
 			let thead = $('<thead>').appendTo(table);
 			let tbody = $('<tbody>').appendTo(table);
 			$('<tr>').append($('<th>', {
-				'text': 'Key'
+				'text': Touri18n._('key')
 			}), $('<th>', {
-				'text': 'Value'
+				'text': Touri18n._('value')
 			})).appendTo(thead);
 			let saveButton = $('<button>', {
-				'text': 'Save',
+				'text': Touri18n._('save'),
+				'css': {
+					'position': 'sticky',
+					'bottom': '0px'
+				},
 				'on': {
 					'click': () => {
 						saveButton.hide();
@@ -646,7 +691,7 @@ $hulop.editor = function () {
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
-			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': 'messages...' }).css('width', '100%').on('click', event => {
+			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': Touri18n._('messages___') }).css('width', '100%').on('click', event => {
 				let template = [];
 				template.push(['type', 'text', 'message_types']);
 				template.push(['tags']);
@@ -665,6 +710,7 @@ $hulop.editor = function () {
 				});
 			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
+			Touri18n.translate("#dest_properties");
 
 			$('#dest_properties tr td[key=#waitingDestination]').parent().on('click', e => {
 				$('.destination_selected').removeClass('destination_selected')
@@ -680,7 +726,7 @@ $hulop.editor = function () {
 							td.text(node_id);
 							$hulop.indoor.showFloor(lastData.destinations[node_id].floor);
 						} else {
-							td.text(node_id);
+							td.text(node_id || '');
 						}
 						td.attr('modified', true);
 						setWaitingDestinationTitle();
@@ -720,6 +766,7 @@ $hulop.editor = function () {
 	}
 
 	function showTourProperty(tour) {
+		onNodeClick = null;
 		tour.destinations = tour.destinations || [];
 		tour.destinations.forEach(dest => {
 			let node_id = dest.ref || '';
@@ -735,12 +782,16 @@ $hulop.editor = function () {
 		let thead = $('<thead>').appendTo(table);
 		let tbody = $('<tbody>').appendTo(table);
 		$('<tr>').append($('<th>', {
-			'text': 'Key'
+			'text': Touri18n._('key')
 		}), $('<th>', {
-			'text': 'Value'
+			'text': Touri18n._('value')
 		})).appendTo(thead);
 		let saveButton = $('<button>', {
-			'text': 'Save',
+			'text': Touri18n._('save'),
+			'css': {
+				'position': 'sticky',
+				'bottom': '0px'
+			},
 			'on': {
 				'click': () => {
 					applyChanges();
@@ -849,7 +900,7 @@ $hulop.editor = function () {
 						if (event.type == 'mouseenter') {
 							$element.css('position', 'relative');
 							if (index != null) {
-								addIcon($element, 'fa-minus', 'Remove the tour destination')
+								addIcon($element, 'fa-minus', Touri18n._('remove_tour_destination'))
 									.on('click', ((index) => {
 										return (event) => {
 											applyChanges();
@@ -860,7 +911,7 @@ $hulop.editor = function () {
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-down', 'Down the tour destination')
+								addIcon($element, 'fa-arrow-down', Touri18n._('down_tour_destination'))
 									.addClass((index == length - 1) ? 'disabled-icon' : null)
 									.on('click', ((index) => {
 										return (event) => {
@@ -873,7 +924,7 @@ $hulop.editor = function () {
 											exportData();
 										}
 									})(index));
-								addIcon($element, 'fa-arrow-up', 'Up the tour destination')
+								addIcon($element, 'fa-arrow-up', Touri18n._('up_tour_destination'))
 									.addClass((index == 0) ? 'disabled-icon' : null)
 									.on('click', ((index) => {
 										return (event) => {
@@ -893,7 +944,7 @@ $hulop.editor = function () {
 						}
 					});
 
-					addIcon(row.find('td:first').css('position', 'relative'), 'fa-plus', 'Add a tour destination')
+					addIcon(row.find('td:first').css('position', 'relative'), 'fa-plus', Touri18n._('add_tour_destination'))
 						.on('click', event => {
 							applyChanges();
 							if (!tour[name]) {
@@ -902,6 +953,7 @@ $hulop.editor = function () {
 							tour[name].push({ 'ref': '' });
 							showTourProperty(tour);
 							exportData();
+							$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
 						});
 
 					/* use icons instead of context menu
@@ -969,6 +1021,21 @@ $hulop.editor = function () {
 			}
 		}
 
+		function addTourDestination(feature) {
+			let node_id = feature && feature.get('node_id');
+			let dest = node_id && lastData.destinations[node_id];
+			if (dest) {
+				applyChanges();
+				tour['destinations'].push({
+					'ref': node_id,
+					'#ref': dest.label || ''
+				});
+				showTourProperty(tour);
+				exportData();
+				$('#tour_properties td[key=destinations]').prev().trigger('click');
+			}
+		}
+
 		add('tour_id', { editable: true });
 		// add('title-ja', { editable: true });
 		// add('title-en', { editable: true });
@@ -987,22 +1054,35 @@ $hulop.editor = function () {
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
 		// Object.keys(tour).forEach(add);
+		Touri18n.translate("#tour_properties");
+
+		$('#tour_properties td[key=destinations]').prev().on('click', e => {
+			$('.destination_selected').removeClass('destination_selected');
+			$(e.target).addClass('destination_selected');
+			onNodeClick = feature => {
+				if (keyState.altKey) {
+					addTourDestination(feature);
+					return true;
+				}
+				$('#tour_properties .destination_selected').removeClass("destination_selected");
+			}
+		});
 		$('#tour_properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
 			$('.destination_selected').removeClass('destination_selected')
 			$(e.target).parents('#tour_properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
 			node_id = $('.destination_selected td[key=ref]').text();
 			showFeature(node_id);
 			let feature = node_id && source.getFeatureById(node_id);
-			showProperty(feature);
+			showProperty(feature, true);
 			onNodeClick = feature => {
 				if (keyState.altKey) {
 					let td = $('.destination_selected td[key=ref]');
 					if (td.length == 0) {
 						return true;
 					}
-					saveButton.show();
 					let node_id = feature && feature.get('node_id');
 					let dest = node_id && lastData.destinations[node_id];
+					saveButton.show();
 					if (dest) {
 						td.text(node_id);
 						$hulop.indoor.showFloor(dest.floor);
@@ -1015,6 +1095,7 @@ $hulop.editor = function () {
 					showProperty(feature, true);
 					return true;
 				}
+				$('#tour_properties .destination_selected').removeClass("destination_selected");
 			}
 		});
 		$hulop.map.refresh();
@@ -1023,8 +1104,9 @@ $hulop.editor = function () {
 	function showFeature(node_id) {
 		let feature = node_id && source.getFeatureById(node_id);
 		if (feature) {
-			$hulop.map.animate(ol.proj.transform(feature.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300);
-			$hulop.indoor.showFloor(feature.get('floor'));
+			$hulop.map.animate(ol.proj.transform(feature.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
+				$hulop.indoor.showFloor(feature.get('floor'));
+			});
 		}
 	}
 
@@ -1173,7 +1255,13 @@ $hulop.editor = function () {
 		}
 	}
 
-	function exportData() {
+	$(document).ready(() => {
+		$('#upload button').on('click', event => {
+			exportData(true);
+		});
+	});
+
+	function exportData(force) {
 		console.log(lastData);
 		let data = {};
 		let destinations = data.destinations = [];
@@ -1202,11 +1290,22 @@ $hulop.editor = function () {
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
 		data.tours = clean(lastData.tours) || [];
-		uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
-		console.log(data);
+		// if (force) {
+		if (force || $('#upload').is(':hidden')) {
+			$('#upload').hide();
+			uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
+			console.log(data);
+		} else {
+			$('#upload').show();
+		}
 	}
 
 	function downloadJSONData(path, callback) {
+		if (imported_json) {
+			callback && callback(imported_json);
+			imported_json = null;
+			return;
+		}
 		$hulop.util.loading(true);
 		$.ajax({
 			'type': 'GET',
