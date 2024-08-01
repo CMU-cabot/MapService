@@ -587,7 +587,12 @@ $hulop.editor = function () {
 		$('#list .destination_selected').removeClass("destination_selected")
 		let selector = $('#list td[node_id=' + node_id + ']');
 		if (selector.length > 0) {
-			no_scroll || selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			let rcTD = selector[0].getBoundingClientRect();
+			let y = (rcTD.top + rcTD.bottom) / 2;
+			let rcDIV = $('#list').parent()[0].getBoundingClientRect();
+			if (y < rcDIV.top || y > rcDIV.bottom) {
+				no_scroll || selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
 			selector.addClass("destination_selected")
 		}
 	}
