@@ -29,8 +29,6 @@ $hulop.editor = function () {
 	const DESTINATION_KEYS = [
 		'floor',
 		'value',
-		// 'startMessage',
-		// 'arrivalMessages',
 		'arrivalAngle',
 		'content',
 		'subtour',
@@ -79,7 +77,6 @@ $hulop.editor = function () {
 		$('#upload_file').change(event => {
 			reader.readAsText(event.target.files[0]);
 		});
-		// reader.onload = event => uploadJSONData(event.target.result, JSONDATA_PATH, () => location.reload());
 		reader.onload = event => {
 			imported_json = JSON.parse(event.target.result);
 			prepareData($hulop.map.getCenter(), $hulop.config.MAX_RADIUS || 1000);
@@ -117,7 +114,6 @@ $hulop.editor = function () {
 		$hulop.route.callService({
 			'action': 'landmarks',
 			'cache': false,
-			// 'lang': 'ja,en',
 			'lang': getLanguages().join(','),
 			'lat': center[1],
 			'lng': center[0],
@@ -334,24 +330,6 @@ $hulop.editor = function () {
 			return find(item) || find(item.facility) || find(item.messages);
 		});
 
-		// show floor option
-		/*
-		let allFloors = {};
-		items.forEach((dest) => { allFloors[dest.floor] = true; });
-		let floors = Object.keys(allFloors).sort();
-		$("<span>Floor: </span>").appendTo($("#list"));
-		let floorSelect = $('<select>', {
-			'change': (e) => {
-				showDestinationList(e.target.selectedOptions[0].label);
-			}
-		}).appendTo($("#list"));
-		floorSelect.append($("<option>", { 'text': "All" }));
-		floors.forEach((floor) => {
-			$("<option>", { 'text': floor }).appendTo(floorSelect);
-		});
-		floorSelect.val(floorFilter ? floorFilter : "All");
-		*/
-
 		items = items.filter(item => {
 			return floorFilter == null || floorFilter == "All" || item.floor == floorFilter;
 		}).sort((a, b) => {
@@ -383,7 +361,6 @@ $hulop.editor = function () {
 				'text': item.label
 			}).attr('node_id', item.value)).appendTo('#list tbody');
 		});
-		// selected_node && destinationSelected(selected_node);
 		selected_node && $(`#list [node_id=${selected_node}]`).addClass('destination_selected');
 	}
 
@@ -402,7 +379,6 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					showTourProperty(tour);
-					// $("#dest_properties").empty();
 					showingFeature = null;
 					showFeature(tour.destinations && tour.destinations[0] && tour.destinations[0].ref);
 				}
@@ -413,7 +389,6 @@ $hulop.editor = function () {
 
 		table.find('td').hover(event => {
 			$element = $(event.target);
-			// $element.find("i").remove();
 			$element.parents('tbody').find("i").remove();
 			let index = $(event.target).parents('tbody tr').index();
 			let length = table.find('td').length
@@ -436,7 +411,6 @@ $hulop.editor = function () {
 						return (event) => {
 							let removed = lastData.tours.splice(index, 1)[0];
 							lastData.tours.splice(index + 1, 0, removed);
-							// $('#tour_properties').empty();
 							$hulop.map.refresh();
 							showTourList();
 							exportData();
@@ -448,7 +422,6 @@ $hulop.editor = function () {
 						return (event) => {
 							let removed = lastData.tours.splice(index, 1)[0];
 							lastData.tours.splice(index - 1, 0, removed);
-							// $('#tour_properties').empty();
 							$hulop.map.refresh();
 							showTourList();
 							exportData();
@@ -471,71 +444,6 @@ $hulop.editor = function () {
 				showTourProperty(new_tour);
 				exportData();
 			});
-
-		/* use icon instead of context menu
-		table.on('contextmenu', event => {
-			let index = $(event.target).parents('tbody tr').index();
-			let items = [];
-			items.push({
-				'text': 'Add',
-				'index': -1,
-				'separator': index != -1
-			});
-			if (index != -1) {
-				if (index > 0) {
-					items.push({
-						'text': 'Move to top',
-						'index': index,
-						'move_to': 0
-					});
-					items.push({
-						'text': 'Move up',
-						'index': index,
-						'move_to': index - 1,
-						'separator': true
-					});
-				}
-				if (index < lastData.tours.length - 1) {
-					items.push({
-						'text': 'Move down',
-						'index': index,
-						'move_to': index + 1
-					});
-					items.push({
-						'text': 'Move to bottom',
-						'index': index,
-						'move_to': lastData.tours.length - 1,
-						'separator': true
-					});
-				}
-				items.push({
-					'text': 'Remove',
-					'index': index
-				});
-			}
-			createContextMenu(event, items, item => {
-				if (item.index == -1) {
-					let new_tour = {
-						'tour_id': 'tour_' + new Date().getTime(),
-						'destinations': []
-					};
-					lastData.tours.push(new_tour);
-					showTourProperty(new_tour);
-				} else {
-					let removed = lastData.tours.splice(item.index, 1)[0];
-					if ('move_to' in item) {
-						lastData.tours.splice(item.move_to, 0, removed);
-					} else {
-						$('#tour_properties').empty();
-					}
-					$hulop.map.refresh();
-				}
-				showTourList();
-				exportData();
-			});
-			return false;
-		});
-		*/
 	}
 
 	let format = new ol.format.GeoJSON()
@@ -664,27 +572,18 @@ $hulop.editor = function () {
 			}
 			add('value');
 			add('floor');
-			// add('title-ja');
-			// add('title-en');
-			// add('title-ja-pron');
 			getLanguages(true).forEach(lang => {
 				add(`title-${lang}`);
 			});
-			// add('short_description-ja');
-			// add('short_description-en');
 			getLanguages().forEach(lang => {
 				add(`short_description-${lang}`);
 			});
-			// add('long_description-ja');
-			// add('long_description-en');
 			getLanguages().forEach(lang => {
 				add(`long_description-${lang}`);
 			});
 			CATEGORY_KEYS.forEach(key => {
 				add(key);
 			});
-			// add('startMessage', { editable: true });
-			// add('arrivalMessages', { editable: true });
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
@@ -892,7 +791,6 @@ $hulop.editor = function () {
 				if (options.is_array) {
 					row.find('td:not(:has(*)):last-child').hover(event => {
 						$element = $(event.target);
-						// $element.find("i").remove();
 						$element.parents('tbody').find("td:last i").remove();
 						let index = getDestinationIndex($element);
 						let length = $('#tour_properties td[key=destinations] tr:has(table)').length
@@ -905,7 +803,6 @@ $hulop.editor = function () {
 										return (event) => {
 											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
-											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -918,7 +815,6 @@ $hulop.editor = function () {
 											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index + 1, 0, removed);
-											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -931,7 +827,6 @@ $hulop.editor = function () {
 											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index - 1, 0, removed);
-											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -955,67 +850,6 @@ $hulop.editor = function () {
 							exportData();
 							$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
 						});
-
-					/* use icons instead of context menu
-					row.on('contextmenu', event => {
-						let index = getDestinationIndex($(event.target));
-						let items = [];
-						if (index == null) {
-							items.push({
-								'text': 'Add',
-								'index': -1
-							});
-						} else {
-							if (index > 0) {
-								items.push({
-									'text': 'Move to top',
-									'index': index,
-									'move_to': 0
-								});
-								items.push({
-									'text': 'Move up',
-									'index': index,
-									'move_to': index - 1,
-									'separator': true
-								});
-							}
-							if (index < tour[name].length - 1) {
-								items.push({
-									'text': 'Move down',
-									'index': index,
-									'move_to': index + 1
-								});
-								items.push({
-									'text': 'Move to bottom',
-									'index': index,
-									'move_to': tour[name].length - 1,
-									'separator': true
-								});
-							}
-							items.push({
-								'text': 'Remove',
-								'index': index
-							});
-						}
-						createContextMenu(event, items, item => {
-							applyChanges();
-							if (item.index == -1) {
-								if (!tour[name]) {
-									tour[name] = [];
-								}
-								tour[name].push({ 'ref': '' });
-							} else {
-								let removed = tour[name].splice(item.index, 1)[0];
-								if ('move_to' in item) {
-									tour[name].splice(item.move_to, 0, removed);
-								}
-							}
-							showTourProperty(tour);
-							exportData();
-						});
-						return false;
-					});
-					*/
 				}
 				added[name] = true;
 			}
@@ -1037,16 +871,10 @@ $hulop.editor = function () {
 		}
 
 		add('tour_id', { editable: true });
-		// add('title-ja', { editable: true });
-		// add('title-en', { editable: true });
-		// add('title-ja-pron', { editable: true });
 		getLanguages(true).forEach(lang => {
 			add(`title-${lang}`, { editable: true });
 		});
 		add('debug', { editable: true, type: 'boolean' });
-		// add('introduction-ja', { editable: true });
-		// add('introduction-en', { editable: true });
-		// add('introduction-ja-pron', { editable: true });
 		getLanguages(true).forEach(lang => {
 			add(`introduction-${lang}`, { editable: true });
 		});
@@ -1122,7 +950,6 @@ $hulop.editor = function () {
 
 	function initDestinations(landmarks) {
 		let destinations = lastData.destinations = {};
-		// ['ja', 'en'].forEach(lang => {
 		getLanguages().forEach(lang => {
 			landmarks[lang].forEach(landmark => {
 				landmark.long_description = landmark.properties['hulop_long_description_' + lang] || landmark.properties['hulop_long_description'];
@@ -1342,31 +1169,6 @@ $hulop.editor = function () {
 			}
 		});
 	}
-
-	/* use icon instead of context menu
-	function createContextMenu(e, items, callback) {
-		if ($('#menu').size() == 0) {
-			let menu = $('<ul>', {
-				'id': 'menu',
-				'css': {
-					'top': e.pageY + 'px',
-					'left': e.pageX + 'px'
-				}
-			});
-			items.forEach(item => {
-				$('<li>', {
-					'text': item.text,
-					'class': item.separator ? 'separator' : 'no-separator',
-					'on': {
-						'click': e => callback(item)
-					}
-				}).appendTo(menu);
-			});
-			$('body').append(menu);
-			$('#menu').css('top', Math.min(e.pageY, $('body').height() - $('#menu').height()) + 'px');
-		}
-	}
-	*/
 
 	function addIcon($element, className, title) {
 		let count = $element.find("i").length
