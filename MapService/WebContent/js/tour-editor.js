@@ -26,9 +26,11 @@ $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
-	const DESTINATION_KEYS = [
+	const DESTINATION_BASE_KEYS = [
 		'floor',
-		'value',
+		'value'
+	];
+	const DESTINATION_KEYS = [
 		'arrivalAngle',
 		'content',
 		'subtour',
@@ -474,7 +476,7 @@ $hulop.editor = function () {
 	let onNodeClick = null;
 	let showingFeature = null;
 
-	function showProperty(feature, skip_clear_event = false) {
+	function showProperty(feature, skip_clear_event = false, var_name) {
 		if (!skip_clear_event) {
 			if (onNodeClick && onNodeClick(feature)) return;
 			onNodeClick = null;
@@ -484,7 +486,7 @@ $hulop.editor = function () {
 		editingFeature = feature;
 		$hulop.editor.editingFeature = feature; // for debug
 		if (feature) {
-			showDestinationTable(feature);
+			showDestinationTable(feature, var_name);
 			destinationSelected(feature.getId());
 		}
 		showingFeature = feature;
@@ -504,11 +506,14 @@ $hulop.editor = function () {
 		}
 	}
 
-	function showDestinationTable(feature) {
+	function showDestinationTable(feature, var_name) {
 		let dest = lastData.destinations[feature.getId()];
 		if (dest) {
 			$hulop.indoor.showFloor(dest.floor);
-			let table = $('<table>', { 'class': 'destination' }).appendTo($('#dest_properties'));
+			let table = $('<table>', {
+				'class': 'destination',
+				'var_name': var_name || ''
+			}).appendTo($('#dest_properties'));
 			$('<caption>', {
 				'text': dest.label
 			}).appendTo(table);
@@ -530,7 +535,9 @@ $hulop.editor = function () {
 						saveButton.hide();
 						$('#dest_properties td[modified=true]').each((i, e) => {
 							let key = $(e).attr('key');
-							setValue(dest, key, $(e).text().trim(), $(e).attr('type'))
+							let var_name = $(e).attr('var_name');
+							let dest_write = var_name ? dest.variations[var_name] = dest.variations[var_name] || {} : dest;
+							setValue(dest_write, key, $(e).text().trim(), $(e).attr('type'))
 						});
 						feature.changed();
 						$('#dest_properties td').removeAttr('modified');
@@ -546,9 +553,11 @@ $hulop.editor = function () {
 				'facility': true,
 				'#title': true
 			};
+			let use_var;
 			function add(name, options = {}) {
 				if (!added[name]) {
-					let value = name in dest ? dest[name] : '';
+					let dest_read = use_var ? dest.variations[use_var] || {} : dest;
+					let value = name in dest_read ? dest_read[name] : '';
 					let row = $('<tr>', {
 						'class': options.editable ? 'editable' : 'read_only'
 					}).append($('<td>', {
@@ -562,7 +571,7 @@ $hulop.editor = function () {
 						},
 						'contenteditable': !!options.editable,
 						'text': value
-					}).attr('key', name).attr('type', options.type || ''));
+					}).attr('key', name).attr('type', options.type || '').attr('var_name', use_var || ''));
 					if (options.hidden) {
 						row.css('display', 'none');
 					}
@@ -584,6 +593,7 @@ $hulop.editor = function () {
 			CATEGORY_KEYS.forEach(key => {
 				add(key);
 			});
+			use_var = var_name;
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
@@ -603,8 +613,10 @@ $hulop.editor = function () {
 					template.push([`text:${lang}`, 'textarea']);
 				});
 
-				MessageEditor.open(template, dest.messages, messages => {
-					dest.messages = messages;
+				let dest_read = var_name ? dest.variations[var_name] || {} : dest;
+				MessageEditor.open(template, dest_read.messages, messages => {
+					let dest_write = var_name ? dest.variations[var_name] = dest.variations[var_name] || {} : dest;
+					dest_write.messages = messages;
 					exportData();
 				});
 			}))).appendTo(tbody);
@@ -772,15 +784,13 @@ $hulop.editor = function () {
 					td = $('<td>').append(getInnerTable(name, value, options));
 				} else {
 					td = $('<td>', {
-						'on': {
-							'input': event => {
-								saveButton.show();
-								$(event.target).attr('modified', true);
-							}
-						},
 						'contenteditable': !!options.editable,
 						'text': value
 					}).attr('type', options.type || '');
+					td.on('input', event => {
+						saveButton.show();
+						td.attr('modified', true);
+					});
 				}
 				let row = $('<tr>', {
 					'class': options.editable ? 'editable' : 'read_only'
@@ -871,6 +881,15 @@ $hulop.editor = function () {
 		}
 
 		add('tour_id', { editable: true });
+		let excludes = lastData.tours.map(tour => tour.tour_id);
+		let candidates = [tour.tour_id];
+		Object.values(lastData.destinations).forEach(dest => {
+			Object.keys(dest.variations).forEach(var_name => {
+				excludes.includes(var_name) || candidates.includes(var_name) || candidates.push(var_name);
+			});
+		});
+		add('var_name', { editable: true });
+		transformToCombo($('#tour_properties td[key=var_name]'), candidates);
 		getLanguages(true).forEach(lang => {
 			add(`title-${lang}`, { editable: true });
 		});
@@ -901,7 +920,7 @@ $hulop.editor = function () {
 			node_id = $('.destination_selected td[key=ref]').text();
 			showFeature(node_id);
 			let feature = node_id && source.getFeatureById(node_id);
-			showProperty(feature, true);
+			showProperty(feature, true, tour.var_name);
 			onNodeClick = feature => {
 				if (keyState.altKey) {
 					let td = $('.destination_selected td[key=ref]');
@@ -920,7 +939,7 @@ $hulop.editor = function () {
 					td.attr('modified', true);
 					td.parent().parent().find('td[key=#ref]').text((dest && dest.label) || '').attr('modified', true);
 					$hulop.map.refresh();
-					showProperty(feature, true);
+					showProperty(feature, true, tour.var_name);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
@@ -974,11 +993,11 @@ $hulop.editor = function () {
 				});
 			});
 		});
-		Object.keys(destinations).forEach(node_id => {
-			let dest = destinations[node_id];
+		for (const [node_id, dest] of Object.entries(destinations)) {
 			dest.label = getLabel(dest);
 			dest.node = source.getFeatureById(node_id);
-		});
+			dest.variations = {};
+		}
 	}
 
 	function getPoiName(obj, lang, pron) {
@@ -1031,10 +1050,18 @@ $hulop.editor = function () {
 			console.log('raw data', data);
 			let destinations = data && data.destinations;
 			(destinations || []).forEach(dest_in => {
-				let node_id = dest_in.value;
-				let dest_out = node_id && lastData.destinations[node_id];
-				if (dest_out) {
-					lastData.destinations[node_id] = Object.assign(dest_out, dest_in);
+				if (dest_in.value) {
+					let id_var = dest_in.value.split('#');
+					dest_in.value = id_var[0];
+					dest_in.var = id_var[1] || dest_in.var;
+					let dest_out = lastData.destinations[dest_in.value];
+					if (dest_out) {
+						if (dest_in.var) {
+							dest_out.variations[dest_in.var] = dest_in;
+						} else {
+							lastData.destinations[dest_in.value] = Object.assign(dest_out, dest_in);
+						}
+					}
 				}
 			});
 			// Reset #waitingDestination
@@ -1051,13 +1078,27 @@ $hulop.editor = function () {
 			});
 			// Copy messages into destination
 			(data && data.messages || []).forEach(message => {
-				let destination = 'parent' in message && lastData.destinations[message.parent];
-				if (destination) {
-					destination.messages = destination.messages || [];
-					destination.messages.push(message);
+				let node_var = message.parent.split('#');
+				let to = 'parent' in message && lastData.destinations[node_var[0]];
+				if (to) {
+					if (node_var.length > 1) {
+						to = to.variations[node_var[1]] = to.variations[node_var[1]] || {};
+					}
+					(to.messages = to.messages || []).push(message);
 				}
 			});
 			lastData.tours = (data && data.tours) || [];
+			for (const tour of lastData.tours) {
+				for (const dest of tour.destinations || []) {
+					if (dest.ref) {
+						let ref_var = dest.ref.split('#');
+						if (ref_var.length > 1) {
+							dest.ref = ref_var[0];
+							tour.var_name = tour.var_name || ref_var[1];
+						}
+					}
+				}
+			}
 			callback();
 		});
 	}
@@ -1095,21 +1136,37 @@ $hulop.editor = function () {
 		let messages = data.messages = [];
 		Object.keys(lastData.destinations).forEach(node_id => {
 			let from = lastData.destinations[node_id];
-			let to = {};
-			DESTINATION_KEYS.forEach(key => {
-				to[key] = from[key];
-			});
-			to = clean(to);
-			// Extract messages from destination
-			(from.messages || []).forEach(message => {
-				message.parent = from.value;
-				messages.push(message);
-			});
-			console.log([from, to]);
-			if (Object.keys(to).length > 2) {
-				to['#title'] = getLabel(from);
-				destinations.push(to);
+			function exportDestination(var_name) {
+				let source = from, message_parent = from.value, to = {};
+				if (var_name) {
+					source = from.variations[var_name];
+					message_parent = `${from.value}#${var_name}`;
+				}
+				DESTINATION_KEYS.forEach(key => {
+					to[key] = source[key];
+				});
+				let message_saved;
+				// Extract messages from destination
+				(source.messages || []).forEach(message => {
+					message.parent = message_parent;
+					messages.push(message);
+					message_saved = true;
+				});
+				to = clean(to) || {};
+				console.log([source, to]);
+				if (Object.keys(to).length || message_saved) {
+					DESTINATION_BASE_KEYS.forEach(key => {
+						to[key] = from[key];
+					});
+					to['#title'] = getLabel(from);
+					if (var_name) {
+						to['var'] = var_name;
+					}
+					destinations.push(to);
+				}
 			}
+			exportDestination();
+			Object.keys(from.variations).forEach(exportDestination);
 		});
 		console.log(destinations);
 		destinations.sort((a, b) => {
@@ -1117,6 +1174,15 @@ $hulop.editor = function () {
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
 		data.tours = clean(lastData.tours) || [];
+		for (const tour of data.tours) {
+			let var_name = tour.var_name;
+			delete tour.var_name;
+			if (var_name && tour.destinations) {
+				for (const dest of tour.destinations) {
+					dest.ref = `${dest.ref}#${var_name}`;
+				}
+			}
+		}
 		// if (force) {
 		if (force || $('#upload').is(':hidden')) {
 			$('#upload').hide();
@@ -1182,6 +1248,46 @@ $hulop.editor = function () {
 			.css('cursor', 'pointer')
 			.appendTo($element);
 		return $icon.prop('title', title);
+	}
+
+	function transformToCombo(target, candidates) {
+		let font_size = target.css('font-size');
+		target.css({
+			'font-size': '0px',
+			'padding': '0px'
+		});
+		$('<input>', {
+			'type': 'text',
+			'value': target.text(),
+			'css': {
+				'width': '100%',
+				'box-sizing': 'border-box',
+				'border': 'none',
+				'font-size': font_size
+			},
+			'list': createDatalist(candidates),
+			'on': {
+				'input': e => {
+					target.contents().first()[0].nodeValue = $(e.target).val();
+				}
+			}
+		}).appendTo(target);
+	}
+
+	function createDatalist(candidates) {
+		let id = '__datalist__';
+		$(`#${id}`).remove()
+		let datalist = $('<datalist>', {
+			'id': id
+		}).appendTo('body');
+
+		candidates.forEach(text => {
+			datalist.append($('<option>', {
+				'value': text,
+				'text': text
+			}));
+		});
+		return id;
 	}
 
 	return {
