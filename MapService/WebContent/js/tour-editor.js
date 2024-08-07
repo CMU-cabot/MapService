@@ -369,7 +369,7 @@ $hulop.editor = function () {
 			}).append($('<td>', {
 				'text': item.floor
 			}), $('<td>', {
-				'text': item.var ? `${item.label} (var: ${item.var})` : item.label
+				'text': item.var ? `${item.label} #${item.var}` : item.label
 			}).attr('node_id', item.value).attr('var', item.var || '')).appendTo('#list tbody');
 		});
 		selected_node && $(`#list [node_id=${selected_node}]`).addClass('destination_selected');
@@ -524,7 +524,7 @@ $hulop.editor = function () {
 				'var_name': var_name || ''
 			}).appendTo($('#dest_properties'));
 			$('<caption>', {
-				'text': dest.label
+				'text': var_name ? `${dest.label} #${var_name}`: dest.label
 			}).appendTo(table);
 			let thead = $('<thead>').appendTo(table);
 			let tbody = $('<tbody>').appendTo(table);
