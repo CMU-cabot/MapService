@@ -562,8 +562,9 @@ $hulop.editor = function () {
 							const var_name = $(e).attr('var');
 							$(e).text(var_name ? `${label} #${var_name}` : label);
 						});
-						showDestinationList();
 						exportData();
+						showDestinationList();
+						destinationSelected(feature.getId(), var_name);
 					}
 				}
 			}).appendTo($('#dest_properties'));
