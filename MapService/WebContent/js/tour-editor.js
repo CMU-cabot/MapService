@@ -741,7 +741,8 @@ $hulop.editor = function () {
 			let tbody = $('<tbody>').appendTo(table);
 			Object.keys(value).forEach(key => {
 				let name_key = name + '.' + key;
-				let editable = /^destinations\.\d+\.(ref|#ref)$/.test(name_key);
+				let editable = /^destinations\.\d+\.(ref|#ref|var)$/.test(name_key);
+				let td;
 				if (typeof value[key] == 'object') {
 					td = $('<td>').append(getInnerTable(name_key, value[key], options));
 				} else {
@@ -750,7 +751,7 @@ $hulop.editor = function () {
 						'on': {
 							'input': event => {
 								saveButton.show();
-								$(event.target).attr('modified', true);
+								td.attr('modified', true);
 							}
 						},
 						'contenteditable': false,
@@ -799,7 +800,7 @@ $hulop.editor = function () {
 				}), td.attr('key', name));
 				row.appendTo(tbody);
 				if (options.is_array) {
-					row.find('td:not(:has(*)):last-child').hover(event => {
+					row.find('td[key="#ref"]').hover(event => {
 						$element = $(event.target);
 						$element.parents('tbody').find("td:last i").remove();
 						let index = getDestinationIndex($element);
@@ -900,6 +901,9 @@ $hulop.editor = function () {
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
+		$('#tour_properties td[key=destinations] td[key=var]').each((i, e) => {
+			transformToCombo($(e), ['hohe', 'fuga'], `__tour-dest-${i}__`);
+		});
 		// Object.keys(tour).forEach(add);
 		Touri18n.translate("#tour_properties");
 
@@ -1090,12 +1094,12 @@ $hulop.editor = function () {
 			lastData.tours = (data && data.tours) || [];
 			for (const tour of lastData.tours) {
 				for (const dest of tour.destinations || []) {
+					delete dest.var;
 					if (dest.ref) {
 						let ref_var = dest.ref.split('#');
-						if (ref_var.length > 1) {
-							dest.ref = ref_var[0];
-							tour.var_name = tour.var_name || ref_var[1];
-						}
+						dest.ref = ref_var[0];
+						dest.var = ref_var[1] || '';
+						tour.var_name = tour.var_name || dest.var;
 					}
 				}
 			}
@@ -1250,7 +1254,7 @@ $hulop.editor = function () {
 		return $icon.prop('title', title);
 	}
 
-	function transformToCombo(target, candidates) {
+	function transformToCombo(target, candidates, datalist_id = '__datalist__') {
 		let font_size = target.css('font-size');
 		target.css({
 			'font-size': '0px',
@@ -1265,7 +1269,7 @@ $hulop.editor = function () {
 				'border': 'none',
 				'font-size': font_size
 			},
-			'list': createDatalist(candidates),
+			'list': createDatalist(candidates, datalist_id),
 			'on': {
 				'input': e => {
 					target.contents().first()[0].nodeValue = $(e.target).val();
@@ -1274,8 +1278,7 @@ $hulop.editor = function () {
 		}).appendTo(target);
 	}
 
-	function createDatalist(candidates) {
-		let id = '__datalist__';
+	function createDatalist(candidates, id) {
 		$(`#${id}`).remove()
 		let datalist = $('<datalist>', {
 			'id': id
