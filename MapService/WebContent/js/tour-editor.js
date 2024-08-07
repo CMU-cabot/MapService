@@ -506,7 +506,7 @@ $hulop.editor = function () {
 		$('#list .destination_selected').removeClass("destination_selected")
 		let selector = $(`#list td[node_id=${node_id}][var='${var_name || ''}']`);
 		if (selector.length == 0) {
-			selector = $(`#list td[node_id=${node_id}]`);
+			selector = $(`#list td[node_id=${node_id}][var='']`);
 		}
 		if (selector.length > 0) {
 			let rcTD = selector[0].getBoundingClientRect();
