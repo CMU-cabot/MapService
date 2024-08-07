@@ -741,12 +741,13 @@ $hulop.editor = function () {
 			let tbody = $('<tbody>').appendTo(table);
 			Object.keys(value).forEach(key => {
 				let name_key = name + '.' + key;
-				let editable = /^destinations\.\d+\.(ref|#ref|var)$/.test(name_key);
+				let visible = /^destinations\.\d+\.(ref|#ref|var)$/.test(name_key);
+				let editable = /^destinations\.\d+\.(var)$/.test(name_key);
 				let td;
 				if (typeof value[key] == 'object') {
 					td = $('<td>').append(getInnerTable(name_key, value[key], options));
 				} else {
-					if (!editable) return;
+					if (!visible) return;
 					td = $('<td>', {
 						'on': {
 							'input': event => {
@@ -754,7 +755,7 @@ $hulop.editor = function () {
 								td.attr('modified', true);
 							}
 						},
-						'contenteditable': false,
+						'contenteditable': editable,
 						'text': value[key]
 					});
 				}
@@ -889,8 +890,8 @@ $hulop.editor = function () {
 				excludes.includes(var_name) || candidates.includes(var_name) || candidates.push(var_name);
 			});
 		});
-		add('var_name', { editable: true });
-		transformToCombo($('#tour_properties td[key=var_name]'), candidates);
+		add('default_var', { editable: true });
+		transformToCombo($('#tour_properties td[key=default_var]'), candidates);
 		getLanguages(true).forEach(lang => {
 			add(`title-${lang}`, { editable: true });
 		});
@@ -921,10 +922,11 @@ $hulop.editor = function () {
 		$('#tour_properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
 			$('.destination_selected').removeClass('destination_selected')
 			$(e.target).parents('#tour_properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
-			node_id = $('.destination_selected td[key=ref]').text();
+			let node_id = $('.destination_selected td[key=ref]').text();
+			let var_name = $('.destination_selected td[key=var]').text();
 			showFeature(node_id);
 			let feature = node_id && source.getFeatureById(node_id);
-			showProperty(feature, true, tour.var_name);
+			showProperty(feature, true, var_name);
 			onNodeClick = feature => {
 				if (keyState.altKey) {
 					let td = $('.destination_selected td[key=ref]');
@@ -942,8 +944,12 @@ $hulop.editor = function () {
 					}
 					td.attr('modified', true);
 					td.parent().parent().find('td[key=#ref]').text((dest && dest.label) || '').attr('modified', true);
+					let var_input = $('.destination_selected td[key=var] input');
+					let default_var = $('#tour_properties td[key=default_var]').text();
+					var_input.val(default_var);
+					var_input.trigger('input');
 					$hulop.map.refresh();
-					showProperty(feature, true, tour.var_name);
+					showProperty(feature, true, default_var);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
@@ -1099,7 +1105,6 @@ $hulop.editor = function () {
 						let ref_var = dest.ref.split('#');
 						dest.ref = ref_var[0];
 						dest.var = ref_var[1] || '';
-						tour.var_name = tour.var_name || dest.var;
 					}
 				}
 			}
@@ -1179,12 +1184,11 @@ $hulop.editor = function () {
 		});
 		data.tours = clean(lastData.tours) || [];
 		for (const tour of data.tours) {
-			let var_name = tour.var_name;
-			delete tour.var_name;
-			if (var_name && tour.destinations) {
-				for (const dest of tour.destinations) {
-					dest.ref = `${dest.ref}#${var_name}`;
+			for (const dest of tour.destinations || []) {
+				if (dest.var) {
+					dest.ref = `${dest.ref}#${dest.var}`;
 				}
+				delete dest.var;
 			}
 		}
 		// if (force) {
