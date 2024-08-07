@@ -563,8 +563,10 @@ $hulop.editor = function () {
 							$(e).text(var_name ? `${label} #${var_name}` : label);
 						});
 						exportData();
-						showDestinationList();
-						destinationSelected(feature.getId(), var_name);
+						if ($(`#list [node_id=${feature.getId()}][var='${var_name || ''}']`).length == 0) {
+							showDestinationList();
+							destinationSelected(feature.getId(), var_name);
+						}
 					}
 				}
 			}).appendTo($('#dest_properties'));
