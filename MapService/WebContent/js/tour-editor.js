@@ -496,15 +496,18 @@ $hulop.editor = function () {
 		$hulop.editor.editingFeature = feature; // for debug
 		if (feature) {
 			showDestinationTable(feature, var_name);
-			destinationSelected(feature.getId());
+			destinationSelected(feature.getId(), var_name);
 		}
 		showingFeature = feature;
 		$hulop.map.refresh();
 	}
 
-	function destinationSelected(node_id) {
+	function destinationSelected(node_id, var_name) {
 		$('#list .destination_selected').removeClass("destination_selected")
-		let selector = $('#list td[node_id=' + node_id + ']');
+		let selector = $(`#list td[node_id=${node_id}][var='${var_name || ''}']`);
+		if (selector.length == 0) {
+			selector = $(`#list td[node_id=${node_id}]`);
+		}
 		if (selector.length > 0) {
 			let rcTD = selector[0].getBoundingClientRect();
 			let rcDIV = $('#list').parent()[0].getBoundingClientRect();
