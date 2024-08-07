@@ -304,7 +304,9 @@ $hulop.editor = function () {
 	});
 
 	function showDestinationList(floorFilter = null) {
-		let selected_node = $('#list .destination_selected').attr('node_id');
+		const sel = $('#list .destination_selected');
+		let selected_node = sel.attr('node_id');
+		let selected_var = sel.attr('var');
 		$('#list').empty();
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
 		items = items.filter(item => {
@@ -354,7 +356,9 @@ $hulop.editor = function () {
 		items.forEach(item => {
 			allItems.push(item);
 			for (const [var_name, content] of Object.entries(item.variations || {})) {
-				allItems.push(Object.assign(Object.assign({}, item), content));
+				let itemx = Object.assign(Object.assign({}, item), content)
+				itemx.var = var_name;
+				allItems.push(itemx);
 			}
 		})
 
@@ -372,7 +376,7 @@ $hulop.editor = function () {
 				'text': item.var ? `${item.label} #${item.var}` : item.label
 			}).attr('node_id', item.value).attr('var', item.var || '')).appendTo('#list tbody');
 		});
-		selected_node && $(`#list [node_id=${selected_node}]`).addClass('destination_selected');
+		selected_node && $(`#list [node_id=${selected_node}][var='${selected_var || ''}']`).addClass('destination_selected');
 	}
 
 	function showTourList() {
@@ -558,6 +562,7 @@ $hulop.editor = function () {
 							const var_name = $(e).attr('var');
 							$(e).text(var_name ? `${label} #${var_name}` : label);
 						});
+						showDestinationList();
 						exportData();
 					}
 				}
