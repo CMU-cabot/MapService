@@ -364,7 +364,7 @@ $hulop.editor = function () {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
 						$hulop.indoor.showFloor(item.floor);
 					});
-					showProperty(item.node, false, item.var);
+					showProperty(item.node, false, item.var || '');
 				}
 			}).append($('<td>', {
 				'text': item.floor
@@ -487,7 +487,7 @@ $hulop.editor = function () {
 
 	function showProperty(feature, skip_clear_event = false, var_name) {
 		if (!skip_clear_event) {
-			if (onNodeClick && onNodeClick(feature)) return;
+			if (onNodeClick && onNodeClick(feature, var_name)) return;
 			onNodeClick = null;
 		}
 		$('#dest_properties').empty();
@@ -644,7 +644,7 @@ $hulop.editor = function () {
 				console.log(e.target)
 				$(e.target).parent().find('td').addClass('destination_selected')
 				showFeature($('#dest_properties td[key=waitingDestination]').text());
-				onNodeClick = feature => {
+				onNodeClick = (feature, var_name) => {
 					if (keyState.altKey) {
 						saveButton.show();
 						let td = $('#dest_properties table td[key=waitingDestination]');
@@ -873,7 +873,8 @@ $hulop.editor = function () {
 							if (!tour[name]) {
 								tour[name] = [];
 							}
-							tour[name].push({ 'ref': '' });
+							let default_var = $('#tour_properties td[key=default_var]').text();
+							tour[name].push({ 'ref': '', 'var': default_var });
 							showTourProperty(tour);
 							exportData();
 							$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
@@ -932,7 +933,7 @@ $hulop.editor = function () {
 		$('#tour_properties td[key=destinations]').prev().on('click', e => {
 			$('.destination_selected').removeClass('destination_selected');
 			$(e.target).addClass('destination_selected');
-			onNodeClick = feature => {
+			onNodeClick = (feature, var_name) => {
 				if (keyState.altKey) {
 					addTourDestination(feature);
 					return true;
@@ -948,7 +949,7 @@ $hulop.editor = function () {
 			showFeature(node_id);
 			let feature = node_id && source.getFeatureById(node_id);
 			showProperty(feature, true, var_name);
-			onNodeClick = feature => {
+			onNodeClick = (feature, var_name) => {
 				if (keyState.altKey) {
 					let td = $('.destination_selected td[key=ref]');
 					if (td.length == 0) {
@@ -966,11 +967,15 @@ $hulop.editor = function () {
 					td.attr('modified', true);
 					td.parent().parent().find('td[key=#ref]').text((dest && dest.label) || '').attr('modified', true);
 					let var_input = $('.destination_selected td[key=var] input');
-					let default_var = $('#tour_properties td[key=default_var]').text();
-					var_input.val(default_var);
-					var_input.trigger('input');
+					// let default_var = $('#tour_properties td[key=default_var]').text();
+					if (var_name || var_name == '') {
+						var_input.val(var_name);
+						var_input.trigger('input');
+					} else {
+						var_name = var_input.val();
+					}
 					$hulop.map.refresh();
-					showProperty(feature, true, default_var);
+					showProperty(feature, true, var_name);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
