@@ -890,6 +890,7 @@ $hulop.editor = function () {
 				excludes.includes(var_name) || candidates.includes(var_name) || candidates.push(var_name);
 			});
 		});
+
 		add('default_var', { editable: true });
 		transformToCombo($('#tour_properties td[key=default_var]'), candidates);
 		getLanguages(true).forEach(lang => {
@@ -902,8 +903,12 @@ $hulop.editor = function () {
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
+		let var_candidates = candidates;
+		if (tour.default_var && !candidates.includes(tour.default_var)) {
+			var_candidates = candidates.toSpliced(1, 0, tour.default_var);
+		}
 		$('#tour_properties td[key=destinations] td[key=var]').each((i, e) => {
-			transformToCombo($(e), ['hohe', 'fuga'], `__tour-dest-${i}__`);
+			transformToCombo($(e), var_candidates, `__tour-dest-${i}__`);
 		});
 		// Object.keys(tour).forEach(add);
 		Touri18n.translate("#tour_properties");
@@ -1162,7 +1167,7 @@ $hulop.editor = function () {
 					message_saved = true;
 				});
 				to = clean(to) || {};
-				console.log([source, to]);
+				// console.log([source, to]);
 				if (Object.keys(to).length || message_saved) {
 					DESTINATION_BASE_KEYS.forEach(key => {
 						to[key] = from[key];
