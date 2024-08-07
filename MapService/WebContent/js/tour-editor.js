@@ -524,7 +524,7 @@ $hulop.editor = function () {
 				'var_name': var_name || ''
 			}).appendTo($('#dest_properties'));
 			$('<caption>', {
-				'text': var_name ? `${dest.label} #${var_name}`: dest.label
+				'text': var_name ? `${dest.label} #${var_name}` : dest.label
 			}).appendTo(table);
 			let thead = $('<thead>').appendTo(table);
 			let tbody = $('<tbody>').appendTo(table);
@@ -550,7 +550,11 @@ $hulop.editor = function () {
 						});
 						feature.changed();
 						$('#dest_properties td').removeAttr('modified');
-						$('#list table td[node_id=' + dest.value + ']').text(getLabel(dest));
+						$('#list table td[node_id=' + dest.value + ']').each((i, e) => {
+							const label = getLabel(dest);
+							const var_name = $(e).attr('var');
+							$(e).text(var_name ? `${label} #${var_name}` : label);
+						});
 						exportData();
 					}
 				}
