@@ -1219,6 +1219,7 @@ $hulop.editor = function () {
 		data.tours = clean(lastData.tours) || [];
 		for (const tour of data.tours) {
 			for (const dest of tour.destinations || []) {
+				dest.ref = dest.ref || '';
 				if (dest.var) {
 					dest.ref = `${dest.ref}#${dest.var}`;
 				}
