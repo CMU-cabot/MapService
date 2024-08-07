@@ -349,19 +349,28 @@ $hulop.editor = function () {
 		}), $('<th>', {
 			'text': Touri18n._('title')
 		})).appendTo(thead);
+
+		let allItems = [];
 		items.forEach(item => {
+			allItems.push(item);
+			for (const [var_name, content] of Object.entries(item.variations || {})) {
+				allItems.push(Object.assign(Object.assign({}, item), content));
+			}
+		})
+
+		allItems.forEach(item => {
 			$('<tr>', {
 				'click': () => {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
 						$hulop.indoor.showFloor(item.floor);
 					});
-					showProperty(item.node);
+					showProperty(item.node, false, item.var);
 				}
 			}).append($('<td>', {
 				'text': item.floor
 			}), $('<td>', {
-				'text': item.label
-			}).attr('node_id', item.value)).appendTo('#list tbody');
+				'text': item.var ? `${item.label} (var: ${item.var})` : item.label
+			}).attr('node_id', item.value).attr('var', item.var || '')).appendTo('#list tbody');
 		});
 		selected_node && $(`#list [node_id=${selected_node}]`).addClass('destination_selected');
 	}
