@@ -892,14 +892,18 @@ $hulop.editor = function () {
 			}
 		}
 
-		function addTourDestination(feature) {
+		function addTourDestination(feature, var_name) {
 			let node_id = feature && feature.get('node_id');
 			let dest = node_id && lastData.destinations[node_id];
+			if (!var_name && var_name != '') {
+				var_name = $('#tour_properties td[key=default_var]').text();
+			}
 			if (dest) {
 				applyChanges();
 				tour['destinations'].push({
 					'ref': node_id,
-					'#ref': dest.label || ''
+					'#ref': dest.label || '',
+					'var': var_name || ''
 				});
 				showTourProperty(tour);
 				exportData();
@@ -943,7 +947,7 @@ $hulop.editor = function () {
 			$(e.target).addClass('destination_selected');
 			onNodeClick = (feature, var_name) => {
 				if (keyState.altKey) {
-					addTourDestination(feature);
+					addTourDestination(feature, var_name);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
