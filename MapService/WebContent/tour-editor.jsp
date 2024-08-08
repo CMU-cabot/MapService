@@ -201,6 +201,12 @@ table.message th {
 #upload {
 	display: none;
 }
+
+table[var_name=""] td[contenteditable=true],
+table[var_name=""] td[key="#waitingDestination"],
+table[var_name=""] button {
+	background-color: #ff8;
+}
 </style>
 <title>Tour Editor</title>
 </head>

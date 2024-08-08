@@ -26,11 +26,11 @@ $hulop.editor = function () {
 
 	const MAX_INDEX = 99;
 	const JSONDATA_PATH = 'cabot/tourdata.json';
-	const DESTINATION_KEYS = [
+	const DESTINATION_BASE_KEYS = [
 		'floor',
-		'value',
-		// 'startMessage',
-		// 'arrivalMessages',
+		'value'
+	];
+	const DESTINATION_KEYS = [
 		'arrivalAngle',
 		'content',
 		'subtour',
@@ -79,7 +79,6 @@ $hulop.editor = function () {
 		$('#upload_file').change(event => {
 			reader.readAsText(event.target.files[0]);
 		});
-		// reader.onload = event => uploadJSONData(event.target.result, JSONDATA_PATH, () => location.reload());
 		reader.onload = event => {
 			imported_json = JSON.parse(event.target.result);
 			prepareData($hulop.map.getCenter(), $hulop.config.MAX_RADIUS || 1000);
@@ -117,7 +116,6 @@ $hulop.editor = function () {
 		$hulop.route.callService({
 			'action': 'landmarks',
 			'cache': false,
-			// 'lang': 'ja,en',
 			'lang': getLanguages().join(','),
 			'lat': center[1],
 			'lng': center[0],
@@ -306,6 +304,9 @@ $hulop.editor = function () {
 	});
 
 	function showDestinationList(floorFilter = null) {
+		const sel = $('#list .destination_selected');
+		let selected_node = sel.attr('node_id');
+		let selected_var = sel.attr('var');
 		$('#list').empty();
 		let items = Object.keys(lastData.destinations).map(node_id => lastData.destinations[node_id]);
 		items = items.filter(item => {
@@ -333,24 +334,6 @@ $hulop.editor = function () {
 			return find(item) || find(item.facility) || find(item.messages);
 		});
 
-		// show floor option
-		/*
-		let allFloors = {};
-		items.forEach((dest) => { allFloors[dest.floor] = true; });
-		let floors = Object.keys(allFloors).sort();
-		$("<span>Floor: </span>").appendTo($("#list"));
-		let floorSelect = $('<select>', {
-			'change': (e) => {
-				showDestinationList(e.target.selectedOptions[0].label);
-			}
-		}).appendTo($("#list"));
-		floorSelect.append($("<option>", { 'text': "All" }));
-		floors.forEach((floor) => {
-			$("<option>", { 'text': floor }).appendTo(floorSelect);
-		});
-		floorSelect.val(floorFilter ? floorFilter : "All");
-		*/
-
 		items = items.filter(item => {
 			return floorFilter == null || floorFilter == "All" || item.floor == floorFilter;
 		}).sort((a, b) => {
@@ -368,20 +351,32 @@ $hulop.editor = function () {
 		}), $('<th>', {
 			'text': Touri18n._('title')
 		})).appendTo(thead);
+
+		let allItems = [];
 		items.forEach(item => {
+			allItems.push(item);
+			for (const [var_name, content] of Object.entries(item.variations || {})) {
+				let itemx = Object.assign(Object.assign({}, item), content)
+				itemx.var = var_name;
+				allItems.push(itemx);
+			}
+		})
+
+		allItems.forEach(item => {
 			$('<tr>', {
 				'click': () => {
 					$hulop.map.animate(ol.proj.transform(item.node.getGeometry().getCoordinates(), 'EPSG:3857', 'EPSG:4326'), 300, () => {
 						$hulop.indoor.showFloor(item.floor);
 					});
-					showProperty(item.node);
+					showProperty(item.node, false, item.var || '');
 				}
 			}).append($('<td>', {
 				'text': item.floor
 			}), $('<td>', {
-				'text': item.label
-			}).attr('node_id', item.value)).appendTo('#list tbody');
+				'text': item.var ? `${item.label} #${item.var}` : item.label
+			}).attr('node_id', item.value).attr('var', item.var || '')).appendTo('#list tbody');
 		});
+		selected_node && $(`#list [node_id=${selected_node}][var='${selected_var || ''}']`).addClass('destination_selected');
 	}
 
 	function showTourList() {
@@ -399,7 +394,6 @@ $hulop.editor = function () {
 			$('<tr>', {
 				'click': () => {
 					showTourProperty(tour);
-					// $("#dest_properties").empty();
 					showingFeature = null;
 					showFeature(tour.destinations && tour.destinations[0] && tour.destinations[0].ref);
 				}
@@ -410,7 +404,6 @@ $hulop.editor = function () {
 
 		table.find('td').hover(event => {
 			$element = $(event.target);
-			// $element.find("i").remove();
 			$element.parents('tbody').find("i").remove();
 			let index = $(event.target).parents('tbody tr').index();
 			let length = table.find('td').length
@@ -433,7 +426,6 @@ $hulop.editor = function () {
 						return (event) => {
 							let removed = lastData.tours.splice(index, 1)[0];
 							lastData.tours.splice(index + 1, 0, removed);
-							// $('#tour_properties').empty();
 							$hulop.map.refresh();
 							showTourList();
 							exportData();
@@ -445,7 +437,6 @@ $hulop.editor = function () {
 						return (event) => {
 							let removed = lastData.tours.splice(index, 1)[0];
 							lastData.tours.splice(index - 1, 0, removed);
-							// $('#tour_properties').empty();
 							$hulop.map.refresh();
 							showTourList();
 							exportData();
@@ -468,71 +459,6 @@ $hulop.editor = function () {
 				showTourProperty(new_tour);
 				exportData();
 			});
-
-		/* use icon instead of context menu
-		table.on('contextmenu', event => {
-			let index = $(event.target).parents('tbody tr').index();
-			let items = [];
-			items.push({
-				'text': 'Add',
-				'index': -1,
-				'separator': index != -1
-			});
-			if (index != -1) {
-				if (index > 0) {
-					items.push({
-						'text': 'Move to top',
-						'index': index,
-						'move_to': 0
-					});
-					items.push({
-						'text': 'Move up',
-						'index': index,
-						'move_to': index - 1,
-						'separator': true
-					});
-				}
-				if (index < lastData.tours.length - 1) {
-					items.push({
-						'text': 'Move down',
-						'index': index,
-						'move_to': index + 1
-					});
-					items.push({
-						'text': 'Move to bottom',
-						'index': index,
-						'move_to': lastData.tours.length - 1,
-						'separator': true
-					});
-				}
-				items.push({
-					'text': 'Remove',
-					'index': index
-				});
-			}
-			createContextMenu(event, items, item => {
-				if (item.index == -1) {
-					let new_tour = {
-						'tour_id': 'tour_' + new Date().getTime(),
-						'destinations': []
-					};
-					lastData.tours.push(new_tour);
-					showTourProperty(new_tour);
-				} else {
-					let removed = lastData.tours.splice(item.index, 1)[0];
-					if ('move_to' in item) {
-						lastData.tours.splice(item.move_to, 0, removed);
-					} else {
-						$('#tour_properties').empty();
-					}
-					$hulop.map.refresh();
-				}
-				showTourList();
-				exportData();
-			});
-			return false;
-		});
-		*/
 	}
 
 	let format = new ol.format.GeoJSON()
@@ -563,9 +489,9 @@ $hulop.editor = function () {
 	let onNodeClick = null;
 	let showingFeature = null;
 
-	function showProperty(feature, skip_clear_event = false) {
+	function showProperty(feature, skip_clear_event = false, var_name) {
 		if (!skip_clear_event) {
-			if (onNodeClick && onNodeClick(feature)) return;
+			if (onNodeClick && onNodeClick(feature, var_name)) return;
 			onNodeClick = null;
 		}
 		$('#dest_properties').empty();
@@ -573,29 +499,39 @@ $hulop.editor = function () {
 		editingFeature = feature;
 		$hulop.editor.editingFeature = feature; // for debug
 		if (feature) {
-			showDestinationTable(feature);
-			destinationSelected(feature.getId());
+			showDestinationTable(feature, var_name);
+			destinationSelected(feature.getId(), var_name);
 		}
 		showingFeature = feature;
 		$hulop.map.refresh();
 	}
 
-	function destinationSelected(node_id) {
+	function destinationSelected(node_id, var_name) {
 		$('#list .destination_selected').removeClass("destination_selected")
-		let selector = $('#list td[node_id=' + node_id + ']');
+		let selector = $(`#list td[node_id=${node_id}][var='${var_name || ''}']`);
+		if (selector.length == 0) {
+			selector = $(`#list td[node_id=${node_id}][var='']`);
+		}
 		if (selector.length > 0) {
-			selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			let rcTD = selector[0].getBoundingClientRect();
+			let rcDIV = $('#list').parent()[0].getBoundingClientRect();
+			if (rcTD.top < rcDIV.top || rcTD.bottom > rcDIV.bottom) {
+				selector[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
 			selector.addClass("destination_selected")
 		}
 	}
 
-	function showDestinationTable(feature) {
+	function showDestinationTable(feature, var_name) {
 		let dest = lastData.destinations[feature.getId()];
 		if (dest) {
 			$hulop.indoor.showFloor(dest.floor);
-			let table = $('<table>', { 'class': 'destination' }).appendTo($('#dest_properties'));
+			let table = $('<table>', {
+				'class': 'destination',
+				'var_name': var_name || ''
+			}).appendTo($('#dest_properties'));
 			$('<caption>', {
-				'text': dest.label
+				'text': var_name ? `${dest.label} #${var_name}` : dest.label
 			}).appendTo(table);
 			let thead = $('<thead>').appendTo(table);
 			let tbody = $('<tbody>').appendTo(table);
@@ -615,12 +551,22 @@ $hulop.editor = function () {
 						saveButton.hide();
 						$('#dest_properties td[modified=true]').each((i, e) => {
 							let key = $(e).attr('key');
-							setValue(dest, key, $(e).text().trim(), $(e).attr('type'))
+							let var_name = $(e).attr('var_name');
+							let dest_write = var_name ? dest.variations[var_name] = dest.variations[var_name] || {} : dest;
+							setValue(dest_write, key, $(e).text().trim(), $(e).attr('type'))
 						});
 						feature.changed();
 						$('#dest_properties td').removeAttr('modified');
-						$('#list table td[node_id=' + dest.value + ']').text(getLabel(dest));
+						$('#list table td[node_id=' + dest.value + ']').each((i, e) => {
+							const label = getLabel(dest);
+							const var_name = $(e).attr('var');
+							$(e).text(var_name ? `${label} #${var_name}` : label);
+						});
 						exportData();
+						if ($(`#list [node_id=${feature.getId()}][var='${var_name || ''}']`).length == 0) {
+							showDestinationList();
+							destinationSelected(feature.getId(), var_name);
+						}
 					}
 				}
 			}).appendTo($('#dest_properties'));
@@ -631,9 +577,11 @@ $hulop.editor = function () {
 				'facility': true,
 				'#title': true
 			};
+			let use_var;
 			function add(name, options = {}) {
 				if (!added[name]) {
-					let value = name in dest ? dest[name] : '';
+					let dest_read = use_var ? dest.variations[use_var] || {} : dest;
+					let value = name in dest_read ? dest_read[name] : '';
 					let row = $('<tr>', {
 						'class': options.editable ? 'editable' : 'read_only'
 					}).append($('<td>', {
@@ -647,7 +595,7 @@ $hulop.editor = function () {
 						},
 						'contenteditable': !!options.editable,
 						'text': value
-					}).attr('key', name).attr('type', options.type || ''));
+					}).attr('key', name).attr('type', options.type || '').attr('var_name', use_var || ''));
 					if (options.hidden) {
 						row.css('display', 'none');
 					}
@@ -657,27 +605,19 @@ $hulop.editor = function () {
 			}
 			add('value');
 			add('floor');
-			// add('title-ja');
-			// add('title-en');
-			// add('title-ja-pron');
 			getLanguages(true).forEach(lang => {
 				add(`title-${lang}`);
 			});
-			// add('short_description-ja');
-			// add('short_description-en');
 			getLanguages().forEach(lang => {
 				add(`short_description-${lang}`);
 			});
-			// add('long_description-ja');
-			// add('long_description-en');
 			getLanguages().forEach(lang => {
 				add(`long_description-${lang}`);
 			});
 			CATEGORY_KEYS.forEach(key => {
 				add(key);
 			});
-			// add('startMessage', { editable: true });
-			// add('arrivalMessages', { editable: true });
+			use_var = var_name;
 			add('arrivalAngle', { editable: true, type: 'number' });
 			add('content', { editable: true });
 			add('waitingDestination', { 'hidden': true });
@@ -697,8 +637,10 @@ $hulop.editor = function () {
 					template.push([`text:${lang}`, 'textarea']);
 				});
 
-				MessageEditor.open(template, dest.messages, messages => {
-					dest.messages = messages;
+				let dest_read = var_name ? dest.variations[var_name] || {} : dest;
+				MessageEditor.open(template, dest_read.messages, messages => {
+					let dest_write = var_name ? dest.variations[var_name] = dest.variations[var_name] || {} : dest;
+					dest_write.messages = messages;
 					exportData();
 				});
 			}))).appendTo(tbody);
@@ -710,7 +652,7 @@ $hulop.editor = function () {
 				console.log(e.target)
 				$(e.target).parent().find('td').addClass('destination_selected')
 				showFeature($('#dest_properties td[key=waitingDestination]').text());
-				onNodeClick = feature => {
+				onNodeClick = (feature, var_name) => {
 					if (keyState.altKey) {
 						saveButton.show();
 						let td = $('#dest_properties table td[key=waitingDestination]');
@@ -823,19 +765,21 @@ $hulop.editor = function () {
 			let tbody = $('<tbody>').appendTo(table);
 			Object.keys(value).forEach(key => {
 				let name_key = name + '.' + key;
-				let editable = /^destinations\.\d+\.(ref|#ref)$/.test(name_key);
+				let visible = /^destinations\.\d+\.(ref|#ref|var)$/.test(name_key);
+				let editable = /^destinations\.\d+\.(var)$/.test(name_key);
+				let td;
 				if (typeof value[key] == 'object') {
 					td = $('<td>').append(getInnerTable(name_key, value[key], options));
 				} else {
-					if (!editable) return;
+					if (!visible) return;
 					td = $('<td>', {
 						'on': {
 							'input': event => {
 								saveButton.show();
-								$(event.target).attr('modified', true);
+								td.attr('modified', true);
 							}
 						},
-						'contenteditable': false,
+						'contenteditable': editable,
 						'text': value[key]
 					});
 				}
@@ -866,15 +810,13 @@ $hulop.editor = function () {
 					td = $('<td>').append(getInnerTable(name, value, options));
 				} else {
 					td = $('<td>', {
-						'on': {
-							'input': event => {
-								saveButton.show();
-								$(event.target).attr('modified', true);
-							}
-						},
 						'contenteditable': !!options.editable,
 						'text': value
 					}).attr('type', options.type || '');
+					td.on('input', event => {
+						saveButton.show();
+						td.attr('modified', true);
+					});
 				}
 				let row = $('<tr>', {
 					'class': options.editable ? 'editable' : 'read_only'
@@ -883,9 +825,8 @@ $hulop.editor = function () {
 				}), td.attr('key', name));
 				row.appendTo(tbody);
 				if (options.is_array) {
-					row.find('td:not(:has(*)):last-child').hover(event => {
+					row.find('td[key="#ref"]').hover(event => {
 						$element = $(event.target);
-						// $element.find("i").remove();
 						$element.parents('tbody').find("td:last i").remove();
 						let index = getDestinationIndex($element);
 						let length = $('#tour_properties td[key=destinations] tr:has(table)').length
@@ -898,7 +839,6 @@ $hulop.editor = function () {
 										return (event) => {
 											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
-											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -911,7 +851,6 @@ $hulop.editor = function () {
 											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index + 1, 0, removed);
-											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -924,7 +863,6 @@ $hulop.editor = function () {
 											applyChanges();
 											let removed = tour[name].splice(index, 1)[0];
 											tour[name].splice(index - 1, 0, removed);
-											// $('#dest_properties').empty();
 											$hulop.map.refresh();
 											showTourProperty(tour);
 											exportData();
@@ -943,85 +881,29 @@ $hulop.editor = function () {
 							if (!tour[name]) {
 								tour[name] = [];
 							}
-							tour[name].push({ 'ref': '' });
+							let default_var = $('#tour_properties td[key=default_var]').text();
+							tour[name].push({ 'ref': '', 'var': default_var });
 							showTourProperty(tour);
 							exportData();
 							$('#tour_properties td[key=destinations] > table > tbody > tr:last td:first').trigger('click');
 						});
-
-					/* use icons instead of context menu
-					row.on('contextmenu', event => {
-						let index = getDestinationIndex($(event.target));
-						let items = [];
-						if (index == null) {
-							items.push({
-								'text': 'Add',
-								'index': -1
-							});
-						} else {
-							if (index > 0) {
-								items.push({
-									'text': 'Move to top',
-									'index': index,
-									'move_to': 0
-								});
-								items.push({
-									'text': 'Move up',
-									'index': index,
-									'move_to': index - 1,
-									'separator': true
-								});
-							}
-							if (index < tour[name].length - 1) {
-								items.push({
-									'text': 'Move down',
-									'index': index,
-									'move_to': index + 1
-								});
-								items.push({
-									'text': 'Move to bottom',
-									'index': index,
-									'move_to': tour[name].length - 1,
-									'separator': true
-								});
-							}
-							items.push({
-								'text': 'Remove',
-								'index': index
-							});
-						}
-						createContextMenu(event, items, item => {
-							applyChanges();
-							if (item.index == -1) {
-								if (!tour[name]) {
-									tour[name] = [];
-								}
-								tour[name].push({ 'ref': '' });
-							} else {
-								let removed = tour[name].splice(item.index, 1)[0];
-								if ('move_to' in item) {
-									tour[name].splice(item.move_to, 0, removed);
-								}
-							}
-							showTourProperty(tour);
-							exportData();
-						});
-						return false;
-					});
-					*/
 				}
 				added[name] = true;
 			}
 		}
 
-		function addTourDestination(feature) {
+		function addTourDestination(feature, var_name) {
 			let node_id = feature && feature.get('node_id');
 			let dest = node_id && lastData.destinations[node_id];
+			if (!var_name && var_name != '') {
+				var_name = $('#tour_properties td[key=default_var]').text();
+			}
 			if (dest) {
 				applyChanges();
 				tour['destinations'].push({
 					'ref': node_id,
-					'#ref': dest.label || ''
+					'#ref': dest.label || '',
+					'var': var_name || ''
 				});
 				showTourProperty(tour);
 				exportData();
@@ -1030,31 +912,42 @@ $hulop.editor = function () {
 		}
 
 		add('tour_id', { editable: true });
-		// add('title-ja', { editable: true });
-		// add('title-en', { editable: true });
-		// add('title-ja-pron', { editable: true });
+		let excludes = lastData.tours.map(tour => tour.tour_id);
+		let candidates = [tour.tour_id];
+		Object.values(lastData.destinations).forEach(dest => {
+			Object.keys(dest.variations).forEach(var_name => {
+				excludes.includes(var_name) || candidates.includes(var_name) || candidates.push(var_name);
+			});
+		});
+
+		add('default_var', { editable: true });
+		transformToCombo($('#tour_properties td[key=default_var]'), candidates);
 		getLanguages(true).forEach(lang => {
 			add(`title-${lang}`, { editable: true });
 		});
 		add('debug', { editable: true, type: 'boolean' });
-		// add('introduction-ja', { editable: true });
-		// add('introduction-en', { editable: true });
-		// add('introduction-ja-pron', { editable: true });
 		getLanguages(true).forEach(lang => {
 			add(`introduction-${lang}`, { editable: true });
 		});
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
+		let var_candidates = candidates;
+		if (tour.default_var && !candidates.includes(tour.default_var)) {
+			var_candidates = candidates.toSpliced(1, 0, tour.default_var);
+		}
+		$('#tour_properties td[key=destinations] td[key=var]').each((i, e) => {
+			transformToCombo($(e), var_candidates, `__tour-dest-${i}__`);
+		});
 		// Object.keys(tour).forEach(add);
 		Touri18n.translate("#tour_properties");
 
 		$('#tour_properties td[key=destinations]').prev().on('click', e => {
 			$('.destination_selected').removeClass('destination_selected');
 			$(e.target).addClass('destination_selected');
-			onNodeClick = feature => {
+			onNodeClick = (feature, var_name) => {
 				if (keyState.altKey) {
-					addTourDestination(feature);
+					addTourDestination(feature, var_name);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
@@ -1063,11 +956,12 @@ $hulop.editor = function () {
 		$('#tour_properties td[key=destinations] > table > tbody > tr').on('click contextmenu', e => {
 			$('.destination_selected').removeClass('destination_selected')
 			$(e.target).parents('#tour_properties td[key=destinations] > table > tbody > tr').addClass('destination_selected')
-			node_id = $('.destination_selected td[key=ref]').text();
+			let node_id = $('.destination_selected td[key=ref]').text();
+			let var_name = $('.destination_selected td[key=var]').text();
 			showFeature(node_id);
 			let feature = node_id && source.getFeatureById(node_id);
-			showProperty(feature, true);
-			onNodeClick = feature => {
+			showProperty(feature, true, var_name);
+			onNodeClick = (feature, var_name) => {
 				if (keyState.altKey) {
 					let td = $('.destination_selected td[key=ref]');
 					if (td.length == 0) {
@@ -1084,8 +978,16 @@ $hulop.editor = function () {
 					}
 					td.attr('modified', true);
 					td.parent().parent().find('td[key=#ref]').text((dest && dest.label) || '').attr('modified', true);
+					let var_input = $('.destination_selected td[key=var] input');
+					// let default_var = $('#tour_properties td[key=default_var]').text();
+					if (var_name || var_name == '') {
+						var_input.val(var_name);
+						var_input.trigger('input');
+					} else {
+						var_name = var_input.val();
+					}
 					$hulop.map.refresh();
-					showProperty(feature, true);
+					showProperty(feature, true, var_name);
 					return true;
 				}
 				$('#tour_properties .destination_selected').removeClass("destination_selected");
@@ -1115,7 +1017,6 @@ $hulop.editor = function () {
 
 	function initDestinations(landmarks) {
 		let destinations = lastData.destinations = {};
-		// ['ja', 'en'].forEach(lang => {
 		getLanguages().forEach(lang => {
 			landmarks[lang].forEach(landmark => {
 				landmark.long_description = landmark.properties['hulop_long_description_' + lang] || landmark.properties['hulop_long_description'];
@@ -1140,11 +1041,11 @@ $hulop.editor = function () {
 				});
 			});
 		});
-		Object.keys(destinations).forEach(node_id => {
-			let dest = destinations[node_id];
+		for (const [node_id, dest] of Object.entries(destinations)) {
 			dest.label = getLabel(dest);
 			dest.node = source.getFeatureById(node_id);
-		});
+			dest.variations = {};
+		}
 	}
 
 	function getPoiName(obj, lang, pron) {
@@ -1197,10 +1098,18 @@ $hulop.editor = function () {
 			console.log('raw data', data);
 			let destinations = data && data.destinations;
 			(destinations || []).forEach(dest_in => {
-				let node_id = dest_in.value;
-				let dest_out = node_id && lastData.destinations[node_id];
-				if (dest_out) {
-					lastData.destinations[node_id] = Object.assign(dest_out, dest_in);
+				if (dest_in.value) {
+					let id_var = dest_in.value.split('#');
+					dest_in.value = id_var[0];
+					dest_in.var = id_var[1] || dest_in.var;
+					let dest_out = lastData.destinations[dest_in.value];
+					if (dest_out) {
+						if (dest_in.var) {
+							dest_out.variations[dest_in.var] = dest_in;
+						} else {
+							lastData.destinations[dest_in.value] = Object.assign(dest_out, dest_in);
+						}
+					}
 				}
 			});
 			// Reset #waitingDestination
@@ -1217,13 +1126,26 @@ $hulop.editor = function () {
 			});
 			// Copy messages into destination
 			(data && data.messages || []).forEach(message => {
-				let destination = 'parent' in message && lastData.destinations[message.parent];
-				if (destination) {
-					destination.messages = destination.messages || [];
-					destination.messages.push(message);
+				let node_var = message.parent.split('#');
+				let to = 'parent' in message && lastData.destinations[node_var[0]];
+				if (to) {
+					if (node_var.length > 1) {
+						to = to.variations[node_var[1]] = to.variations[node_var[1]] || {};
+					}
+					(to.messages = to.messages || []).push(message);
 				}
 			});
 			lastData.tours = (data && data.tours) || [];
+			for (const tour of lastData.tours) {
+				for (const dest of tour.destinations || []) {
+					delete dest.var;
+					if (dest.ref) {
+						let ref_var = dest.ref.split('#');
+						dest.ref = ref_var[0];
+						dest.var = ref_var[1] || '';
+					}
+				}
+			}
 			callback();
 		});
 	}
@@ -1261,21 +1183,37 @@ $hulop.editor = function () {
 		let messages = data.messages = [];
 		Object.keys(lastData.destinations).forEach(node_id => {
 			let from = lastData.destinations[node_id];
-			let to = {};
-			DESTINATION_KEYS.forEach(key => {
-				to[key] = from[key];
-			});
-			to = clean(to);
-			// Extract messages from destination
-			(from.messages || []).forEach(message => {
-				message.parent = from.value;
-				messages.push(message);
-			});
-			console.log([from, to]);
-			if (Object.keys(to).length > 2) {
-				to['#title'] = getLabel(from);
-				destinations.push(to);
+			function exportDestination(var_name) {
+				let source = from, message_parent = from.value, to = {};
+				if (var_name) {
+					source = from.variations[var_name];
+					message_parent = `${from.value}#${var_name}`;
+				}
+				DESTINATION_KEYS.forEach(key => {
+					to[key] = source[key];
+				});
+				let message_saved;
+				// Extract messages from destination
+				(source.messages || []).forEach(message => {
+					message.parent = message_parent;
+					messages.push(message);
+					message_saved = true;
+				});
+				to = clean(to) || {};
+				// console.log([source, to]);
+				if (Object.keys(to).length || message_saved) {
+					DESTINATION_BASE_KEYS.forEach(key => {
+						to[key] = from[key];
+					});
+					to['#title'] = getLabel(from);
+					if (var_name) {
+						to['var'] = var_name;
+					}
+					destinations.push(to);
+				}
 			}
+			exportDestination();
+			Object.keys(from.variations).forEach(exportDestination);
 		});
 		console.log(destinations);
 		destinations.sort((a, b) => {
@@ -1283,6 +1221,15 @@ $hulop.editor = function () {
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
 		data.tours = clean(lastData.tours) || [];
+		for (const tour of data.tours) {
+			for (const dest of tour.destinations || []) {
+				dest.ref = dest.ref || '';
+				if (dest.var) {
+					dest.ref = `${dest.ref}#${dest.var}`;
+				}
+				delete dest.var;
+			}
+		}
 		// if (force) {
 		if (force || $('#upload').is(':hidden')) {
 			$('#upload').hide();
@@ -1336,31 +1283,6 @@ $hulop.editor = function () {
 		});
 	}
 
-	/* use icon instead of context menu
-	function createContextMenu(e, items, callback) {
-		if ($('#menu').size() == 0) {
-			let menu = $('<ul>', {
-				'id': 'menu',
-				'css': {
-					'top': e.pageY + 'px',
-					'left': e.pageX + 'px'
-				}
-			});
-			items.forEach(item => {
-				$('<li>', {
-					'text': item.text,
-					'class': item.separator ? 'separator' : 'no-separator',
-					'on': {
-						'click': e => callback(item)
-					}
-				}).appendTo(menu);
-			});
-			$('body').append(menu);
-			$('#menu').css('top', Math.min(e.pageY, $('body').height() - $('#menu').height()) + 'px');
-		}
-	}
-	*/
-
 	function addIcon($element, className, title) {
 		let count = $element.find("i").length
 		let $icon = $('<i>')
@@ -1373,6 +1295,45 @@ $hulop.editor = function () {
 			.css('cursor', 'pointer')
 			.appendTo($element);
 		return $icon.prop('title', title);
+	}
+
+	function transformToCombo(target, candidates, datalist_id = '__datalist__') {
+		let font_size = target.css('font-size');
+		target.css({
+			'font-size': '0px',
+			'padding': '0px'
+		});
+		$('<input>', {
+			'type': 'text',
+			'value': target.text(),
+			'css': {
+				'width': '100%',
+				'box-sizing': 'border-box',
+				'border': 'none',
+				'font-size': font_size
+			},
+			'list': createDatalist(candidates, datalist_id),
+			'on': {
+				'input': e => {
+					target.contents().first()[0].nodeValue = $(e.target).val();
+				}
+			}
+		}).appendTo(target);
+	}
+
+	function createDatalist(candidates, id) {
+		$(`#${id}`).remove()
+		let datalist = $('<datalist>', {
+			'id': id
+		}).appendTo('body');
+
+		candidates.forEach(text => {
+			datalist.append($('<option>', {
+				'value': text,
+				'text': text
+			}));
+		});
+		return id;
 	}
 
 	return {
