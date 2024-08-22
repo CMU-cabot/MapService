@@ -1,3 +1,9 @@
+# 地図関連機能
+地図に関連したコンポーネントはソフトウェア全体図の中で以下の赤丸に示すように、クラウドから配信される形でロボット内にも存在し、目的地やツアーの情報に一貫性を持たせている。
+
+<img width="720" alt="AIスーツケース全体コンポーネント図 v2" src="https://github.com/user-attachments/assets/fff598e1-6b5d-47d5-ab79-7f8b61688ebf">
+
+
 # Point of Interest (POI)の定義
 POIは、特定の場所や地点に関する情報を示すもので、AIスーツケースにおいてユーザーが目的地や重要な地点を識別するために使用されます。CMU-CabotのMapServiceでは、POIはGeoJSON形式で定義されています。
 
