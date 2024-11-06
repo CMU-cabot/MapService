@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://geojson.org/schema/Feature.json"
+    }
+  ],
+  "example": {
+    "geometry": {
+      "coordinates": [
+        139.77689795095077,
+        35.61928452869368
+      ],
+      "type": "Point"
+    },
+    "_id": "EDITOR_node_1627883266823",
+    "type": "Feature",
+    "properties": {
+      "in_out": 3,
+      "hulop_file": "EDITOR",
+      "lon": 139.77689795095077,
+      "floor": 5,
+      "link2_id": "EDITOR_link_1658904803599",
+      "lat": 35.61928452869368,
+      "link1_id": "EDITOR_link_1627884285309",
+      "node_id": "EDITOR_node_1627883266823",
+      "link3_id": "EDITOR_link_1658904829360"
+    }
+  }
+}

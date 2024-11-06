@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://geojson.org/schema/Feature.json"
+    }
+  ],
+  "example": {
+    "geometry": {
+      "coordinates": [
+        [
+          139.77703336626288,
+          35.619512206005126
+        ],
+        [
+          139.7769706696272,
+          35.61948277094618
+        ]
+      ],
+      "type": "LineString"
+    },
+    "_id": "EDITOR_link_1673433445642",
+    "type": "Feature",
+    "properties": {
+      "roof": 99,
+      "hulop_file": "EDITOR",
+      "start_id": "EDITOR_node_1673433443839",
+      "distance": 6.6,
+      "vtcl_slope": 99,
+      "end_id": "EDITOR_node_1673433402858",
+      "tfc_s_type": 99,
+      "brail_tile": 99,
+      "link_id": "EDITOR_link_1673433445642",
+      "tfc_signal": 99,
+      "elevator": 99,
+      "rt_struct": 7,
+      "route_type": 1,
+      "width": 99,
+      "lev_diff": 99,
+      "direction": 1
+    }
+  }
+}
