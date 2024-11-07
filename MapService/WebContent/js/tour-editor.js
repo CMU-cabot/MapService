@@ -44,7 +44,7 @@ $hulop.editor = function () {
 
 	function getLanguages(pron) {
 		// return pron ? ['ja', 'ja-pron', 'en', 'es', 'fr', 'ko', 'zh-CN'] : ['ja', 'en', 'es', 'fr', 'ko', 'zh-CN'];
-		return pron ? ['ja', 'ja-pron', 'en'] : ['ja', 'en'];
+		return pron ? ['ja', 'ja-pron', 'en', 'zh-CN'] : ['ja', 'en', 'zh-CN'];
 	}
 
 	function init(cb) {
