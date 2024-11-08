@@ -43,6 +43,10 @@
                     "text": "タイトル 英語",
                     "help": "title-enの説明"
                 },
+                "title-zh-CN": {
+                    "text": "タイトル 中国語",
+                    "help": "title-zh-CNの説明"
+                },
                 "debug": {
                     "text": "デバッグモード",
                     "help": "debugの説明"
@@ -58,6 +62,10 @@
                 "introduction-en": {
                     "text": "紹介文 英語",
                     "help": "introduction-enの説明"
+                },
+                "introduction-zh-CN": {
+                    "text": "紹介文 中国語",
+                    "help": "introduction-zh-CNの説明"
                 },
                 "enableSubtourOnHandle": {
                     "text": "ハンドルでサブツアーを利用する",
@@ -97,6 +105,10 @@
                     "text": "タイトル 英語",
                     "help": "title-enの説明"
                 },
+                "title-zh-CN": {
+                    "text": "タイトル 中国語",
+                    "help": "title-enの説明"
+                },
                 "short_description-ja": {
                     "text": "短い説明 日本語",
                     "help": "short_description-jaの説明"
@@ -105,12 +117,20 @@
                     "text": "短い説明 英語",
                     "help": "short_description-enの説明"
                 },
+                "short_description-zh-CN": {
+                    "text": "短い説明 中国語",
+                    "help": "short_description-zh-CNの説明"
+                },
                 "long_description-ja": {
                     "text": "長い説明 日本語",
                     "help": "long_description-jaの説明"
                 },
                 "long_description-en": {
                     "text": "長い説明 日本語",
+                    "help": "long_description-enの説明"
+                },
+                "long_description-zh-CN": {
+                    "text": "長い説明 中国語",
                     "help": "long_description-enの説明"
                 },
                 "major_category": {
@@ -198,6 +218,10 @@
                 "text:en": {
                     "text": "テキスト 英語",
                     "help": "text:enの説明"
+                },
+                "text:zh-CN": {
+                    "text": "テキスト 中国語",
+                    "help": "text:zh-CNの説明"
                 }
             }
         }
