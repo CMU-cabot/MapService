@@ -1,0 +1,240 @@
+{
+  "type": "array",
+  "example": [
+    {
+      "geometry": {
+        "coordinates": [
+          139.7770013306175,
+          35.61949716578647
+        ],
+        "type": "Point"
+      },
+      "_id": "_TEMP_NODE_",
+      "type": "Feature",
+      "properties": {
+        "floor": 1,
+        "link2_id": "_TEMP_LINK2_",
+        "link1_id": "_TEMP_LINK1_",
+        "node_id": "_TEMP_NODE_"
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            139.7770013306175,
+            35.61949716578647
+          ],
+          [
+            139.7769706696272,
+            35.61948277094618
+          ]
+        ],
+        "type": "LineString"
+      },
+      "_id": "_TEMP_LINK2_",
+      "type": "Feature",
+      "properties": {
+        "roof": 99,
+        "hulop_file": "EDITOR",
+        "sourceNode": "_TEMP_NODE_",
+        "start_id": "_TEMP_NODE_",
+        "distance": 3.199602214641106,
+        "vtcl_slope": 99,
+        "end_id": "EDITOR_node_1673433402858",
+        "tfc_s_type": 99,
+        "brail_tile": 99,
+        "sourceHeight": 1,
+        "targetNode": "EDITOR_node_1673433402858",
+        "link_id": "_TEMP_LINK2_",
+        "targetHeight": 1,
+        "tfc_signal": 99,
+        "elevator": 99,
+        "rt_struct": 7,
+        "route_type": 1,
+        "width": 99,
+        "lev_diff": 99,
+        "direction": 1
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            139.7769706696272,
+            35.61948277094618
+          ],
+          [
+            139.77694161516686,
+            35.61952098506045
+          ]
+        ],
+        "type": "LineString"
+      },
+      "_id": "EDITOR_link_1673433404471",
+      "type": "Feature",
+      "properties": {
+        "roof": 99,
+        "hulop_file": "EDITOR",
+        "sourceNode": "EDITOR_node_1673433402858",
+        "start_id": "EDITOR_node_1673433402858",
+        "distance": 5,
+        "vtcl_slope": 99,
+        "end_id": "EDITOR_node_1692669309448",
+        "tfc_s_type": 99,
+        "brail_tile": 99,
+        "sourceHeight": 1,
+        "targetNode": "EDITOR_node_1692669309448",
+        "link_id": "EDITOR_link_1673433404471",
+        "targetHeight": 1,
+        "tfc_signal": 99,
+        "elevator": 99,
+        "rt_struct": 7,
+        "route_type": 1,
+        "width": 99,
+        "lev_diff": 99,
+        "direction": 1
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            139.77694161516686,
+            35.61952098506045
+          ],
+          [
+            139.77691099047658,
+            35.61956126441258
+          ]
+        ],
+        "type": "LineString"
+      },
+      "_id": "EDITOR_link_1692669309465",
+      "type": "Feature",
+      "properties": {
+        "roof": 99,
+        "hulop_file": "EDITOR",
+        "sourceNode": "EDITOR_node_1692669309448",
+        "start_id": "EDITOR_node_1692669309448",
+        "distance": 5.3,
+        "vtcl_slope": 99,
+        "end_id": "EDITOR_node_1673432324743",
+        "tfc_s_type": 99,
+        "brail_tile": 99,
+        "sourceHeight": 1,
+        "targetNode": "EDITOR_node_1673432324743",
+        "link_id": "EDITOR_link_1692669309465",
+        "targetHeight": 1,
+        "tfc_signal": 99,
+        "elevator": 99,
+        "rt_struct": 7,
+        "route_type": 1,
+        "width": 99,
+        "lev_diff": 99,
+        "direction": 1
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            139.77690126746893,
+            35.619573801556356
+          ],
+          [
+            139.77691099047658,
+            35.61956126441258
+          ]
+        ],
+        "type": "LineString"
+      },
+      "_id": "EDITOR_link_1674009582377",
+      "type": "Feature",
+      "properties": {
+        "roof": 99,
+        "hulop_file": "EDITOR",
+        "sourceNode": "EDITOR_node_1673432324743",
+        "start_id": "EDITOR_node_1674009579600",
+        "distance": 1.6,
+        "vtcl_slope": 99,
+        "end_id": "EDITOR_node_1673432324743",
+        "tfc_s_type": 99,
+        "brail_tile": 99,
+        "sourceHeight": 1,
+        "targetNode": "EDITOR_node_1674009579600",
+        "link_id": "EDITOR_link_1674009582377",
+        "targetHeight": 1,
+        "tfc_signal": 99,
+        "elevator": 99,
+        "rt_struct": 7,
+        "route_type": 1,
+        "width": 99,
+        "lev_diff": 99,
+        "direction": 1
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            139.77690126746893,
+            35.619573801556356
+          ],
+          [
+            139.7766928933561,
+            35.61946750831878
+          ]
+        ],
+        "type": "LineString"
+      },
+      "_id": "EDITOR_link_1674009585469",
+      "type": "Feature",
+      "properties": {
+        "roof": 99,
+        "hulop_file": "EDITOR",
+        "sourceNode": "EDITOR_node_1674009579600",
+        "start_id": "EDITOR_node_1674009579600",
+        "distance": 22.3,
+        "vtcl_slope": 99,
+        "end_id": "EDITOR_node_1674009577605",
+        "tfc_s_type": 99,
+        "brail_tile": 99,
+        "sourceHeight": 1,
+        "targetNode": "EDITOR_node_1674009577605",
+        "link_id": "EDITOR_link_1674009585469",
+        "targetHeight": 1,
+        "tfc_signal": 99,
+        "elevator": 99,
+        "rt_struct": 7,
+        "route_type": 1,
+        "width": 99,
+        "lev_diff": 99,
+        "direction": 1
+      }
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          139.7766928933561,
+          35.61946750831878
+        ],
+        "type": "Point"
+      },
+      "_id": "EDITOR_node_1674009577605",
+      "type": "Feature",
+      "properties": {
+        "in_out": 3,
+        "hulop_file": "EDITOR",
+        "lon": 139.7766928933561,
+        "floor": 1,
+        "link2_id": "EDITOR_link_1674009587803",
+        "lat": 35.61946750831878,
+        "link1_id": "EDITOR_link_1674009585469",
+        "node_id": "EDITOR_node_1674009577605",
+        "link3_id": "EDITOR_link_1691563795865",
+        "link4_id": "EDITOR_link_1691563823801"
+      }
+    }
+  ]
+}

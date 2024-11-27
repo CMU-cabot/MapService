@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "properties": {
+    "^EDITOR_node_[0-9]+$": {
+      "$ref": "https://geojson.org/schema/Feature.json"
+    }
+  },
+  "example": {
+    "EDITOR_node_1627883266823": {
+      "geometry": {
+        "coordinates": [
+          139.77689795095077,
+          35.61928452869368
+        ],
+        "type": "Point"
+      },
+      "_id": "EDITOR_node_1627883266823",
+      "type": "Feature",
+      "properties": {
+        "in_out": 3,
+        "hulop_file": "EDITOR",
+        "lon": 139.77689795095077,
+        "floor": 5,
+        "link2_id": "EDITOR_link_1658904803599",
+        "lat": 35.61928452869368,
+        "link1_id": "EDITOR_link_1627884285309",
+        "node_id": "EDITOR_node_1627883266823",
+        "link3_id": "EDITOR_link_1658904829360"
+      }
+    },
+    "EDITOR_node_1626153326375": {
+      "geometry": {
+        "coordinates": [
+          139.77658832906252,
+          35.61916087265608
+        ],
+        "type": "Point"
+      },
+      "_id": "EDITOR_node_1626153326375",
+      "type": "Feature",
+      "properties": {
+        "in_out": 3,
+        "hulop_file": "EDITOR",
+        "lon": 139.77658832906252,
+        "floor": 5,
+        "link2_id": "EDITOR_link_1626153402461",
+        "lat": 35.61916087265608,
+        "link1_id": "EDITOR_link_1701138561792",
+        "node_id": "EDITOR_node_1626153326375",
+        "link3_id": "EDITOR_link_1627887368367"
+      }
+    }
+  }
+}

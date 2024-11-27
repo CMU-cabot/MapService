@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://geojson.org/schema/Feature.json"
+    }
+  ],
+  "example": {
+    "geometry": {
+      "coordinates": [
+        139.77712893744422,
+        35.61952073918482
+      ],
+      "type": "Point"
+    },
+    "_id": "EDITOR_facil_1668739756764",
+    "type": "Feature",
+    "properties": {
+      "parking": 99,
+      "escalator": 99,
+      "hulop_file": "EDITOR",
+      "ent1_node": "EDITOR_node_1668739739277",
+      "ent1_lon": 139.77713329603387,
+      "ent1_n": "",
+      "name_ja": "コンファレンスルーム　木星",
+      "nursing": 99,
+      "brail_tile": 99,
+      "lon": 139.77712893744422,
+      "facil_id": "EDITOR_facil_1668739756764",
+      "toilet": 99,
+      "elevator": 99,
+      "barrier": 99,
+      "ent1_lat": 35.61951528825006,
+      "ent1_fl": 7,
+      "facil_type": 99,
+      "lat": 35.61952073918482,
+      "name_en": "Conference Room Jupiter"
+    }
+  }
+}

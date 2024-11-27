@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "example": {
+    "node": "EDITOR_node_1701416901551",
+    "exit": "",
+    "node_height": 3,
+    "name": "",
+    "geometry": {
+      "coordinates": [
+        139.77700319141147,
+        35.619476229820506
+      ],
+      "type": "Point"
+    },
+    "node_coordinates": [
+      139.77701023221016,
+      35.61947241416361
+    ],
+    "name_pron": "",
+    "properties": {
+      "parking": 99,
+      "escalator": 99,
+      "hulop_file": "EDITOR",
+      "ent1_node": "EDITOR_node_1701416901551",
+      "ent1_lon": 139.77701023221016,
+      "ent1_n": "",
+      "name_ja": "ジオコスモス(左)",
+      "nursing": 99,
+      "brail_tile": 99,
+      "lon": 139.77700319141147,
+      "facil_id": "EDITOR_facil_1701416916708",
+      "toilet": 99,
+      "elevator": 99,
+      "barrier": 99,
+      "ent1_lat": 35.61947241416361,
+      "ent1_fl": 3,
+      "facil_type": 99,
+      "lat": 35.619476229820506
+    },
+    "exit_pron": ""
+  }
+}

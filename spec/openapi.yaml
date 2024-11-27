@@ -1,0 +1,358 @@
+openapi: 3.0.2
+info:
+  title: MapService API
+  description: MapService API for CaBot (Hokoukukan 2018)
+  contact:
+    email: daisukes@cmu.edu
+  license:
+    name: MIT
+    url: https://github.com/CMU-cabot/MapService/blob/cabot-hokoukukan_2018/LICENSE
+  version: 1.0.0
+servers:
+  - url: http://localhost:9090/map
+tags:
+  - name: map
+    description: Retrieve map geojson features and query routes
+paths:
+  /routesearch?action=start:
+    get:
+      tags:
+        - map
+      summary: Start routesearch session
+      description: ''
+      operationId: start
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/landmarks'
+        '405':
+          description: Invalid input
+  /routesearch?action=disabled_nodes:
+    get:
+      tags:
+        - map
+      summary: Get disabled nodes
+      description: This returns all nodes those are disabled by ruleds
+      operationId: disabled_nodes
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/node-features'
+        '405':
+          description: Invalid input
+  /routesearch?action=facilities:
+    get:
+      tags:
+        - map
+      summary: Get all facility
+      description: This returns all facility features
+      operationId: facilities
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/facilities'
+        '405':
+          description: Invalid input
+  /routesearch?action=features:
+    get:
+      tags:
+        - map
+      summary: Get all features except Node for the session
+      description: This return other features like Link, Facility, and etc.
+      operationId: features
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/features'
+        '405':
+          description: Invalid input
+        '408':
+          description: Need to call start
+  /routesearch?action=landmarks:
+    get:
+      tags:
+        - map
+      summary: Start routesearch session
+      description: ''
+      operationId: landmarks
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/lang'
+        - $ref: '#/components/parameters/cache'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/landmarks'
+        '405':
+          description: Invalid input
+  /routesearch?action=last_updated:
+    get:
+      tags:
+        - map
+      summary: Get last updated time of route data
+      description: This returns the last updated time of the route data
+      operationId: last_updated
+      parameters:
+        - $ref: '#/components/parameters/user'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/last_updated'
+        '405':
+          description: Invalid input
+  /routesearch?action=nodemap:
+    get:
+      tags:
+        - map
+      summary: Get nodemap for the session
+      description: This returns all Node features in the session as a map of Node ID and Node
+      operationId: nodemap
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/nodemap'
+        '405':
+          description: Invalid input  
+  /routesearch?action=search:
+    get:
+      tags:
+        - map
+      summary: Get a route
+      description: This return a sequence of Node, Link as a route
+      operationId: search
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lang'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/preferences'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/route'
+        '405':
+          description: Invalid input
+  /routesearch?action=toilets:
+    get:
+      tags:
+        - map
+      summary: Get all toilet facility
+      description: This returns all facility features associated with toilet
+      operationId: toilets
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/lang'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/facilities'
+        '405':
+          description: Invalid input
+components:
+  schemas:
+    features:
+      type: array
+      items:
+        $ref: /spec/feature.json
+    facil-features:
+      type: array
+      items:
+        $ref: /spec/facil-feature.json
+    node-features:
+      type: array
+      items:
+        $ref: /spec/node-feature.json
+    facilities:
+      $ref: /spec/facilities.json
+    landmarks:
+      type: object
+      properties:
+        landmarks:
+          type: array
+          items:
+            $ref: /spec/landmark.json
+    last_updated:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: last_updated
+        timestamp:
+          type: object
+          properties:
+            $numberLong:
+              type: string
+              example: 1730915081234
+    nodemap:
+      $ref: /spec/nodemap.json
+    route:
+      $ref: /spec/route.json
+  parameters:
+    cache:
+      name: cache
+      in: query
+      description: whether cache is used or not
+      required: false
+      schema:
+        type: string
+        example: false
+    dist:
+      name: dist
+      in: query
+      description: max distance from the center in meters
+      required: true
+      schema:
+        type: number
+        format: double
+        example: 500
+    from:
+      name: from
+      description: start point for route search, either node id or lat/lng coordinates (latlng:`lat`:`lng`:`floor` | `node_id`)
+      in: query
+      required: true
+      schema:
+        type: string
+        example: latlng:35.61950:139.77700:1
+    lang:
+      name: lang
+      in: query
+      description: language (default=en)
+      required: false
+      schema:
+        type: string
+        pattern: ^[a-zA-Z]{2}$
+        example: en
+    lat:
+      name: lat
+      in: query
+      description: center latitude
+      required: true
+      schema:
+        type: number
+        format: double
+        example: '35.61950'
+    lng:
+      name: lng
+      in: query
+      description: center longitude
+      required: true
+      schema:
+        type: number
+        format: double
+        example: '139.77700'
+    preferences:
+      name: preferences
+      in: query
+      description: preferences for the route search, such as using elevator/escalator
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              preset:
+                type: string
+                example: '9'
+              min_width:
+                type: string
+                example: '8'
+              dist:
+                type: number
+                example: 2000
+              stairs:
+                type: string
+                example: '9'
+              tactile_paving:
+                type: string
+                example: '1'
+              mvw:
+                type: string
+                example: '1'
+              slope:
+                type: string
+                example: '9'
+              deff_LV:
+                type: string
+                example: '9'
+              elv:
+                type: string
+                example: '9'
+              road_condition:
+                type: string
+                example: '9'
+              esc:
+                type: string
+                example: '1'
+    to:
+      name: to
+      description: end point for route search, either node id or lat/lng coordinates (latlng:`lat`:`lng`:`floor` | `node_id`)
+      in: query
+      required: true
+      schema:
+        type: string
+        example: EDITOR_node_1674009577605
+    user:
+      name: user
+      in: query
+      description: any identifiable user id (session is valid for each user id)
+      required: true
+      schema:
+        type: string
+        example: user_id_string

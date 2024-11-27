@@ -1,0 +1,88 @@
+{
+  "type": "object",
+  "properties": {
+    "areaList": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "siteMap": {
+      "type": "object",
+      "properties": {
+        "^EDITOR_facil_[0-9]+$": {
+          "$ref": "https://geojson.org/schema/Feature.json"
+        }
+      }
+    }
+  },
+  "example": {
+    "areaList": [],
+    "siteMap": {
+      "EDITOR_facil_1668739756764": {
+        "geometry": {
+          "coordinates": [
+            139.77712893744422,
+            35.61952073918482
+          ],
+          "type": "Point"
+        },
+        "_id": "EDITOR_facil_1668739756764",
+        "type": "Feature",
+        "properties": {
+          "parking": 99,
+          "escalator": 99,
+          "hulop_file": "EDITOR",
+          "ent1_node": "EDITOR_node_1668739739277",
+          "ent1_lon": 139.77713329603387,
+          "ent1_n": "",
+          "name_ja": "コンファレンスルーム　木星",
+          "nursing": 99,
+          "brail_tile": 99,
+          "lon": 139.77712893744422,
+          "facil_id": "EDITOR_facil_1668739756764",
+          "toilet": 99,
+          "elevator": 99,
+          "barrier": 99,
+          "ent1_lat": 35.61951528825006,
+          "ent1_fl": 7,
+          "facil_type": 99,
+          "lat": 35.61952073918482,
+          "name_en": "Conference Room Jupiter"
+        }
+      },
+      "EDITOR_facil_1691570983115": {
+        "geometry": {
+          "coordinates": [
+            139.77632224559784,
+            35.61925573906272
+          ],
+          "type": "Point"
+        },
+        "_id": "EDITOR_facil_1691570983115",
+        "type": "Feature",
+        "properties": {
+          "parking": 99,
+          "escalator": 99,
+          "hulop_file": "EDITOR",
+          "ent1_node": "EDITOR_node_1691564351878",
+          "ent1_lon": 139.77631989866495,
+          "ent1_n": "",
+          "name_ja": "女子トイレ",
+          "nursing": 99,
+          "brail_tile": 99,
+          "lon": 139.77632224559784,
+          "facil_id": "EDITOR_facil_1691570983115",
+          "toilet": 99,
+          "elevator": 99,
+          "barrier": 99,
+          "ent1_lat": 35.61925383122906,
+          "ent1_fl": 1,
+          "facil_type": 99,
+          "lat": 35.61925573906272,
+          "name_en": "Women's restroom"
+        }
+      }
+    }
+  }
+}
