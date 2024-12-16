@@ -111,6 +111,15 @@ public class RouteSearchServlet extends HttpServlet {
 			double lat = sLat == null ? -1 : Double.parseDouble(sLat);
 			double lng = sLng == null ? -1 : Double.parseDouble(sLng);
 			double dist = sDist == null ? -1 : Double.parseDouble(sDist);
+			if ("raw_landmarks".equals(action) && lang != null) {
+				JSONObject obj = new JSONObject().put("last_updated", RouteData.getLastUpdated());
+				RouteData rd = new RouteData(new double[] { lng, lat }, dist);
+				for (String l : lang.split(",")) {
+					obj.put(l.trim(), rd.getLandmarks(l));
+				}
+				sendJSON(obj, request, response);
+				return;
+			}
 			if ("landmarks".equals(action) && lang != null) {
 				JSONObject params = new JSONObject();
 				params.put("lat", lat);
