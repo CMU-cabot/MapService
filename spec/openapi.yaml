@@ -105,9 +105,32 @@ paths:
     get:
       tags:
         - map
-      summary: Start routesearch session
+      summary: Get all landmarks for the user
       description: ''
       operationId: landmarks
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/lang'
+        - $ref: '#/components/parameters/cache'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/landmarks'
+        '405':
+          description: Invalid input
+  /routesearch?action=raw_landmarks:
+    get:
+      tags:
+        - map
+      summary: Get nearby landmarks
+      description: ''
+      operationId: raw_landmarks
       parameters:
         - $ref: '#/components/parameters/user'
         - $ref: '#/components/parameters/lat'
