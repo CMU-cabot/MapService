@@ -642,7 +642,8 @@ $hulop.editor = function () {
 					let dest_write = var_name ? dest.variations[var_name] = dest.variations[var_name] || {} : dest;
 					dest_write.messages = messages;
 					exportData();
-				});
+					MessageChecker.close();
+					});
 			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
 			Touri18n.translate("#dest_properties");
@@ -941,7 +942,7 @@ $hulop.editor = function () {
 			'on': {
 				'click': () => {
 					MessageChecker.open(tour.destinations, lastData.destinations, tour_dest => {
-						MessageChecker.close();
+						// MessageChecker.close();
 						showProperty(source.getFeatureById(tour_dest.ref), true, tour_dest.var);
 						$('#open-message-editor').click();
 					});

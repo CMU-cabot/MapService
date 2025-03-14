@@ -145,7 +145,7 @@ table table td[contenteditable=true] {
 
 #message-edit, .editor-popup {
 	display: none;
-	z-index: 1;
+	z-index: 2;
 	position: fixed;
 	background-color: #0004;
 	left: 0;
@@ -254,8 +254,8 @@ table[var_name=""] button {
 			</div>
 		</div>
 	</div>
-	<div id="message-check" class="editor-popup">
-		<div class="editor-form">
+	<div id="message-check" class="editor-popup" style="z-index:1">
+		<div class="editor-form" style="left:50px">
 			<div id="check-messages"></div>
 			<div class="editor-buttons">
 				<button id="cancel_check_messages" i18n="cancel">Cancel</button>
