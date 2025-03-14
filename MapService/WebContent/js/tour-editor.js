@@ -643,7 +643,7 @@ $hulop.editor = function () {
 					dest_write.messages = messages;
 					exportData();
 					MessageChecker.close();
-					});
+				});
 			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
 			Touri18n.translate("#dest_properties");
