@@ -624,7 +624,7 @@ $hulop.editor = function () {
 			add('#waitingDestination', { label: 'waitingDestination' });
 			add('waitingDestinationAngle', { editable: true, type: 'number' });
 			add('subtour', { editable: true });
-			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': Touri18n._('messages___') }).css('width', '100%').on('click', event => {
+			$('<tr>').append($('<td>').attr('colspan', 2).append($('<button>', { 'text': Touri18n._('messages___'), 'id': 'open-message-editor' }).css('width', '100%').on('click', event => {
 				let template = [];
 				template.push(['type', 'text', 'message_types']);
 				template.push(['tags']);
@@ -642,6 +642,7 @@ $hulop.editor = function () {
 					let dest_write = var_name ? dest.variations[var_name] = dest.variations[var_name] || {} : dest;
 					dest_write.messages = messages;
 					exportData();
+					MessageChecker.close();
 				});
 			}))).appendTo(tbody);
 			// Object.keys(dest).forEach(add);
@@ -932,6 +933,22 @@ $hulop.editor = function () {
 		add('enableSubtourOnHandle', { editable: true, type: 'boolean' });
 		add('showContentWhenArrive', { editable: true, type: 'boolean' });
 		add('destinations', { editable: false, is_array: true, default: [] });
+		$('#tour_properties').append($('<button>', {
+			'text': Touri18n._('confirm_messages___'),
+			'css': {
+				'position': 'sticky',
+				'bottom': '0px'
+			},
+			'on': {
+				'click': () => {
+					MessageChecker.open(tour.destinations, lastData.destinations, tour_dest => {
+						// MessageChecker.close();
+						showProperty(source.getFeatureById(tour_dest.ref), true, tour_dest.var);
+						$('#open-message-editor').click();
+					});
+				}
+			}
+		}));
 		let var_candidates = candidates;
 		if (tour.default_var && !candidates.includes(tour.default_var)) {
 			var_candidates = candidates.toSpliced(1, 0, tour.default_var);

@@ -36,6 +36,7 @@
 <script type="text/javascript" src="js/tour-i18n.js"></script>
 <script type="text/javascript" src="js/tour-editor.js"></script>
 <script type="text/javascript" src="js/tour-message-editor.js"></script>
+<script type="text/javascript" src="js/tour-message-checker.js"></script>
 <script type="text/javascript" src="js/login-monitor.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
@@ -142,9 +143,9 @@ table table td[contenteditable=true] {
     cursor: default !important;
 }
 
-#message-edit {
+#message-edit, .editor-popup {
 	display: none;
-	z-index: 1;
+	z-index: 2;
 	position: fixed;
 	background-color: #0004;
 	left: 0;
@@ -153,7 +154,7 @@ table table td[contenteditable=true] {
 	bottom: 0;
 }
 
-#message-form {
+#message-form, .editor-form {
 	position: fixed;
 	overflow: auto;
 	background-color: #FFF;
@@ -167,7 +168,7 @@ table table td[contenteditable=true] {
 	box-shadow: 5px 5px 5px;
 }
 
-#message-form #buttons {
+#message-form #buttons, .editor-buttons {
 	position: sticky;
 	bottom: 0px;
 }
@@ -250,6 +251,14 @@ table[var_name=""] button {
 			<div id="buttons">
 				<button id="save_messages" i18n="ok">OK</button>
 				<button id="cancel_messages" i18n="cancel">Cancel</button>
+			</div>
+		</div>
+	</div>
+	<div id="message-check" class="editor-popup" style="z-index:1">
+		<div class="editor-form" style="left:50px">
+			<div id="check-messages"></div>
+			<div class="editor-buttons">
+				<button id="cancel_check_messages" i18n="cancel">Cancel</button>
 			</div>
 		</div>
 	</div>
