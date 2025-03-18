@@ -1250,7 +1250,7 @@ $hulop.editor = function () {
 		// if (force) {
 		if (force || $('#upload').is(':hidden')) {
 			$('#upload').hide();
-			uploadJSONData(JSON.stringify(data), JSONDATA_PATH)
+			uploadJSONData(JSON.stringify(data, null, '\t'), JSONDATA_PATH)
 			console.log(data);
 		} else {
 			$('#upload').show();
