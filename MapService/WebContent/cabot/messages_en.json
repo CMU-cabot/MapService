@@ -29,56 +29,56 @@
             "key_name": "key",
             "keys": {
                 "tour_id": {
-                    "text": "ツアーID",
-                    "help": "tour_idの説明"
+                    "text": "Tour ID",
+                    "help": "Description of tour_id"
                 },
                 "title-ja": {
-                    "text": "タイトル 日本語",
-                    "help": "title-jaの説明"
+                    "text": "Title (Japanese)",
+                    "help": "Description of title-ja"
                 },
                 "title-ja-pron": {
-                    "text": "タイトル 日本語読み",
-                    "help": "title-ja-pronの説明"
+                    "text": "Title (Japanese pronunciation)",
+                    "help": "Description of title-ja-pron"
                 },
                 "title-en": {
-                    "text": "タイトル 英語",
-                    "help": "title-enの説明"
+                    "text": "Title (English)",
+                    "help": "Description of title-en"
                 },
                 "title-zh-CN": {
-                    "text": "タイトル 中国語",
-                    "help": "title-zh-CNの説明"
+                    "text": "Title (Simplified Chinese)",
+                    "help": "Description of title-zh-CN"
                 },
                 "debug": {
-                    "text": "デバッグモード",
-                    "help": "debugの説明"
+                    "text": "Debug Mode",
+                    "help": "Description of debug"
                 },
                 "introduction-ja": {
-                    "text": "紹介文 日本語",
-                    "help": "introduction-jaの説明"
+                    "text": "Description (Japanese)",
+                    "help": "Description of introduction-ja"
                 },
                 "introduction-ja-pron": {
-                    "text": "紹介文 日本語読み",
-                    "help": "introduction-ja-pronの説明"
+                    "text": "Description (Japanese pronunciation)",
+                    "help": "Description of introduction-ja-pron"
                 },
                 "introduction-en": {
-                    "text": "紹介文 英語",
-                    "help": "introduction-enの説明"
+                    "text": "Description (English)",
+                    "help": "Description of introduction-en"
                 },
                 "introduction-zh-CN": {
-                    "text": "紹介文 中国語",
-                    "help": "introduction-zh-CNの説明"
+                    "text": "Description (Simplified Chinese)",
+                    "help": "Description of introduction-zh-CN"
                 },
                 "enableSubtourOnHandle": {
-                    "text": "ハンドルでサブツアーを利用する",
-                    "help": "enableSubtourOnHandleの説明"
+                    "text": "Enable Subtour on Hundle",
+                    "help": "Description of enableSubtourOnHandle"
                 },
                 "showContentWhenArrive": {
-                    "text": "到着時に内容を表示する",
-                    "help": "showContentWhenArriveの説明"
+                    "text": "Show Content when Arrival",
+                    "help": "Description of showContentWhenArrive"
                 },
                 "destinations": {
-                    "text": "目的地",
-                    "help": "destinationsの説明"
+                    "text": "Destinations",
+                    "help": "Description of destinations"
                 }
             }
         },
@@ -87,92 +87,92 @@
             "key_name": "key",
             "keys": {
                 "value": {
-                    "text": "ノードID",
-                    "help": "valueの説明"
+                    "text": "Node ID",
+                    "help": "Description of value"
                 },
                 "floor": {
-                    "text": "フロア",
-                    "help": "floorの説明"
+                    "text": "Floor",
+                    "help": "Description of floor"
                 },
                 "title-ja": {
-                    "text": "タイトル 日本語",
-                    "help": "title-jaの説明"
+                    "text": "Title (Japanese)",
+                    "help": "Description of title-ja"
                 },
                 "title-ja-pron": {
-                    "text": "タイトル 日本語読み",
-                    "help": "title-ja-pronの説明"
+                    "text": "Title (Japanese pronunciation)",
+                    "help": "Description of title-ja-pron"
                 },
                 "title-en": {
-                    "text": "タイトル 英語",
-                    "help": "title-enの説明"
+                    "text": "Title (English)",
+                    "help": "Description of title-en"
                 },
                 "title-zh-CN": {
-                    "text": "タイトル 中国語",
-                    "help": "title-enの説明"
+                    "text": "Title (Simplified Chinese)",
+                    "help": "Description of title-en"
                 },
                 "short_description-ja": {
-                    "text": "短い説明 日本語",
-                    "help": "short_description-jaの説明"
+                    "text": "Short Description (Japanese)",
+                    "help": "Description of short_description-ja"
                 },
                 "short_description-en": {
-                    "text": "短い説明 英語",
-                    "help": "short_description-enの説明"
+                    "text": "Short Description (English)",
+                    "help": "Description of short_description-en"
                 },
                 "short_description-zh-CN": {
-                    "text": "短い説明 中国語",
-                    "help": "short_description-zh-CNの説明"
+                    "text": "Short Description (Simplified Chinese)",
+                    "help": "Description of short_description-zh-CN"
                 },
                 "long_description-ja": {
-                    "text": "長い説明 日本語",
-                    "help": "long_description-jaの説明"
+                    "text": "Long Description (Japanese)",
+                    "help": "Description of long_description-ja"
                 },
                 "long_description-en": {
-                    "text": "長い説明 日本語",
-                    "help": "long_description-enの説明"
+                    "text": "Long Description (Japanese)",
+                    "help": "Description of long_description-en"
                 },
                 "long_description-zh-CN": {
-                    "text": "長い説明 中国語",
-                    "help": "long_description-enの説明"
+                    "text": "Long Description (Simplified Chinese)",
+                    "help": "Description of long_description-en"
                 },
                 "major_category": {
-                    "text": "メジャーカテゴリー",
-                    "help": "major_categoryの説明"
+                    "text": "Major Category",
+                    "help": "Description of major_category"
                 },
                 "sub_category": {
-                    "text": "サブカテゴリー",
-                    "help": "sub_categoryの説明"
+                    "text": "Sub Category",
+                    "help": "Description of sub_category"
                 },
                 "minor_category": {
-                    "text": "マイナーカテゴリー",
-                    "help": "minor_categoryの説明"
+                    "text": "Minor Category",
+                    "help": "Description of minor_category"
                 },
                 "tags": {
-                    "text": "タグ",
-                    "help": "tagsの説明"
+                    "text": "Tag",
+                    "help": "Description of tags"
                 },
                 "building": {
-                    "text": "建物",
-                    "help": "buildingの説明"
+                    "text": "Building Name",
+                    "help": "Description of building"
                 },
                 "arrivalAngle": {
-                    "text": "到着角度",
-                    "help": "arrivalAngleの説明"
+                    "text": "Arrival Angle",
+                    "help": "Description of arrivalAngle"
                 },
                 "content": {
-                    "text": "内容",
-                    "help": "contentの説明"
+                    "text": "Content",
+                    "help": "Description of content"
                 },
                 "#waitingDestination": {
-                    "text": "待機目的地",
-                    "help": "waitingDestinationの説明"
+                    "text": "Waiting Destination",
+                    "help": "Description of waitingDestination"
                 },
                 "waitingDestinationAngle": {
-                    "text": "待機目的地角度",
-                    "help": "waitingDestinationAngleの説明"
+                    "text": "Arrival Angle of the Waiting Destination",
+                    "help": "Description of waitingDestinationAngle"
                 },
                 "subtour": {
-                    "text": "サブツアー",
-                    "help": "subtourの説明"
+                    "text": "Sub Tour",
+                    "help": "Description of subtour"
                 }
             }
         },
@@ -181,48 +181,48 @@
             "key_name": "name",
             "keys": {
                 "type": {
-                    "text": "タイプ",
-                    "help": "typeの説明"
+                    "text": "Tyep",
+                    "help": "Description of type"
                 },
                 "tags": {
-                    "text": "タグ",
-                    "help": "tagsの説明"
+                    "text": "Tag",
+                    "help": "Description of tags"
                 },
                 "age_group": {
-                    "text": "年齢グループ",
-                    "help": "age_groupの説明"
+                    "text": "Age Group",
+                    "help": "Description of age_group"
                 },
                 "timeFrom": {
-                    "text": "開始時間",
-                    "help": "timeFromの説明"
+                    "text": "Start Time",
+                    "help": "Description of timeFrom"
                 },
                 "timeUntil": {
-                    "text": "終了時間",
-                    "help": "timeUntilの説明"
+                    "text": "End Time",
+                    "help": "Description of timeUntil"
                 },
                 "dateFrom": {
-                    "text": "開始日付",
-                    "help": "dateFromの説明"
+                    "text": "Start Date",
+                    "help": "Description of dateFrom"
                 },
                 "dateUntil": {
-                    "text": "終了日付",
-                    "help": "dateUntilの説明"
+                    "text": "End Date",
+                    "help": "Description of dateUntil"
                 },
                 "text:ja": {
-                    "text": "テキスト 日本語",
-                    "help": "text:jaの説明"
+                    "text": "Text (Japanese)",
+                    "help": "Description of text:ja"
                 },
                 "text:ja-pron": {
-                    "text": "テキスト 日本語読み",
-                    "help": "text:ja-pronの説明"
+                    "text": "Text (Japanese pronunciation)",
+                    "help": "Description of text:ja-pron"
                 },
                 "text:en": {
-                    "text": "テキスト 英語",
-                    "help": "text:enの説明"
+                    "text": "Text (English)",
+                    "help": "Description of text:en"
                 },
                 "text:zh-CN": {
-                    "text": "テキスト 中国語",
-                    "help": "text:zh-CNの説明"
+                    "text": "Text (Simplified Chinese)",
+                    "help": "Description of text:zh-CN"
                 }
             }
         }
