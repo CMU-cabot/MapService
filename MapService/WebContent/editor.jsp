@@ -103,6 +103,8 @@
 				<button onclick="$hulop.editor.ext.changeElevator($hulop.editor.editingFeature,1)">change elevator equipments</button> to replace all elevator properties.
 				<hr>
 				Click <button onclick="$hulop.rect.addInteraction()">select features</button> then draw rectangle to delete multiple features.
+				<hr>
+				<input type="checkbox" id="show_robot_location" onchange="$hulop.editor.showRobotLocation()"> <label for="show_robot_location">Show Robot Location</label>
 			</fieldset>
 			<fieldset class="modified" style="display:none">
 				<legend>(i18n_SAVE_MAP)</legend>

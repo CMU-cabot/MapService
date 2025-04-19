@@ -2119,6 +2119,46 @@ $hulop.editor = function() {
 		}
 	}
 
+	var robot_location = null;
+	function showRobotLocation() {
+		var checked = $('#show_robot_location')[0].checked;
+		console.log(`showRobotLocation ${checked}`);
+		if (checked) {
+			$.ajax({
+				'type' : 'get',
+				'url' : 'api/log',
+				'data' : {
+					'action' : 'last',
+					'client' : 'Cabot'
+				},
+				'success' : function(data) {
+					var location = data["Cabot"];
+					if (!location) {
+						console.log("No Robot Location")
+						return;
+					}
+					var latLng = [location.longitude, location.latitude]
+					$hulop.indoor.showFloor(location.floor);
+					if (robot_location) {
+						try {
+							removeNode(robot_location);
+						} catch (e) {
+							robot_location = null;
+						}
+					}
+					robot_location = createNode(latLng);
+					window.robot_location = robot_location;
+					setTimeout(function() {
+						showRobotLocation();
+					}, 1000);
+				},
+				'error' : function(XMLHttpRequest, textStatus, errorThrown) {
+					console.error(textStatus + ' (' + XMLHttpRequest.status + '): ' + errorThrown);
+				}
+			});
+		}
+	}
+
 	return {
 		'version' : '2018',
 		'findExit' : findExit,
@@ -2130,6 +2170,7 @@ $hulop.editor = function() {
 		'toFeatureCollection': toFeatureCollection,
 		'downloadFile' : downloadFile,
 		'removeSelection': removeSelection,
+		'showRobotLocation' : showRobotLocation,
 		'init' : init
 	};
 
