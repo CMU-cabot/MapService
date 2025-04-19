@@ -142,6 +142,8 @@ $hulop.editor = function() {
 			break;
 		}
 	}
+	
+	var robot_source = null;
 
 	function init(cb) {
 		callback = cb;
@@ -154,6 +156,26 @@ $hulop.editor = function() {
 			'cssText' : 'right: .5em !important; left: initial !important;'
 		});
 		map.addControl(new ol.control.Zoom());
+
+		robot_source = new ol.source.Vector();
+		robot_vector = new ol.layer.Vector({
+			'source' : robot_source,
+			'style' : function(feature) {
+				var heading = feature.get('heading');
+				var angle = feature.get('angle');
+				var size = feature.get('size');
+				var color = feature.get('color');
+				var opacity = feature.get('opacity');
+				return new ol.style.Style({
+					'image' : getSectorIcon(heading-180, 180, size, color, false),
+					'zIndex' : 1,
+					'opacity' : opacity
+				});
+			},
+			'visible' : true,
+			'zIndex' : 99
+		});
+		map.addLayer(robot_vector);
 
 		// Browser event listeners
 		$(window).on({
@@ -468,6 +490,7 @@ $hulop.editor = function() {
 			});
 		});
 		initData();
+		setTimeout(showRobotLocation, 1000);
 	}
 
 	var vertex;
@@ -493,6 +516,10 @@ $hulop.editor = function() {
 	function getEventFeature(event) {
 		var candidate;
 		return map.forEachFeatureAtPixel(event.pixel, function(feature) {
+			// ignore robot location
+			if (feature == robot_location) {
+				return undefined;
+			}
 			candidate = candidate || null;
 			if (feature.getId()) {
 				if (!feature.getGeometry().getArea) {
@@ -1184,7 +1211,7 @@ $hulop.editor = function() {
 		}
 	}
 
-	function getSectorIcon(heading, angle, size=20, color=["#00cc00", "#006600", "#CC00CC", "#660066"]) {
+	function getSectorIcon(heading, angle, size=20, color=["#00cc00", "#006600", "#CC00CC", "#660066"], adjust=true) {
 		isNaN(angle) && (angle = 180);
 		var fill = color[0], stroke = color[1];
 		if (heading < -180 || heading > 180 || angle < 0 || angle > 180) {
@@ -1192,7 +1219,10 @@ $hulop.editor = function() {
 			stroke = color[3];
 		}
 		var path = `M ${size} ${size*1.08} L ${size} ${size} `;
-		var ssize = Math.min(size, size * 0.6 * Math.sqrt(180 / angle));
+		var ssize = size*0.98;
+		if (adjust) {
+			var ssize = Math.min(size, size * 0.6 * Math.sqrt(180 / angle));
+		}
 		for (var i = -angle; i < angle + 10; i += 10) {
 			i = Math.min(i, angle);
 			var r = i / 180 * Math.PI;
@@ -1202,12 +1232,13 @@ $hulop.editor = function() {
 		}
 		path += `L ${size} ${size} z`;
 
-		var src = 'data:image/svg+xml,' + escape('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="40px" height="40px">'
+		var src = 'data:image/svg+xml,' + escape('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" '
+			    + `width="${size*2}px" height="${size*2}px">`
 				+ '<path stroke="' + stroke + '" stroke-width="2" stroke-opacity="0.75" fill="' + fill + '" fill-opacity="0.75" d="' + path + '"/></svg>');
 
 		style = new ol.style.Icon({
 				'src' : src,
-				'rotation' : heading * Math.PI / 180.0,
+				'rotation' : -heading * Math.PI / 180.0,
 				'rotateWithView' : true,
 				'anchor' : [ 0.5, 0.5 ],
 				'anchorXUnits' : 'fraction',
@@ -2122,7 +2153,6 @@ $hulop.editor = function() {
 	var robot_location = null;
 	function showRobotLocation() {
 		var checked = $('#show_robot_location')[0].checked;
-		console.log(`showRobotLocation ${checked}`);
 		if (checked) {
 			$.ajax({
 				'type' : 'get',
@@ -2137,16 +2167,33 @@ $hulop.editor = function() {
 						console.log("No Robot Location")
 						return;
 					}
-					var latLng = [location.longitude, location.latitude]
-					$hulop.indoor.showFloor(location.floor);
 					if (robot_location) {
-						try {
-							removeNode(robot_location);
-						} catch (e) {
-							robot_location = null;
-						}
-					}
-					robot_location = createNode(latLng);
+						robot_source.removeFeature(robot_location);
+						robot_location = null;
+					}					
+					var latLng = [location.longitude, location.latitude]
+					var ref = ol.proj.transform(latLng, 'EPSG:4326', 'EPSG:3857');
+					var r = ol.proj.getPointResolution("EPSG:3857", 1, ref);
+					var mr = $hulop.map.getMap().getView().getResolution();
+					var size = Math.max(14, 0.45 / mr / r);
+	
+					$hulop.indoor.showFloor(location.floor);
+					var p = {
+						'node_id': newID('node'),
+						'floor': location.floor,
+						'in_out': location.floor == 0 ? 1 : 3,
+						'heading': location.rotate / Math.PI * 180,
+						'angle': 30,
+						'size': size,
+						'color': ["#cccccc", "#666666", "#cccccc", "#666666"],
+						'opacity': 0.5,
+					};
+					geojson = newGeoJSON(p, latLng);
+					robot_location = format.readFeature(geojson, {
+						'featureProjection' : 'EPSG:3857'
+					});
+					robot_source.addFeature(robot_location);
+					robot_vector.changed()
 					window.robot_location = robot_location;
 					setTimeout(function() {
 						showRobotLocation();
@@ -2156,6 +2203,11 @@ $hulop.editor = function() {
 					console.error(textStatus + ' (' + XMLHttpRequest.status + '): ' + errorThrown);
 				}
 			});
+		} else {
+			if (robot_location) {
+				robot_source.removeFeature(robot_location);
+				robot_location = null;
+			}	
 		}
 	}
 
