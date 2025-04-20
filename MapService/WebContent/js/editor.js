@@ -161,16 +161,29 @@ $hulop.editor = function() {
 		robot_vector = new ol.layer.Vector({
 			'source' : robot_source,
 			'style' : function(feature) {
-				var heading = feature.get('heading');
-				var angle = feature.get('angle');
-				var size = feature.get('size');
-				var color = feature.get('color');
-				var opacity = feature.get('opacity');
+				var type = feature.get('type');
+				if (type == 'latest') {
+					var heading = feature.get('heading');
+					var size = feature.get('size');
+					var color = feature.get('color');
+					var opacity = feature.get('opacity');
+					return new ol.style.Style({
+						'image' : getSectorIcon(heading-180, 180, size, color, false),
+						'zIndex' : 1,
+						'opacity' : opacity
+					});
+				}
+				console.log(type);
 				return new ol.style.Style({
-					'image' : getSectorIcon(heading-180, 180, size, color, false),
-					'zIndex' : 1,
-					'opacity' : opacity
+					'image' : new ol.style.Circle({
+						'radius' : 15,
+						'fill' : new ol.style.Fill({
+							'color' : 'rgba(0, 255, 0, 0.5)'
+						})
+					}),
+					'zIndex' : 2,
 				});
+
 			},
 			'visible' : true,
 			'zIndex' : 99
@@ -517,7 +530,8 @@ $hulop.editor = function() {
 		var candidate;
 		return map.forEachFeatureAtPixel(event.pixel, function(feature) {
 			// ignore robot location
-			if (feature == robot_location) {
+			layer = feature.get('layer');
+			if (layer == "robot") {
 				return undefined;
 			}
 			candidate = candidate || null;
@@ -2151,6 +2165,7 @@ $hulop.editor = function() {
 	}
 
 	var robot_location = null;
+	var robot_locations = [];
 	function showRobotLocation() {
 		var checked = $('#show_robot_location')[0].checked;
 		if (checked) {
@@ -2178,17 +2193,18 @@ $hulop.editor = function() {
 					var size = Math.max(14, 0.45 / mr / r);
 	
 					$hulop.indoor.showFloor(location.floor);
+					$hulop.map.getMap().getView().setCenter(ref);
 					var p = {
-						'node_id': newID('node'),
+						'type': 'latest',
+						'layer': 'robot',
 						'floor': location.floor,
 						'in_out': location.floor == 0 ? 1 : 3,
 						'heading': location.rotate / Math.PI * 180,
-						'angle': 30,
 						'size': size,
 						'color': ["#cccccc", "#666666", "#cccccc", "#666666"],
 						'opacity': 0.5,
 					};
-					geojson = newGeoJSON(p, latLng);
+					var geojson = newGeoJSON(p, latLng);
 					robot_location = format.readFeature(geojson, {
 						'featureProjection' : 'EPSG:3857'
 					});
@@ -2211,6 +2227,47 @@ $hulop.editor = function() {
 		}
 	}
 
+	function loadRobotLocations() {
+		var input = $('#robot_location_file')[0];
+		if (input.files.length == 0) {
+			console.log("No file selected");
+			return;
+		}
+		var file = input.files[0];
+		var reader = new FileReader();
+		reader.onload = function(event) {
+			var text = event.target.result;
+			var list = JSON.parse(text);
+			var features = list.reduce(function(acc, location) {
+				if (location.event != "location") {
+					return acc;
+				}
+				var latLng = [location.longitude, location.latitude];
+				var p = {
+					'type': 'log',
+					'layer': 'robot',
+					'floor': location.floor,
+					'in_out': location.floor == 0 ? 1 : 3,
+					'heading': location.rotate / Math.PI * 180,
+				};
+				var geojson = newGeoJSON(p, latLng);
+				acc.push(format.readFeature(geojson, {
+					'featureProjection' : 'EPSG:3857'
+				}));
+				return acc;
+			}, []);
+			console.log("Loaded " + features.length + " robot locations");
+			robot_source.clear();
+			robot_source.addFeatures(features);
+			robot_locations = features;
+			robot_vector.changed()			
+		};
+		reader.onerror = function(event) {
+			console.error('Error reading file: ' + event.target.error);
+		};
+		reader.readAsText(file);
+	}
+
 	return {
 		'version' : '2018',
 		'findExit' : findExit,
@@ -2223,6 +2280,7 @@ $hulop.editor = function() {
 		'downloadFile' : downloadFile,
 		'removeSelection': removeSelection,
 		'showRobotLocation' : showRobotLocation,
+		'loadRobotLocations' : loadRobotLocations,
 		'init' : init
 	};
 

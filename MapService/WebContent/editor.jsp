@@ -104,7 +104,9 @@
 				<hr>
 				Click <button onclick="$hulop.rect.addInteraction()">select features</button> then draw rectangle to delete multiple features.
 				<hr>
-				<input type="checkbox" id="show_robot_location" onchange="$hulop.editor.showRobotLocation()"> <label for="show_robot_location">Show Robot Location</label>
+				<input type="checkbox" id="show_robot_location" onchange="$hulop.editor.showRobotLocation()"> <label for="show_robot_location">Show Robot Location</label><br>
+				<input type="file" id="robot_location_file">
+				<button id="robot_location_button" onclick="$hulop.editor.loadRobotLocations()">Load Robot Location</button>
 			</fieldset>
 			<fieldset class="modified" style="display:none">
 				<legend>(i18n_SAVE_MAP)</legend>
