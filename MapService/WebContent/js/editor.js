@@ -162,28 +162,16 @@ $hulop.editor = function() {
 			'source' : robot_source,
 			'style' : function(feature) {
 				var type = feature.get('type');
-				if (type == 'latest') {
-					var heading = feature.get('heading');
-					var size = feature.get('size');
-					var color = feature.get('color');
-					var opacity = feature.get('opacity');
-					return new ol.style.Style({
-						'image' : getSectorIcon(heading-180, 180, size, color, false),
-						'zIndex' : 1,
-						'opacity' : opacity
-					});
-				}
-				console.log(type);
-				return new ol.style.Style({
-					'image' : new ol.style.Circle({
-						'radius' : 15,
-						'fill' : new ol.style.Fill({
-							'color' : 'rgba(0, 255, 0, 0.5)'
-						})
-					}),
-					'zIndex' : 2,
-				});
+				var mr = $hulop.map.getMap().getView().getResolution();
+				var size = Math.max(14, 0.45 / mr / robot_location_resolution);
+				var heading = feature.get('heading');
+				var color = ["#66ff66", "#00ff00", "#66ff66", "#00ff00"];
+				var opacity = (type == "latest") ? 0.5 : 0.25;
 
+				return new ol.style.Style({
+					'image' : getSectorIcon(heading-180, 180, size, color, opacity, false),
+					'zIndex' : 1
+				});
 			},
 			'visible' : true,
 			'zIndex' : 99
@@ -1225,7 +1213,7 @@ $hulop.editor = function() {
 		}
 	}
 
-	function getSectorIcon(heading, angle, size=20, color=["#00cc00", "#006600", "#CC00CC", "#660066"], adjust=true) {
+	function getSectorIcon(heading, angle, size=20, color=["#00cc00", "#006600", "#CC00CC", "#660066"], opacity=0.75, adjust=true) {
 		isNaN(angle) && (angle = 180);
 		var fill = color[0], stroke = color[1];
 		if (heading < -180 || heading > 180 || angle < 0 || angle > 180) {
@@ -1248,11 +1236,11 @@ $hulop.editor = function() {
 
 		var src = 'data:image/svg+xml,' + escape('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" '
 			    + `width="${size*2}px" height="${size*2}px">`
-				+ '<path stroke="' + stroke + '" stroke-width="2" stroke-opacity="0.75" fill="' + fill + '" fill-opacity="0.75" d="' + path + '"/></svg>');
+				+ `<path stroke="${stroke}" stroke-width="2" stroke-opacity="${opacity}" fill="${fill}" fill-opacity="${opacity}" d="${path}"/></svg>`);
 
 		style = new ol.style.Icon({
 				'src' : src,
-				'rotation' : -heading * Math.PI / 180.0,
+				'rotation' : heading * Math.PI / 180.0,
 				'rotateWithView' : true,
 				'anchor' : [ 0.5, 0.5 ],
 				'anchorXUnits' : 'fraction',
@@ -2165,7 +2153,7 @@ $hulop.editor = function() {
 	}
 
 	var robot_location = null;
-	var robot_locations = [];
+	var robot_location_resolution = 1;
 	function showRobotLocation() {
 		var checked = $('#show_robot_location')[0].checked;
 		if (checked) {
@@ -2188,10 +2176,7 @@ $hulop.editor = function() {
 					}					
 					var latLng = [location.longitude, location.latitude]
 					var ref = ol.proj.transform(latLng, 'EPSG:4326', 'EPSG:3857');
-					var r = ol.proj.getPointResolution("EPSG:3857", 1, ref);
-					var mr = $hulop.map.getMap().getView().getResolution();
-					var size = Math.max(14, 0.45 / mr / r);
-	
+					robot_location_resolution = ol.proj.getPointResolution("EPSG:3857", 1, ref);
 					$hulop.indoor.showFloor(location.floor);
 					$hulop.map.getMap().getView().setCenter(ref);
 					var p = {
@@ -2199,10 +2184,7 @@ $hulop.editor = function() {
 						'layer': 'robot',
 						'floor': location.floor,
 						'in_out': location.floor == 0 ? 1 : 3,
-						'heading': location.rotate / Math.PI * 180,
-						'size': size,
-						'color': ["#cccccc", "#666666", "#cccccc", "#666666"],
-						'opacity': 0.5,
+						'heading': - location.rotate / Math.PI * 180
 					};
 					var geojson = newGeoJSON(p, latLng);
 					robot_location = format.readFeature(geojson, {
@@ -2248,7 +2230,7 @@ $hulop.editor = function() {
 					'layer': 'robot',
 					'floor': location.floor,
 					'in_out': location.floor == 0 ? 1 : 3,
-					'heading': location.rotate / Math.PI * 180,
+					'heading': - location.rotate / Math.PI * 180
 				};
 				var geojson = newGeoJSON(p, latLng);
 				acc.push(format.readFeature(geojson, {
@@ -2259,7 +2241,6 @@ $hulop.editor = function() {
 			console.log("Loaded " + features.length + " robot locations");
 			robot_source.clear();
 			robot_source.addFeatures(features);
-			robot_locations = features;
 			robot_vector.changed()			
 		};
 		reader.onerror = function(event) {
