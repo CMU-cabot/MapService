@@ -1237,6 +1237,10 @@ $hulop.editor = function () {
 			let rc = a.floor - b.floor;
 			return rc != 0 ? rc : a.value.localeCompare(b.value);
 		});
+		messages.sort((a, b) => {
+			let rc = a.parent.localeCompare(b.parent);
+			return rc != 0 ? rc : a.type.localeCompare(b.type);
+		});
 		data.tours = clean(lastData.tours) || [];
 		for (const tour of data.tours) {
 			for (const dest of tour.destinations || []) {
