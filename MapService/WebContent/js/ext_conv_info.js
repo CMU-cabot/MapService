@@ -246,6 +246,8 @@ $hulop.editor.ext_conv_info = function () {
             $('.info-optional').show();
         }
         $('#conversation-info-editor').show();
+        $('#goto-list').selectedIndex = -1;
+        $('#conversation-info fieldset').get(0).scrollIntoView({ block: 'start' });
     }
 
     return { init, open_editor };
