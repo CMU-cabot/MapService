@@ -38,6 +38,7 @@
 <script type="text/javascript" src="js/editor-hokoukukan2018.js"></script>
 <script type="text/javascript" src="js/login-monitor.js"></script>
 <script type="text/javascript" src="js/editor_ext.js"></script>
+<script type="text/javascript" src="js/ext_conv_info.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
 		console.log("Map init");
@@ -107,6 +108,8 @@
 				<input type="checkbox" id="show_robot_location" onchange="$hulop.editor.showRobotLocation()"> <label for="show_robot_location">Show Robot Location</label><br>
 				<input type="file" id="robot_location_file">
 				<button id="robot_location_button" onclick="$hulop.editor.loadRobotLocations()">Load Robot Location</button>
+				<hr>
+				Use <button onclick="$hulop.editor.ext_conv_info.open_editor()">Conversation info editor</button> to edit conversation information.
 			</fieldset>
 			<fieldset class="modified" style="display:none">
 				<legend>(i18n_SAVE_MAP)</legend>
