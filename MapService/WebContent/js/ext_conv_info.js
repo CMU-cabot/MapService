@@ -135,6 +135,11 @@ $hulop.editor.ext_conv_info = function () {
         area.css('height', `${area.prop('scrollHeight')}px`);
     }
 
+    function resetScroll() {
+        $('#goto-list').get(0).selectedIndex = 0;
+        $('#conversation-info fieldset').get(0).scrollIntoView({ block: 'start' });
+    }
+
     function init() {
         $('<style>').text(init_css).appendTo('head');
         $('body').append(init_html);
@@ -146,6 +151,7 @@ $hulop.editor.ext_conv_info = function () {
             } else {
                 $('.info-optional').hide();
             }
+            resetScroll();
         });
         $('#goto-list').change(event => {
             const index = event.target.selectedIndex;
@@ -250,8 +256,7 @@ $hulop.editor.ext_conv_info = function () {
             $('.info-optional').show();
         }
         $('#conversation-info-editor').show();
-        $('#goto-list').selectedIndex = -1;
-        $('#conversation-info fieldset').get(0).scrollIntoView({ block: 'start' });
+        resetScroll();
     }
 
     return { init, open_editor };
