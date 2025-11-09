@@ -140,6 +140,16 @@ $hulop.editor.ext_conv_info = function () {
         $('#conversation-info fieldset').get(0).scrollIntoView({ block: 'start' });
     }
 
+    function getFloorName(fl) {
+        if (fl == 0) {
+            return 'OUT';
+        } else if (fl < 0) {
+            return `B${-fl}F`;
+        } else {
+            return `${fl}F`;
+        }
+    }
+
     function init() {
         $('<style>').text(init_css).appendTo('head');
         $('body').append(init_html);
@@ -192,7 +202,7 @@ $hulop.editor.ext_conv_info = function () {
         $('#goto-list').empty();
         for (let dest of getDestinations()) {
             const parent = $('<fieldset>').appendTo($('#conversation-info'));
-            const label_text = `${dest.get('ent1_fl')}F ${dest.get('name_ja')}`;
+            const label_text = `${getFloorName(dest.get('ent1_fl'))} ${dest.get('name_ja')}`;
             $('<legend>', { 'text': label_text }).appendTo(parent);
             $('#goto-list').append($('<option>', {
                 'text': label_text,
