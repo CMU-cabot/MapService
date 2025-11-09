@@ -94,7 +94,7 @@ $hulop.editor.ext_conv_info = function () {
         <div id="conversation-info-editor" class="editor-popup">
             <div class="editor-form">
                 <div class="header-options">
-                    <label><input type="checkbox" id="show-optional-info"> Show expo info</label>
+                    <label><input type="checkbox" id="show-optional-info"> Show pavilion info</label>
                     <label>Go to <select id="goto-list"></select> </label>
                     <button id="edit-done">Done</button>
                 </div>
