@@ -75,6 +75,10 @@ $hulop.editor.ext_conv_info = function () {
             overflow: hidden;
         }
 
+        .conv-input input[type="text"] {
+            width: 25em;
+        }
+
         .header-options {
             display: flex;
             align-items: center;
