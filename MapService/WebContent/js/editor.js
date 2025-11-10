@@ -927,6 +927,8 @@ $hulop.editor = function() {
 	function createFacility(latlng, extra) {
 		var p = {
 				'facil_id' : newID('facil'),
+				'hulop_major_category' : '',
+				'hulop_tags' : '',
 				'facil_type': 99,
 				'toilet' : 99,
 				'elevator' : 99,
