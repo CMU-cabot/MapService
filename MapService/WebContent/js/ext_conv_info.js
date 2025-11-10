@@ -156,12 +156,22 @@ $hulop.editor.ext_conv_info = function () {
         $(window).resize(() => $('#conversation-info textarea').each((i, e) => adjustAreaHeight($(e))));
         $('#edit-done').on('click', event => $('#conversation-info-editor').hide());
         $('#show-optional-info').change(event => {
+            const container = $('#conversation-info');
+            const visibleTop = container.find('fieldset').filter(function () {
+                return $(this).offset().top + $(this).outerHeight() > container.offset().top;
+            }).first();
             if (event.target.checked) {
                 $('.info-optional').show();
             } else {
                 $('.info-optional').hide();
             }
-            resetScroll();
+            setTimeout(() => {
+                if (visibleTop.length > 0) {
+                    visibleTop.get(0).scrollIntoView({ block: 'start' });
+                } else {
+                    resetScroll();
+                }
+            });
         });
         $('#goto-list').change(event => {
             const index = event.target.selectedIndex;
