@@ -135,11 +135,11 @@ $hulop.editor.ext_conv_info = function () {
         area.css('height', `${area.prop('scrollHeight')}px`);
     }
 
-    function resetScroll() {
+    function resetScroll(index = 0) {
         const list = $('#conversation-info fieldset');
-        if (list.length > 0) {
-            $('#goto-list').get(0).selectedIndex = 0;
-            list.get(0).scrollIntoView({ block: 'start' });
+        if (list.length > index) {
+            $('#goto-list').get(0).selectedIndex = index;
+            list.get(index).scrollIntoView({ block: 'start' });
         }
     }
 
@@ -213,7 +213,12 @@ $hulop.editor.ext_conv_info = function () {
     function open_editor() {
         $('#conversation-info').empty();
         $('#goto-list').empty();
+        const editing_id = $hulop.editor.editingFeature?.get('facil_id');
+        let editing_index = 0;
         for (let dest of getDestinations()) {
+            if (dest.get('facil_id') == editing_id) {
+                editing_index = $('#goto-list option').length;
+            }
             const parent = $('<fieldset>').appendTo($('#conversation-info'));
             const label_text = `${getFloorName(dest.get('ent1_fl'))} ${dest.get('name_ja')}`;
             $('<legend>', { 'text': label_text }).appendTo(parent);
@@ -279,7 +284,7 @@ $hulop.editor.ext_conv_info = function () {
             $('.info-optional').show();
         }
         $('#conversation-info-editor').show();
-        resetScroll();
+        resetScroll(editing_index);
     }
 
     return { init, open_editor };
