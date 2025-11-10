@@ -227,11 +227,11 @@ $hulop.editor.ext_conv_info = function () {
                 input_field.on('input', event => {
                     let val = $(event.target).val();
                     if (key.startsWith('ext-number')) {
-                        val = Number(val);
-                        if (isNaN(val)) {
+                        if (val == '' || isNaN(val)) {
                             dest.unset(key);
                             return;
                         }
+                        val = Number(val);
                     }
                     dest.set(key, val);
                 });
