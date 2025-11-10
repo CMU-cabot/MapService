@@ -136,8 +136,11 @@ $hulop.editor.ext_conv_info = function () {
     }
 
     function resetScroll() {
-        $('#goto-list').get(0).selectedIndex = 0;
-        $('#conversation-info fieldset').get(0).scrollIntoView({ block: 'start' });
+        const list = $('#conversation-info fieldset');
+        if (list.length > 0) {
+            $('#goto-list').get(0).selectedIndex = 0;
+            list.get(0).scrollIntoView({ block: 'start' });
+        }
     }
 
     function getFloorName(fl) {
