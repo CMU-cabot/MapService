@@ -799,8 +799,9 @@ $hulop.editor = function() {
 					'featureProjection' : 'EPSG:3857'
 				});
 				if (feature) {
-					feature.getKeys().forEach(key => key != 'geometry' && feature.unset(key));
-					feature.setProperties(f.getProperties());
+					const originalProperties = f.getProperties();
+					feature.getKeys().forEach(key => key in originalProperties || feature.unset(key));
+					feature.setProperties(originalProperties);
 					feature.setGeometry(f.getGeometry());
 				} else {
 					source.addFeature(f);
