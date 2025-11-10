@@ -161,7 +161,7 @@ $hulop.editor.ext_conv_info = function () {
         $('#show-optional-info').change(event => {
             const container = $('#conversation-info');
             const visibleTop = container.find('fieldset').filter(function () {
-                return $(this).offset().top + $(this).outerHeight() > container.offset().top;
+                return $(this).offset().top + $(this).outerHeight() > container.offset().top + 200;
             }).first();
             if (event.target.checked) {
                 $('.info-optional').show();
