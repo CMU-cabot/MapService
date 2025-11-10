@@ -798,16 +798,12 @@ $hulop.editor = function() {
 				var f = format.readFeature(JSON.parse(lastData.original[id]), {
 					'featureProjection' : 'EPSG:3857'
 				});
-				/*if (feature) {
+				if (feature) {
+					feature.getKeys().forEach(key => key != 'geometry' && feature.unset(key));
 					feature.setProperties(f.getProperties());
 					feature.setGeometry(f.getGeometry());
 				} else {
 					source.addFeature(f);
-				}*/
-				feature && source.removeFeature(feature);
-				source.addFeature(f);
-				if (editingFeature == feature) {
-					showProperty(f);
 				}
 			}
 		}
