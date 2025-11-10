@@ -805,7 +805,10 @@ $hulop.editor = function() {
 					source.addFeature(f);
 				}*/
 				feature && source.removeFeature(feature);
-				source.addFeature(f)
+				source.addFeature(f);
+				if (editingFeature == feature) {
+					showProperty(f);
+				}
 			}
 		}
 		source.getFeatures().forEach(function(feature) {
