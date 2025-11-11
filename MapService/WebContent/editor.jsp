@@ -109,7 +109,7 @@
 				<input type="file" id="robot_location_file">
 				<button id="robot_location_button" onclick="$hulop.editor.loadRobotLocations()">Load Robot Location</button>
 				<hr>
-				Use <button onclick="$hulop.editor.ext_conv_info.open_editor()">Conversation info editor</button> to edit conversation information.
+				Use <button onclick="$hulop.editor.ext_conv_info.open_editor()">Conversation information</button> to edit conversation information.
 			</fieldset>
 			<fieldset class="modified" style="display:none">
 				<legend>(i18n_SAVE_MAP)</legend>
