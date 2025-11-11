@@ -45,7 +45,7 @@ $hulop.editor.ext_conv_info = function () {
         }
 
         #conversation-info fieldset {
-            margin-bottom: 12px;
+            margin-bottom: 2em;
         }
 
         #conversation-info fieldset legend {
