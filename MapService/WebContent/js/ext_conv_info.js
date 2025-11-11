@@ -244,7 +244,12 @@ $hulop.editor.ext_conv_info = function () {
     }
 
     function open_editor() {
-        $('#save_button').is(':visible') && $('#save_button').click();
+        if ($('#save_button').is(':visible')) {
+            if (!confirm('You have unsaved map edits. Do you want to save the changes before opening the conversation information?')) {
+                return;
+            }
+            $('#save_button').click();
+        }
         $('#conversation-info').empty();
         $('#goto-list').empty();
         const editing_id = $hulop.editor.editingFeature?.get('facil_id');
