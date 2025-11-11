@@ -96,11 +96,28 @@ $hulop.editor.ext_conv_info = function () {
                 <div class="header-options">
                     <label><input type="checkbox" id="show-optional-info"> Show pavilion information</label>
                     <label>Go to <select id="goto-list"></select> </label>
-                    <button id="edit-done">Done</button>
+                    <span>
+                        <button id="edit-save">Save</button>
+                        <button id="edit-close">Close</button>
+                    </span>
                 </div>
                 <div id="conversation-info"></div>
             </div>
         </div>
+
+        <dialog id="close_confirm_dialog">
+            <form method="dialog">
+                <p>
+                    You have unsaved changes.<br>
+                    Are you sure you want to close this page?<br>
+                    <b>Any unsaved edits will be lost.</b>
+                </p>
+                <menu>
+                    <button value="yes">Yes, I am sure</button>
+                    <button value="no">No, Stay on page</button>
+                </menu>
+            </form>
+        </dialog>
     `;
 
     const display_names = {
@@ -157,7 +174,23 @@ $hulop.editor.ext_conv_info = function () {
         $('<style>').text(init_css).appendTo('head');
         $('body').append(init_html);
         $(window).resize(() => $('#conversation-info textarea').each((i, e) => adjustAreaHeight($(e))));
-        $('#edit-done').on('click', event => $('#conversation-info-editor').hide());
+        $('#edit-save').on('click', event => {
+            $('#save_button').is(':visible') && $('#save_button').click();
+            $('#edit-save').prop('disabled', true);
+        });
+        $('#edit-close').on('click', event => {
+            if ($('#restore_button').is(':visible')) {
+                $('#close_confirm_dialog').get(0).showModal();
+            } else {
+                $('#conversation-info-editor').hide();
+            }
+        });
+        $('#close_confirm_dialog').on('close', function () {
+            if (this.returnValue === 'yes') {
+                $('#restore_button').is(':visible') && $('#restore_button').click();
+                $('#conversation-info-editor').hide();
+            }
+        });
         $('#show-optional-info').change(event => {
             const container = $('#conversation-info');
             const visibleTop = container.find('fieldset').filter(function () {
@@ -211,6 +244,7 @@ $hulop.editor.ext_conv_info = function () {
     }
 
     function open_editor() {
+        $('#save_button').is(':visible') && $('#save_button').click();
         $('#conversation-info').empty();
         $('#goto-list').empty();
         const editing_id = $hulop.editor.editingFeature?.get('facil_id');
@@ -243,6 +277,7 @@ $hulop.editor.ext_conv_info = function () {
                 }
                 input_field.val(dest.get(key)).appendTo(label)
                 input_field.on('input', event => {
+                    $('#edit-save').prop('disabled', false);
                     let val = $(event.target).val();
                     if (key.startsWith('ext-number')) {
                         if (val == '' || isNaN(val)) {
@@ -283,6 +318,7 @@ $hulop.editor.ext_conv_info = function () {
         if ($('#show-optional-info').prop('checked')) {
             $('.info-optional').show();
         }
+        $('#edit-save').prop('disabled', true);
         $('#conversation-info-editor').show();
         resetScroll(editing_index);
     }
