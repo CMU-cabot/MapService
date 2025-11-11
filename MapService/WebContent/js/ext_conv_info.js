@@ -245,10 +245,8 @@ $hulop.editor.ext_conv_info = function () {
 
     function open_editor() {
         if ($('#save_button').is(':visible')) {
-            if (!confirm('You have unsaved map edits. Do you want to save the changes before opening the conversation information?')) {
-                return;
-            }
-            $('#save_button').click();
+            alert('You have unsaved map edits. Please save or discard your changes before opening the conversation information.');
+            return;
         }
         $('#conversation-info').empty();
         $('#goto-list').empty();
