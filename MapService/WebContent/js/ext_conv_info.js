@@ -321,7 +321,7 @@ $hulop.editor.ext_conv_info = function () {
         if ($('#show-optional-info').prop('checked')) {
             $('.info-optional').show();
         }
-        $('#edit-save').prop('disabled', true);
+        $('#edit-save').prop('disabled', $('#save_button').is(':hidden'));
         $('#conversation-info-editor').show();
         resetScroll(editing_index);
     }
