@@ -35,8 +35,9 @@ import java.util.regex.Pattern;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
-import org.jgrapht.WeightedGraph;
-import org.jgrapht.alg.DijkstraShortestPath;
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
@@ -149,7 +150,7 @@ public class RouteSearchBean {
 	}
 
 	private class DirectionHandler {
-		private WeightedGraph<String, DefaultWeightedEdge> g = new SimpleDirectedWeightedGraph<String, DefaultWeightedEdge>(
+		private Graph<String, DefaultWeightedEdge> g = new SimpleDirectedWeightedGraph<String, DefaultWeightedEdge>(
 				DefaultWeightedEdge.class);
 		private Map<Object, JSONObject> linkMap = new HashMap<Object, JSONObject>();
 		private JSONArray result = new JSONArray();
@@ -230,7 +231,7 @@ public class RouteSearchBean {
 				try {
 					// System.out.println(from + " - " + to + " - " + g.toString());
 					double lastWeight = Double.MAX_VALUE;
-					List<DefaultWeightedEdge> path = null;
+					GraphPath<String, DefaultWeightedEdge> path = null;
 					mainLoop: for (String t : to.split("\\|")) {
 						t = t.trim();
 						if (t.length() > 0) {
@@ -249,10 +250,10 @@ public class RouteSearchBean {
 										}
 									}
 								}
-								List<DefaultWeightedEdge> p = DijkstraShortestPath.findPathBetween(g, from, node_id);
-								if (p != null && p.size() > 0) {
+								GraphPath<String, DefaultWeightedEdge> p = DijkstraShortestPath.findPathBetween(g, from, node_id);
+								if (p != null && !p.getEdgeList().isEmpty()) {
 									double totalWeight = 0;
-									for (DefaultWeightedEdge edge : p) {
+									for (DefaultWeightedEdge edge : p.getEdgeList()) {
 										totalWeight += g.getEdgeWeight(edge);
 									}
 									if (lastWeight > totalWeight) {
@@ -266,10 +267,10 @@ public class RouteSearchBean {
 							}
 						}
 					}
-					if (path != null && path.size() > 0) {
+					if (path != null && !path.getEdgeList().isEmpty()) {
 						JSONObject fromNode = (JSONObject) getNode(from).clone();
 						result.add(fromNode);
-						for (DefaultWeightedEdge edge : path) {
+						for (DefaultWeightedEdge edge : path.getEdgeList()) {
 							JSONObject link = linkMap.get(edge);
 							try {
 								link = new JSONObject(link.toString()); // deep clone
