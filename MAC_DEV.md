@@ -49,6 +49,8 @@ This script will:
 - write the local `server.xml` and `server.env` settings needed for macOS testing
 - deploy both `map` and `query` under port `9090`
 
+The MongoDB compose file used by this workflow is `docker-compose-mongo.yaml` at the repository root.
+
 ### 3. Launch cabot-app-server separately
 
 `cabot-app-server` is expected to stay independently managed. Set it up and build it by following the sibling repository's README:

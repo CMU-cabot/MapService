@@ -25,6 +25,6 @@ stop_pid_file() {
 
 stop_pid_file "$PID_DIR/mapservice.pid" "MapService/QueryService"
 
-(cd "$MAPSERVICE_DIR" && docker compose -f docker-compose-mongo.yaml down >/dev/null 2>&1 || true)
+(cd "$ROOT_DIR" && docker compose -f docker-compose-mongo.yaml down >/dev/null 2>&1 || true)
 
 echo "Stopped MapService + QueryService"

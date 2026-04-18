@@ -1,5 +1,3 @@
-version: "2.3"
-
 services:
   mongodb:
     image : mongo:3.4.3
@@ -7,9 +5,9 @@ services:
       - PUID=1000
       - PGID=1000
     volumes:
-      - ./mongodb/database:/data/db
+      - ./MapService/mongodb/database:/data/db
     ports:
-      - 127.0.0.1:27017:27017  # expose db to localhost
+      - 127.0.0.1:27017:27017
     networks:
       - mongodb_network
     healthcheck:

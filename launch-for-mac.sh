@@ -146,7 +146,7 @@ perl -0pi -e 's#Directory cdd = new Directory\(featuresUrl, nodemapUrl, new Loca
   "$QUERY_BUILD_DIR/src/org/hulop/servlet/DirectoryServlet.java"
 
 log "Starting MongoDB for MapService"
-(cd "$MAPSERVICE_DIR" && docker compose -f docker-compose-mongo.yaml up -d mongodb)
+(cd "$ROOT_DIR" && docker compose -f docker-compose-mongo.yaml up -d mongodb)
 
 log "Building QueryService WAR"
 (cd "$QUERY_BUILD_DIR" && mvn -q -DskipTests package)
