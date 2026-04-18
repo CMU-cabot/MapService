@@ -46,6 +46,7 @@ This branch includes a simplified local workflow for macOS development under a `
   - `./stop-all.sh`
 
 `./setup-for-mac.sh` also installs thin `launch-all.sh` and `stop-all.sh` wrappers in the parent `cabot-servers/` directory.
+`./launch-for-mac.sh` automatically prepares the local Open Liberty runtime, including the `server.xml` and `server.env` values that were previously edited by hand for macOS testing.
 
 See [MAC_DEV.md](MAC_DEV.md) for the recommended setup and launch flow.
 

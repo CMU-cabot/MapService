@@ -46,7 +46,14 @@ This script will:
 - start MongoDB for MapService
 - build `QueryService` in an isolated temporary workspace
 - prepare Open Liberty for `MapService`
+- write the local `server.xml` and `server.env` settings needed for macOS testing
 - deploy both `map` and `query` under port `9090`
+
+Manual edits under `MapService/target/liberty/...` are not required in this workflow. In particular, the following `server.env` values are written automatically during launch:
+
+- `ENABLE_MAP_ACCESS=admin,auditor,editor`
+- `HULOP_INITIAL_LOCATION={ "lat": 35.61950, "lng": 139.77700, "floor": 1 }`
+- `HULOP_DO_NOT_USE_SAVED_CENTER=true`
 
 ### 3. Stop MapService + QueryService
 
