@@ -31,6 +31,7 @@ This script will:
 - ensure the local macOS prerequisites needed by this workflow
 - run `download-lib.sh` for MapService assets when required
 - clone or update `QueryService` into `_external/QueryService`
+- install `launch-all.sh` and `stop-all.sh` in the parent `cabot-servers/` directory
 
 ### 2. Launch MapService + QueryService
 
@@ -84,6 +85,18 @@ From `cabot-servers/MapService`:
 ```bash
 ./stop-for-mac.sh
 ```
+
+## Optional parent helpers
+
+`./setup-for-mac.sh` also installs workspace helpers in `cabot-servers/`:
+
+```bash
+cd ..
+./launch-all.sh
+./stop-all.sh
+```
+
+`./launch-all.sh -d` uses the `mac-dev` profile for `cabot-app-server`.
 
 ## iPhone app setting
 

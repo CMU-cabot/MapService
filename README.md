@@ -40,8 +40,13 @@ This branch includes a simplified local workflow for macOS development under a `
   - `./launch-for-mac.sh`
 - Stop MapService + QueryService:
   - `./stop-for-mac.sh`
+- Launch the full local stack from `cabot-servers/`:
+  - `./launch-all.sh`
+- Stop the full local stack from `cabot-servers/`:
+  - `./stop-all.sh`
 
 `./launch-for-mac.sh` automatically prepares the local Open Liberty runtime, including the `server.xml` and `server.env` values needed for macOS testing.
+`./setup-for-mac.sh` also installs workspace-level `launch-all.sh` and `stop-all.sh` helpers in the parent `cabot-servers/` directory.
 `cabot-app-server` should be set up and launched separately from `../cabot-app-server`. See [MAC_DEV.md](MAC_DEV.md) for the iPhone-facing port publish command used in this branch's local integration flow.
 
 See [MAC_DEV.md](MAC_DEV.md) for the recommended setup and launch flow.
