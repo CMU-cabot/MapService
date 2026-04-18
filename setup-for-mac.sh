@@ -10,7 +10,6 @@ QUERYSERVICE_REPO_DIR="$EXTERNAL_DIR/QueryService"
 QUERYSERVICE_APP_DIR="$QUERYSERVICE_REPO_DIR/QueryService"
 QUERYSERVICE_URL="https://github.com/CMU-cabot/QueryService"
 QUERYSERVICE_BRANCH="hokoukukan-2018"
-WORKSPACE_DIR="$(cd "$ROOT_DIR/.." && pwd)"
 
 timestamp() {
   date "+%Y-%m-%d %H:%M:%S"
@@ -125,32 +124,6 @@ prepare_queryservice_repo() {
   git -C "$QUERYSERVICE_REPO_DIR" pull --ff-only origin "$QUERYSERVICE_BRANCH"
 }
 
-install_workspace_wrappers() {
-  local launch_wrapper="$WORKSPACE_DIR/launch-all.sh"
-  local stop_wrapper="$WORKSPACE_DIR/stop-all.sh"
-
-  cat > "$launch_wrapper" <<'EOF'
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$ROOT_DIR/MapService/orchestration/launch-all.sh" "$@"
-EOF
-
-  cat > "$stop_wrapper" <<'EOF'
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$ROOT_DIR/MapService/orchestration/stop-all.sh" "$@"
-EOF
-
-  chmod +x "$launch_wrapper" "$stop_wrapper"
-  log "Installed workspace launch/stop wrappers in $WORKSPACE_DIR"
-}
-
 ensure_formula git git
 ensure_formula curl curl
 ensure_formula unzip unzip
@@ -168,7 +141,6 @@ else
 fi
 
 prepare_queryservice_repo
-install_workspace_wrappers
 
 if [[ ! -f "$QUERYSERVICE_APP_DIR/pom.xml" ]]; then
   echo "QueryService application directory not found: $QUERYSERVICE_APP_DIR" >&2
@@ -179,4 +151,5 @@ log "Setup complete"
 echo
 echo "Next steps:"
 echo "  MapService + QueryService: ./launch-for-mac.sh"
-echo "  Full stack from cabot-servers/: ./launch-all.sh"
+echo "  cabot-app-server: set it up separately in ../cabot-app-server"
+echo "  iPhone app-server access: see MAC_DEV.md"
