@@ -1,5 +1,7 @@
 .run/
 .build/
 log/
+_external/*
+!_external/.gitkeep
 MapService/mongodb/database/
 MapService/mongodb/database-*/

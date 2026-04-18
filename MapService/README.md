@@ -24,6 +24,8 @@ SOFTWARE.
 # MapService
 This server-side component provides Map related services that aimed to use with [NavCogIOSv3](https://github.com/hulop/NavCogIOSv3).
 
+For the recommended local macOS workflow in this branch, see [../MAC_DEV.md](../MAC_DEV.md).
+
 ## Prerequisites
 - check "README.md" files to find where you need to copy the following libraries
 ```

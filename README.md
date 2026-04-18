@@ -30,6 +30,30 @@ Please import 2 projects (MapService and SampleMap) by using Eclipse IDE for Jav
 Please visit *MapService* folder for more details about MapService application.
 *SampleMap* folder contains sample map and GeoJSON data.
 
+## Local macOS workflow
+
+This branch includes a simplified local workflow for macOS development under a `cabot-servers/` workspace.
+
+- Initial setup for MapService + QueryService:
+  - `./setup-for-mac.sh`
+- Launch MapService + QueryService:
+  - `./launch-for-mac.sh`
+- Stop MapService + QueryService:
+  - `./stop-for-mac.sh`
+- Launch the full local stack from `cabot-servers/`:
+  - `./launch-all.sh`
+- Stop the full local stack from `cabot-servers/`:
+  - `./stop-all.sh`
+
+`./setup-for-mac.sh` also installs thin `launch-all.sh` and `stop-all.sh` wrappers in the parent `cabot-servers/` directory.
+
+See [MAC_DEV.md](MAC_DEV.md) for the recommended setup and launch flow.
+
+Legacy scripts are still present for compatibility:
+
+- `./start-cabot-stack.sh`
+- `./stop-cabot-stack.sh`
+
 -----
 
 ## About

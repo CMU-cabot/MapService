@@ -1,55 +1,89 @@
 # Mac Dev Setup
 
-This branch is for local macOS development of the CaBot map stack.
+This branch is for local macOS development of the CaBot server stack under a `cabot-servers/` workspace.
 
-## Repositories expected next to this one
-
-- `MapService`
-- `QueryService`
-- `cabot-app-server`
-
-Expected layout:
+## Expected layout
 
 ```text
-Accessibility_and_Mobility_Lab/
+cabot-servers/
   MapService/
-  QueryService/
+    MapService/
+    SampleMap/
+    _external/
+      QueryService/
   cabot-app-server/
 ```
 
-## One-time setup
+`QueryService` is treated as an external dependency of `MapService` and is cloned into `MapService/_external/QueryService`.
 
-1. Install Java 17, Maven, and Docker Desktop.
-2. Start Docker Desktop.
-3. Run `./download-lib.sh` in this repository if the libraries are not present yet.
+## Recommended flow
 
-## Start everything
+### 1. Initial MapService setup
 
-From the repository root:
+From `cabot-servers/MapService`:
 
 ```bash
-./start-cabot-stack.sh
+./setup-for-mac.sh
 ```
 
 This script will:
 
-- start MongoDB for `MapService`
-- build `QueryService` in an isolated temporary workspace
-- prepare Open Liberty for `MapService` and deploy both `map` and `query`
-- start `cabot-app-server`
+- ensure the local macOS prerequisites needed by this workflow
+- run `download-lib.sh` for MapService assets when required
+- clone or update `QueryService` into `_external/QueryService`
+- install thin `launch-all.sh` and `stop-all.sh` wrappers in `cabot-servers/`
 
-## Stop everything
+### 2. Launch MapService + QueryService
+
+From `cabot-servers/MapService`:
 
 ```bash
-./stop-cabot-stack.sh
+./launch-for-mac.sh
+```
+
+This script will:
+
+- start MongoDB for MapService
+- build `QueryService` in an isolated temporary workspace
+- prepare Open Liberty for `MapService`
+- deploy both `map` and `query` under port `9090`
+
+### 3. Stop MapService + QueryService
+
+From `cabot-servers/MapService`:
+
+```bash
+./stop-for-mac.sh
+```
+
+## Full stack launch
+
+If `cabot-app-server` is also present in the same `cabot-servers/` directory, use:
+
+```bash
+cd ..
+./launch-all.sh
+```
+
+To stop the full stack:
+
+```bash
+./stop-all.sh
 ```
 
 ## iPhone app setting
 
-Set `PRIMARY_IP_ADDRESS` in `cabot-ios-app` to the Mac's Wi-Fi IP shown by `start-cabot-stack.sh`.
+Set `PRIMARY_IP_ADDRESS` in `cabot-ios-app` to the Mac's Wi-Fi IP shown by `launch-for-mac.sh` or `launch-all.sh`.
 
 ## Health checks
 
 - MapService: `http://localhost:9090/map/api/config`
 - QueryService: `http://localhost:9090/query/directory?user=test&lat=35.6195&lng=139.777&dist=2000&lang=ja-JP`
 - App server: `http://localhost:5000/socket.io/?EIO=4&transport=polling`
+
+## Legacy scripts
+
+These scripts are still kept for compatibility, but the Mac workflow above is the recommended path:
+
+- `./start-cabot-stack.sh`
+- `./stop-cabot-stack.sh`
