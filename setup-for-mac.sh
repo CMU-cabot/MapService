@@ -276,7 +276,7 @@ if mapservice_assets_ready; then
   log "MapService front-end assets already exist; skipping download-lib.sh"
 else
   log "Downloading MapService front-end assets"
-  (cd "$ROOT_DIR" && ./download-lib.sh)
+  (cd "$ROOT_DIR" && bash ./download-lib.sh)
 fi
 
 prepare_queryservice_repo
