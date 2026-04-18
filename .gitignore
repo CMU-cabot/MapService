@@ -1,0 +1,5 @@
+.run/
+.build/
+log/
+MapService/mongodb/database/
+MapService/mongodb/database-*/
