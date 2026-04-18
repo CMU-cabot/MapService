@@ -40,16 +40,157 @@ This branch includes a simplified local workflow for macOS development under a `
   - `./launch-for-mac.sh`
 - Stop MapService + QueryService:
   - `./stop-for-mac.sh`
-- Launch the full local stack from `cabot-servers/`:
-  - `./launch-all.sh`
-- Stop the full local stack from `cabot-servers/`:
-  - `./stop-all.sh`
 
 `./launch-for-mac.sh` automatically prepares the local Open Liberty runtime, including the `server.xml` and `server.env` values needed for macOS testing.
-`./setup-for-mac.sh` also installs workspace-level `launch-all.sh` and `stop-all.sh` helpers in the parent `cabot-servers/` directory.
 `cabot-app-server` should be set up and launched separately from `../cabot-app-server`. See [MAC_DEV.md](MAC_DEV.md) for the iPhone-facing port publish command used in this branch's local integration flow.
 
 See [MAC_DEV.md](MAC_DEV.md) for the recommended setup and launch flow.
+
+### Optional full-stack helper scripts
+
+If you use the recommended sibling layout below and want one-command start/stop for `MapService + QueryService + cabot-app-server`, create `launch-all.sh` and `stop-all.sh` manually in the parent `cabot-servers/` directory by copying the examples here.
+
+```text
+cabot-servers/
+  MapService/
+  cabot-app-server/
+  launch-all.sh
+  stop-all.sh
+```
+
+`launch-all.sh`
+
+```bash
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+MAPSERVICE_DIR="$ROOT_DIR/MapService"
+APP_SERVER_DIR="$ROOT_DIR/cabot-app-server"
+APP_SERVER_OVERRIDE="$MAPSERVICE_DIR/support/cabot-app-server-mac-ports.override.yaml"
+APP_SERVER_PROFILE="mac-prod"
+
+timestamp() {
+  date "+%Y-%m-%d %H:%M:%S"
+}
+
+log() {
+  echo "[$(timestamp)] $*"
+}
+
+usage() {
+  cat <<USAGE
+Usage: ./launch-all.sh [-d]
+
+  -d    Launch cabot-app-server with the mac-dev profile
+USAGE
+}
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Required command not found: $1" >&2
+    exit 1
+  fi
+}
+
+wait_for_http() {
+  local url="$1"
+  local name="$2"
+  local max_retry="${3:-30}"
+
+  for _ in $(seq 1 "$max_retry"); do
+    if curl -fsS "$url" >/dev/null 2>&1; then
+      log "$name is ready: $url"
+      return 0
+    fi
+    sleep 2
+  done
+
+  echo "$name did not become ready: $url" >&2
+  return 1
+}
+
+while getopts "hd" arg; do
+  case "$arg" in
+    h)
+      usage
+      exit 0
+      ;;
+    d)
+      APP_SERVER_PROFILE="mac-dev"
+      ;;
+  esac
+done
+
+require_command curl
+require_command docker
+
+if [[ ! -x "$MAPSERVICE_DIR/launch-for-mac.sh" ]]; then
+  echo "MapService launch script not found: $MAPSERVICE_DIR/launch-for-mac.sh" >&2
+  exit 1
+fi
+
+if [[ ! -d "$APP_SERVER_DIR" ]]; then
+  echo "cabot-app-server repo not found: $APP_SERVER_DIR" >&2
+  exit 1
+fi
+
+if [[ ! -f "$APP_SERVER_OVERRIDE" ]]; then
+  echo "App-server override not found: $APP_SERVER_OVERRIDE" >&2
+  exit 1
+fi
+
+log "Launching MapService + QueryService"
+(cd "$MAPSERVICE_DIR" && ./launch-for-mac.sh)
+
+if [[ "$APP_SERVER_PROFILE" == "mac-dev" ]]; then
+  log "Building cabot-app-server for mac-dev"
+  (cd "$APP_SERVER_DIR" && docker compose -f docker-compose.yaml -f "$APP_SERVER_OVERRIDE" --profile "$APP_SERVER_PROFILE" run --rm app-server-mac-dev /launch.sh build)
+fi
+
+log "Starting cabot-app-server ($APP_SERVER_PROFILE)"
+(cd "$APP_SERVER_DIR" && docker compose -f docker-compose.yaml -f "$APP_SERVER_OVERRIDE" --profile "$APP_SERVER_PROFILE" up -d)
+
+wait_for_http "http://localhost:5000/socket.io/?EIO=4&transport=polling" "cabot-app-server"
+
+MAC_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
+
+log "Full local stack is up"
+echo
+echo "Mac Wi-Fi IP: ${MAC_IP:-not detected}"
+echo "CaBot iPhone app:"
+echo "  PRIMARY_IP_ADDRESS = ${MAC_IP:-<your-mac-ip>}"
+echo "  SECONDARY_IP_ADDRESS = "
+echo
+echo "Health checks:"
+echo "  MapService   http://localhost:9090/map/api/config"
+echo "  QueryService http://localhost:9090/query/directory?user=test&lat=35.6195&lng=139.777&dist=2000&lang=ja-JP"
+echo "  App server   http://localhost:5000/socket.io/?EIO=4&transport=polling"
+```
+
+`stop-all.sh`
+
+```bash
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+MAPSERVICE_DIR="$ROOT_DIR/MapService"
+APP_SERVER_DIR="$ROOT_DIR/cabot-app-server"
+APP_SERVER_OVERRIDE="$MAPSERVICE_DIR/support/cabot-app-server-mac-ports.override.yaml"
+
+if [[ -x "$MAPSERVICE_DIR/stop-for-mac.sh" ]]; then
+  (cd "$MAPSERVICE_DIR" && ./stop-for-mac.sh)
+fi
+
+if [[ -d "$APP_SERVER_DIR" ]] && [[ -f "$APP_SERVER_OVERRIDE" ]]; then
+  (cd "$APP_SERVER_DIR" && docker compose -f docker-compose.yaml -f "$APP_SERVER_OVERRIDE" down >/dev/null 2>&1 || true)
+fi
+
+echo "Stopped full local stack"
+```
 
 Legacy scripts are still present for compatibility:
 
