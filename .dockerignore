@@ -1,0 +1,12 @@
+*
+!MapService
+!MapService/**
+!download-lib.sh
+!docker
+!docker/server
+!docker/server/**
+.git
+.vscode
+.tmp
+MapService/target
+**/.DS_Store

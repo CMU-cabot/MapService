@@ -30,6 +30,49 @@ Please import 2 projects (MapService and SampleMap) by using Eclipse IDE for Jav
 Please visit *MapService* folder for more details about MapService application.
 *SampleMap* folder contains sample map and GeoJSON data.
 
+## Docker Launch
+
+You can launch MapService with MongoDB and the bundled sample map data:
+
+```
+./server-launch.sh
+```
+
+The server is published at:
+
+- `http://localhost:9090/map/mobile.jsp`
+- `http://localhost:9090/map/admin.jsp`
+
+The initial administrator account is:
+
+- user: `hulopadmin`
+- password: `please change password`
+
+Stop and remove the containers with:
+
+```
+./server-launch.sh -C
+```
+
+The launch script accepts a data directory and a GeoJSON map file:
+
+```
+./server-launch.sh -D SampleMap/FilesForMapService -m SampleMap/MapData-sample.geojson
+```
+
+For CaBot site-package style data, use `-p <site>` and set `CABOT_SITE_PKG_DIR`
+if the package directory is not `./cabot_site_pkg`. The script searches for
+`*/<site>/server_data`, sources `server.env` when present, imports
+`MapData.geojson`, and imports either `attachments.zip`, `attachments/`, or the
+other files in the server data directory as MapService attachments.
+
+Useful options:
+
+- `-v`: follow Docker Compose logs after startup.
+- `-c`: clean and relaunch if the running server content differs.
+- `-C`: export current map data to `.tmp/` when possible, then stop containers.
+- `-E <n>`: run a separate environment by shifting the port by `n * 10`.
+
 -----
 
 ## About

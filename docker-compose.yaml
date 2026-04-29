@@ -1,0 +1,85 @@
+services:
+  map_server:
+    image: mapservice-map_server:${MAPSERVICE_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    profiles:
+      - map
+    environment:
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+      HOST_TZ: ${HOST_TZ:-Etc/UTC}
+      HULOP_MAP_SERVICE: localhost:8080/map
+      HULOP_MAP_SERVICE_USE_HTTP: "true"
+      HULOP_VCAP_SERVICES: '{"mongodb": [{"credentials": {"url": "mongodb://mongodb_ms:27017/navi_db"}}]}'
+      ENABLE_MAP_ACCESS: ${ENABLE_MAP_ACCESS:-admin,auditor,editor}
+      EDITOR_API_KEY: ${EDITOR_API_KEY:-local-server-editor-api-key}
+      AUDITOR_API_KEY: ${AUDITOR_API_KEY:-local-server-auditor-api-key}
+      SEARCH_BY_FLOOR_ENABLED: ${SEARCH_BY_FLOOR_ENABLED:-true}
+      SEARCH_BY_CATEGORY_ENABLED: ${SEARCH_BY_CATEGORY_ENABLED:-true}
+      HULOP_INITIAL_LOCATION: '{"lat":0,"lng":0,"floor":0}'
+      HULOP_INITIAL_ZOOM: "19"
+    volumes:
+      - ${MAPSERVICE_DATA_DIR:-./SampleMap/FilesForMapService}:/server_data:ro
+      - ${MAPSERVICE_MAP_DATA:-./SampleMap/MapData-sample.geojson}:/map_data/MapData.geojson:ro
+      - ${MAPSERVICE_EXPORT_DIR:-./.tmp}:/exports
+    command:
+      - bash
+      - -lc
+      - |
+        if [ -f /server_data/server.env ]; then
+          set -a
+          . /server_data/server.env
+          set +a
+        fi
+        ./server run defaultServer
+    depends_on:
+      mongodb_ms:
+        condition: service_healthy
+    ports:
+      - 0.0.0.0:${MAP_SERVER_PORT:-9090}:8080
+    networks:
+      - mongodb_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/map/api/config >/dev/null 2>&1 || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 50
+
+  map_data:
+    image: mapservice-map_server:${MAPSERVICE_IMAGE_TAG:-local}
+    profiles:
+      - map
+    environment:
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+      HOST_TZ: ${HOST_TZ:-Etc/UTC}
+      EDITOR_API_KEY: ${EDITOR_API_KEY:-local-server-editor-api-key}
+      AUDITOR_API_KEY: ${AUDITOR_API_KEY:-local-server-auditor-api-key}
+    volumes:
+      - ${MAPSERVICE_DATA_DIR:-./SampleMap/FilesForMapService}:/server_data:ro
+      - ${MAPSERVICE_MAP_DATA:-./SampleMap/MapData-sample.geojson}:/map_data/MapData.geojson:ro
+      - ${MAPSERVICE_EXPORT_DIR:-./.tmp}:/exports
+    command:
+      - /home/runner_user/server-init.sh
+    depends_on:
+      map_server:
+        condition: service_healthy
+    networks:
+      - mongodb_network
+
+  mongodb_ms:
+    image: mongo:4.4.25
+    profiles:
+      - map
+    networks:
+      - mongodb_network
+    healthcheck:
+      test: ["CMD-SHELL", "mongo mongodb_ms:27017/test --quiet --eval 'db.runCommand({ ping: 1 }).ok' | grep 1 >/dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+networks:
+  mongodb_network:

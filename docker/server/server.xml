@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="MapService server">
+    <featureManager>
+        <feature>javaee-8.0</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="8080" httpsPort="8443" />
+
+    <webApplication contextRoot="map" location="MapService-0.0.1-SNAPSHOT.war" />
+
+    <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
+    <applicationManager autoExpand="true" />
+</server>
