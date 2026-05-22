@@ -80,6 +80,9 @@ ensure_line() {
     escaped_value="${escaped_value//&/\\&}"
     perl -0pi -e "s|^${key}=.*\$|${key}=${escaped_value}|m" "$file"
   else
+    if [[ -s "$file" ]] && [[ "$(tail -c 1 "$file")" != $'\n' ]]; then
+      printf '\n' >> "$file"
+    fi
     printf '%s=%s\n' "$key" "$value" >> "$file"
   fi
 }
