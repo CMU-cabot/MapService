@@ -177,7 +177,7 @@ public class RouteSearchBean {
 					}
 				} catch (Exception e) {
 				}
-				weight = adjustAccWeight(properties, weight);
+				weight = RouteSearchBean.this.adjustAccWeight(properties, weight, conditions);
 				if (weight == WEIGHT_IGNORE) {
 					return;
 				}
@@ -310,211 +310,211 @@ public class RouteSearchBean {
 			}
 			return result;
 		}
+	}
 
-		private double adjustAccWeight(JSONObject properties, double weight)
-				throws JSONException {
+	private double adjustAccWeight(JSONObject properties, double weight, Map<String, String> conditions)
+			throws JSONException {
 
-			int route_type = getCode(properties, "route_type", 100);
-			switch (route_type) {
-			case 4: // Elevator
-				weight = 0.0f;
-				break;
-			case 2: // Moving walkway
-				weight *= 0.75f;
-				break;
-			case 5: // Escalator
-				weight = ESCALATOR_WEIGHT;
-				break;
-			case 6: // Stairs
-				weight = STAIR_WEIGHT;
-				break;
-			}
-			try {
-				weight = properties.getDouble("hulop_distance_overwrite");
-			} catch (Exception e) {
-			}
-			double penarty = Math.max(weight, 10.0f) * 9;
-
-			int width = getCode(properties, "width", 100);
-			// 1: less than 1.0 m (wheelchair inaccessible),
-			// 2: 1.0 m to less than 2.0 m (wheelchair accessible (difficult to pass each
-			// other)),
-			// 3: 2.0 m to less than 3.0 m (wheelchair accessible (possible to pass each
-			// other)),
-			// 4: 3.0 m or more (no problem in wheelchair accessibility),
-			// 99: unknown
-			try {
-				switch (conditions.get("min_width")) {
-				case "1": // >3.0m
-					if (width < 4) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "2": // >2.0m
-					if (width < 3) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "3": // >1.0m
-					if (width < 2) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (width < 4) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			int vtcl_slope = getCode(properties, "vtcl_slope", 100);
-			// 1: 5% or less (no problem in wheelchair accessibility),
-			// 2: more than 5% (up),
-			// 3: more than 5% (down),
-			// 99: unknown
-			try {
-				switch (conditions.get("slope")) {
-				case "1": // <5%
-					if (vtcl_slope == 2 || vtcl_slope == 3) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (vtcl_slope == 2 || vtcl_slope == 3) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			int condition = getCode(properties, "condition", 100);
-			// 1: no problem in accessibility, 2: problem in accessibility, 99: unknown
-			try {
-				switch (conditions.get("road_condition")) {
-				case "1": // No problem
-					if (condition == 2) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (condition == 2) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			int lev_diff = getCode(properties, "lev_diff", 100);
-			// 1: 2 cm or less (no problem in wheelchair accessibility),
-			// 2: more than 2 cm (problem in wheelchair accessibility),
-			// 99: unknown
-
-			try {
-				switch (conditions.get("deff_LV")) {
-				case "1": // <2cm
-					if (lev_diff == 2) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (lev_diff == 2) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			int handrail = getCode(properties, "handrail", 100);
-			// 1: none, 2: on the right, 3: on the left, 4: on both sides, 99: unknown
-			// (The direction is as seen from the source.)
-			try {
-				switch (conditions.get("stairs")) {
-				case "1": // Do not use
-					if (route_type == 6) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "2": // Use with hand rail
-					if (route_type == 6 && !(handrail == 2 || handrail == 3 || handrail == 4)) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (route_type == 6) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			int elevator = getCode(properties, "elevator", 100);
-			// 1: no elevator, 2: inaccessible, 3: wheel chair accessible
-			// 4: blind accessible, 5: accessible, 99: unknown
-			if (elevator != 3 && elevator != 5 && route_type == 4) {
-				elevator = 2;
-			}
-			try {
-				switch (conditions.get("elv")) {
-				case "1": // Do not use
-					if (elevator == 2 || elevator == 3 || elevator == 4 || elevator == 5) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "2": // Wheel chair supported
-					if (elevator == 2 || elevator == 4) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			try {
-				switch (conditions.get("esc")) {
-				case "1": // Do not use
-					if (route_type == 5) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (route_type == 5) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			try {
-				switch (conditions.get("mvw")) {
-				case "1": // Do not use
-					if (route_type == 2) {
-						return WEIGHT_IGNORE;
-					}
-					break;
-				case "8": // Avoid
-					if (route_type == 2) {
-						weight += penarty;
-					}
-					break;
-				}
-			} catch (NullPointerException npe) {
-			}
-
-			int brail_tile = getCode(properties, "brail_tile", 100);
-			// 1: without tactile walking surface indicators, etc., 2: with tactile walking
-			// surface indicators, etc., 99: unknown
-			if (brail_tile == 2 && "1".equals(conditions.get("tactile_paving"))) {
-				weight = weight / 3;
-			}
-			return weight;
+		int route_type = getCode(properties, "route_type", 100);
+		switch (route_type) {
+		case 4: // Elevator
+			weight = 0.0f;
+			break;
+		case 2: // Moving walkway
+			weight *= 0.75f;
+			break;
+		case 5: // Escalator
+			weight = ESCALATOR_WEIGHT;
+			break;
+		case 6: // Stairs
+			weight = STAIR_WEIGHT;
+			break;
 		}
+		try {
+			weight = properties.getDouble("hulop_distance_overwrite");
+		} catch (Exception e) {
+		}
+		double penarty = Math.max(weight, 10.0f) * 9;
+
+		int width = getCode(properties, "width", 100);
+		// 1: less than 1.0 m (wheelchair inaccessible),
+		// 2: 1.0 m to less than 2.0 m (wheelchair accessible (difficult to pass each
+		// other)),
+		// 3: 2.0 m to less than 3.0 m (wheelchair accessible (possible to pass each
+		// other)),
+		// 4: 3.0 m or more (no problem in wheelchair accessibility),
+		// 99: unknown
+		try {
+			switch (conditions.get("min_width")) {
+			case "1": // >3.0m
+				if (width < 4) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "2": // >2.0m
+				if (width < 3) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "3": // >1.0m
+				if (width < 2) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (width < 4) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		int vtcl_slope = getCode(properties, "vtcl_slope", 100);
+		// 1: 5% or less (no problem in wheelchair accessibility),
+		// 2: more than 5% (up),
+		// 3: more than 5% (down),
+		// 99: unknown
+		try {
+			switch (conditions.get("slope")) {
+			case "1": // <5%
+				if (vtcl_slope == 2 || vtcl_slope == 3) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (vtcl_slope == 2 || vtcl_slope == 3) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		int condition = getCode(properties, "condition", 100);
+		// 1: no problem in accessibility, 2: problem in accessibility, 99: unknown
+		try {
+			switch (conditions.get("road_condition")) {
+			case "1": // No problem
+				if (condition == 2) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (condition == 2) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		int lev_diff = getCode(properties, "lev_diff", 100);
+		// 1: 2 cm or less (no problem in wheelchair accessibility),
+		// 2: more than 2 cm (problem in wheelchair accessibility),
+		// 99: unknown
+
+		try {
+			switch (conditions.get("deff_LV")) {
+			case "1": // <2cm
+				if (lev_diff == 2) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (lev_diff == 2) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		int handrail = getCode(properties, "handrail", 100);
+		// 1: none, 2: on the right, 3: on the left, 4: on both sides, 99: unknown
+		// (The direction is as seen from the source.)
+		try {
+			switch (conditions.get("stairs")) {
+			case "1": // Do not use
+				if (route_type == 6) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "2": // Use with hand rail
+				if (route_type == 6 && !(handrail == 2 || handrail == 3 || handrail == 4)) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (route_type == 6) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		int elevator = getCode(properties, "elevator", 100);
+		// 1: no elevator, 2: inaccessible, 3: wheel chair accessible
+		// 4: blind accessible, 5: accessible, 99: unknown
+		if (elevator != 3 && elevator != 5 && route_type == 4) {
+			elevator = 2;
+		}
+		try {
+			switch (conditions.get("elv")) {
+			case "1": // Do not use
+				if (elevator == 2 || elevator == 3 || elevator == 4 || elevator == 5) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "2": // Wheel chair supported
+				if (elevator == 2 || elevator == 4) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		try {
+			switch (conditions.get("esc")) {
+			case "1": // Do not use
+				if (route_type == 5) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (route_type == 5) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		try {
+			switch (conditions.get("mvw")) {
+			case "1": // Do not use
+				if (route_type == 2) {
+					return WEIGHT_IGNORE;
+				}
+				break;
+			case "8": // Avoid
+				if (route_type == 2) {
+					weight += penarty;
+				}
+				break;
+			}
+		} catch (NullPointerException npe) {
+		}
+
+		int brail_tile = getCode(properties, "brail_tile", 100);
+		// 1: without tactile walking surface indicators, etc., 2: with tactile walking
+		// surface indicators, etc., 99: unknown
+		if (brail_tile == 2 && "1".equals(conditions.get("tactile_paving"))) {
+			weight = weight / 3;
+		}
+		return weight;
 	}
 
 	private static String extractNode(String id) {
