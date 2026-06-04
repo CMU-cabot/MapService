@@ -45,6 +45,14 @@ $hulop.map = function() {
 	var lastAnnounce, lastStep, lastSearchTo;
 	var TRANSITION_MARGIN = 2.0;
 	var offroadStatus = null, lastOffroadStatus = null, offroadTimeout = null;
+	var routeOptions = $.extend({
+		'routeAction' : 'search',
+		'allowSubgraph' : false,
+		'solver' : '',
+		'attempts' : '',
+		'useDestination' : true,
+		'destinationLabel' : ''
+	}, $hulop.routeOptions || {});
 
 	var format = new ol.format.GeoJSON()
 
@@ -688,7 +696,7 @@ $hulop.map = function() {
 			return;
 		}
 		var _id = data[data.length - 1]._id;
-		if (_id && _id != $('#to').val()) {
+		if (routeOptions.useDestination && _id && _id != $('#to').val()) {
 			$('#to').val(_id);
 			refreshSelect();
 		}
@@ -940,6 +948,9 @@ $hulop.map = function() {
 	}
 
 	function getDestinationName(pron) {
+		if (!routeOptions.useDestination) {
+			return routeOptions.destinationLabel || 'Link Cover';
+		}
 		var name = $('#to option:selected').text();
 		if (pron) {
 			var obj = targetNodes[$('#to option:selected').val()];
@@ -951,6 +962,9 @@ $hulop.map = function() {
 	}
 
 	function getDestinationLong(pron) {
+		if (!routeOptions.useDestination) {
+			return "";
+		}
 		var obj = targetNodes[$('#to option:selected').val()];
 		var lang = $hulop.messages.defaultLang;
 		var longDesc = obj && obj.properties && (obj.properties['hulop_long_description_' + lang] || obj.properties['hulop_long_description']);
@@ -961,6 +975,9 @@ $hulop.map = function() {
 	}
 
 	function getPoiInfo(poiNode) {
+		if (!routeOptions.useDestination) {
+			return {};
+		}
 		var info = {};
 		var option = $('#to option[value="' + poiNode + '"]');
 		var obj = targetNodes[option.val()];
@@ -1443,29 +1460,56 @@ $hulop.map = function() {
 		}, initTarget);
 	}
 
+	function getSelectedTargetLabel() {
+		if (!routeOptions.useDestination) {
+			return routeOptions.destinationLabel || routeOptions.routeAction;
+		}
+		return $('#to option:selected').text();
+	}
+
+	function buildRouteRequest(to_val) {
+		var data = {
+			'action' : routeOptions.routeAction,
+			'preferences' : JSON.stringify($hulop.util.getPreferences())
+		};
+		if (routeOptions.routeAction == 'linkcover') {
+			data.allow_subgraph = !!routeOptions.allowSubgraph;
+			var solver = $('#solver').length ? $('#solver').val() : routeOptions.solver;
+			if (solver) {
+				data.solver = solver;
+			}
+			var attempts = $('#attempts').length ? $.trim($('#attempts').val()) : routeOptions.attempts;
+			if (attempts) {
+				data.attempts = attempts;
+			}
+		}
+		data.from = $('#from').val();
+		if (routeOptions.useDestination) {
+			data.to = to_val || $('#to').val();
+		}
+		var from = startCurrentLocation();
+		if (from) {
+			data.from = 'latlng:' + from[1] + ':' + from[0];
+			var floor = $hulop.indoor && $hulop.indoor.getCurrentFloor() || 0;
+			if (floor != 0) {
+				data.from += ':' + floor;
+			}
+		}
+		return data;
+	}
+
 	function doSearch(all, to_val) {
 		lastSearchTo = to_val;
 		clearRoute();
 		var data = {
-			'action' : 'search',
+			'action' : routeOptions.routeAction,
 			'preferences' : JSON.stringify($hulop.util.getPreferences())
 		}
 		if (!all) {
 			devMode() || restoreSync();
-			data.from = $('#from').val();
-			data.to = to_val || $('#to').val();
-			var from_str = data.from.split(':');
-			var to_str = data.to.split(':');
-			var from = startCurrentLocation();
-			if (from) {
-				data.from = 'latlng:' + from[1] + ':' + from[0];
-				var floor = $hulop.indoor && $hulop.indoor.getCurrentFloor() || 0;
-				if (floor != 0) {
-					data.from += ':' + floor;
-				}
-			}
+			data = buildRouteRequest(to_val);
 			if (currentLatLng) {
-				$hulop.util.logText("Route," + $('#from option:selected').text() + "," + $('#to option:selected').text());
+				$hulop.util.logText("Route," + $('#from option:selected').text() + "," + getSelectedTargetLabel());
 				$hulop.util.logText("initTarget," + JSON.stringify({
 					'action' : 'start',
 					'lat' : currentLatLng[1],

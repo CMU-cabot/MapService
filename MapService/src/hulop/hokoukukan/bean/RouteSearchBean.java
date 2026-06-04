@@ -48,10 +48,10 @@ import hulop.hokoukukan.utils.Hokoukukan;
 public class RouteSearchBean {
 
 	public static final DBAdapter adapter = DatabaseBean.adapter;
-	private static final double WEIGHT_IGNORE = Double.MAX_VALUE;
+	static final double WEIGHT_IGNORE = Double.MAX_VALUE;
 	private static final double ESCALATOR_WEIGHT = RouteSearchServlet.getEnvInt("ESCALATOR_WEIGHT", 100);
 	private static final double STAIR_WEIGHT = RouteSearchServlet.getEnvInt("STAIR_WEIGHT", 300);
-	private static final double ELEVATOR_WEIGHT = RouteSearchServlet.getEnvInt("ELEVATOR_WEIGHT", 300);
+	static final double ELEVATOR_WEIGHT = RouteSearchServlet.getEnvInt("ELEVATOR_WEIGHT", 300);
 	private long mLastInit = System.currentTimeMillis();
 	private JSONObject mNodeMap, mNodeFacilities, mTempNode, mTempLink1, mTempLink2;
 	private JSONArray mFeatures, mLandmarks, mDoors;
@@ -147,6 +147,14 @@ public class RouteSearchBean {
 			dh.add(mTempLink2);
 		}
 		return addStartArea(dh.getResult(), fromPoint);
+	}
+
+	public Object getLinkCover(String from, Map<String, String> conditions, boolean allowSubgraph, String solver,
+			boolean all, int attempts) throws Exception {
+		mLastInit = System.currentTimeMillis();
+		mTempNode = mTempLink1 = mTempLink2 = null;
+		return new LinkCoverRouteBuilder(this, mNodeMap, mFeatures, mElevatorNodes).build(from, conditions, allowSubgraph,
+				solver, all, attempts);
 	}
 
 	private class DirectionHandler {
@@ -312,7 +320,7 @@ public class RouteSearchBean {
 		}
 	}
 
-	private double adjustAccWeight(JSONObject properties, double weight, Map<String, String> conditions)
+	double adjustAccWeight(JSONObject properties, double weight, Map<String, String> conditions)
 			throws JSONException {
 
 		int route_type = getCode(properties, "route_type", 100);
@@ -517,11 +525,11 @@ public class RouteSearchBean {
 		return weight;
 	}
 
-	private static String extractNode(String id) {
+	static String extractNode(String id) {
 		return id != null ? id.split(":")[0] : null;
 	}
 
-	private static JSONObject getPoint(String node) {
+	static JSONObject getPoint(String node) {
 		if (node != null) {
 			String[] params = node.split(":");
 			if (params.length >= 3 && params[0].equals("latlng")) {
@@ -545,19 +553,19 @@ public class RouteSearchBean {
 		return null;
 	}
 
-	private boolean isNode(String id) {
+	boolean isNode(String id) {
 		return tempNodeID.equals(id) ? mTempNode != null : mNodeMap.has(id);
 	}
 
-	private JSONObject getNode(String id) throws JSONException {
+	JSONObject getNode(String id) throws JSONException {
 		return tempNodeID.equals(id) ? mTempNode : mNodeMap.getJSONObject(id);
 	}
 
-	private double getHeight(String node) throws JSONException {
+	double getHeight(String node) throws JSONException {
 		return getNode(node).getJSONObject("properties").getDouble("floor");
 	}
 
-	private int getDoor(String node) throws JSONException {
+	int getDoor(String node) throws JSONException {
 		if (countLinks(node) <= 2) {
 			for (Object p : mDoors) {
 				JSONObject properties = (JSONObject) p;
@@ -598,7 +606,7 @@ public class RouteSearchBean {
 		return METERS_PER_DEGREE * Math.acos(dist) * 180.0 / Math.PI;
 	}
 
-	private String findNearestLink(JSONObject fromPoint) {
+	String findNearestLink(JSONObject fromPoint) {
 		try {
 			List<Double> floors = fromPoint.has("floors") ? fromPoint.getJSONArray("floors") : null;
 			List<JSONObject> links = new ArrayList<JSONObject>();
@@ -648,7 +656,7 @@ public class RouteSearchBean {
 		return null;
 	}
 
-	private JSONArray addStartArea(JSONArray route, JSONObject startPos) {
+	JSONArray addStartArea(JSONArray route, JSONObject startPos) {
 		if (startPos == null || route.length() < 2) {
 			return route;
 		}
@@ -729,9 +737,21 @@ public class RouteSearchBean {
 		return new Point2D.Double(((Double) coord.get(0)).doubleValue(), ((Double) coord.get(1)).doubleValue());
 	}
 
+	JSONObject getTempNode() {
+		return mTempNode;
+	}
+
+	JSONObject getTempLink1() {
+		return mTempLink1;
+	}
+
+	JSONObject getTempLink2() {
+		return mTempLink2;
+	}
+
 	static final String tempNodeID = "_TEMP_NODE_", tempLink1ID = "_TEMP_LINK1_", tempLink2ID = "_TEMP_LINK2_";
 
-	private String createTempNode(JSONObject point, JSONObject link) throws Exception {
+	String createTempNode(JSONObject point, JSONObject link) throws Exception {
 		JSONArray linkCoords = link.getJSONObject("geometry").getJSONArray("coordinates");
 		JSONArray nodeCoord = new JSONArray().put(point.getDouble("lng")).put(point.getDouble("lat"));
 		Object pos = getOrthoCenter(linkCoords, nodeCoord, link.getJSONObject("properties"));
@@ -837,7 +857,7 @@ public class RouteSearchBean {
 		}
 	}
 
-	private int getCode(JSONObject properties, String key, int defVal) {
+	int getCode(JSONObject properties, String key, int defVal) {
 		try {
 			return properties.getInt(key);
 		} catch (Exception e) {

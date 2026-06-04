@@ -53,6 +53,8 @@ public class RouteSearchServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private static final long CACHE_EXPIRE = 30 * 60 * 1000;
+	private static final int LINKCOVER_MAX_ATTEMPTS = getEnvInt("LINKCOVER_MAX_ATTEMPTS", 5000);
+	private static final int LINKCOVER_MAX_ALL_ATTEMPTS = getEnvInt("LINKCOVER_MAX_ALL_ATTEMPTS", 200);
 
 	private final Map<String, JSONObject> startMap = new LinkedHashMap<String, JSONObject>(16, 0.75f, true) {
 		private static final long serialVersionUID = 1L;
@@ -219,6 +221,57 @@ public class RouteSearchServlet extends HttpServlet {
 				array.add(data);
 				// System.out.println("route_search user=" + user);
 				DatabaseBean.insertLogs(array, request);
+			} else if ("linkcover".equals(action)) {
+				// Parse linkcover-specific controls before delegating to the route builder.
+				// The defaults intentionally match the API contract for subgraph handling,
+				// solver selection, and randomized trial count.
+				String from = request.getParameter("from");
+				String sAllowSubgraph = request.getParameter("allow_subgraph");
+				boolean allowSubgraph = sAllowSubgraph == null || "true".equalsIgnoreCase(sAllowSubgraph);
+				String solver = request.getParameter("solver");
+				if (solver == null || solver.trim().isEmpty()) {
+					solver = "dopt";
+				}
+				boolean all = "true".equalsIgnoreCase(request.getParameter("all"));
+				String sAttempts = request.getParameter("attempts");
+				int attempts = sAttempts == null ? getEnvInt("LINKCOVER_ATTEMPTS", 1000) : Integer.parseInt(sAttempts);
+				if (attempts <= 0) {
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "attempts must be positive");
+					return;
+				}
+				if (attempts > LINKCOVER_MAX_ATTEMPTS) {
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+							"attempts must be <= " + LINKCOVER_MAX_ATTEMPTS);
+					return;
+				}
+				if (all && attempts > LINKCOVER_MAX_ALL_ATTEMPTS) {
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+							"attempts must be <= " + LINKCOVER_MAX_ALL_ATTEMPTS + " when all=true");
+					return;
+				}
+				JSONObject preferences = (JSONObject) JSON.parse(request.getParameter("preferences"));
+
+				// RouteSearchBean owns the graph preparation and solver-specific linkcover logic.
+				result = bean.getLinkCover(from, preferences, allowSubgraph, solver, all, attempts);
+
+				// Record the exact linkcover request knobs so later analysis can reconstruct
+				// which solver mode and randomized trial count produced the response.
+				JSONObject route = new JSONObject();
+				route.put("from", from);
+				route.put("allow_subgraph", allowSubgraph);
+				route.put("solver", solver);
+				route.put("all", all);
+				route.put("attempts", attempts);
+				route.put("preferences", preferences);
+				route.put("lang", lang);
+				JSONObject data = new JSONObject();
+				data.put("event", "route_linkcover");
+				data.put("client", user);
+				data.put("timestamp", System.currentTimeMillis());
+				data.put("route", route);
+				JSONArray array = new JSONArray();
+				array.add(data);
+				DatabaseBean.insertLogs(array, request);
 			} else if ("features".equals(action)) {
 				result = bean.getFeatures();
 			} else if ("nodemap".equals(action)) {
@@ -290,6 +343,19 @@ public class RouteSearchServlet extends HttpServlet {
 			if (size != null) {
 				System.out.println(key + "=" + size);
 				return Integer.parseInt(size);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return defaultValue;
+	}
+
+	public static double getEnvDouble(String key, double defaultValue) {
+		try {
+			String size = System.getenv(key);
+			if (size != null) {
+				System.out.println(key + "=" + size);
+				return Double.parseDouble(size);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

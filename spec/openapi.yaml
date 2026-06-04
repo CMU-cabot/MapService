@@ -206,6 +206,31 @@ paths:
                 $ref: '#/components/schemas/route'
         '405':
           description: Invalid input
+  /routesearch?action=linkcover:
+    get:
+      tags:
+        - map
+      summary: Get a closed route covering links on the start floor
+      description: This returns a sequence of Node, Link as a closed route covering the traversable links on the start floor. Call `routesearch?action=start` first with the same `user` and `lang` to initialize the route search session.
+      operationId: linkcover
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lang'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/allow_subgraph'
+        - $ref: '#/components/parameters/solver'
+        - $ref: '#/components/parameters/all'
+        - $ref: '#/components/parameters/attempts'
+        - $ref: '#/components/parameters/preferences'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/linkcover_response'
+        '405':
+          description: Invalid input
   /routesearch?action=toilets:
     get:
       tags:
@@ -267,7 +292,54 @@ components:
       $ref: /spec/nodemap.json
     route:
       $ref: /spec/route.json
+    linkcover_candidate:
+      type: object
+      properties:
+        d_optimality:
+          type: number
+          format: double
+        route:
+          $ref: '#/components/schemas/route'
+    linkcover_candidates:
+      type: object
+      properties:
+        best_route:
+          $ref: '#/components/schemas/route'
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/linkcover_candidate'
+    linkcover_response:
+      oneOf:
+        - $ref: '#/components/schemas/route'
+        - $ref: '#/components/schemas/linkcover_candidates'
   parameters:
+    allow_subgraph:
+      name: allow_subgraph
+      in: query
+      description: if true, limit linkcover to links reachable from the start node within the same floor using traversable directions
+      required: false
+      schema:
+        type: boolean
+        default: true
+    all:
+      name: all
+      in: query
+      description: if true and solver=dopt, return all collected candidate routes and their d-optimality scores; attempts is capped by LINKCOVER_MAX_ALL_ATTEMPTS, which defaults to 200
+      required: false
+      schema:
+        type: boolean
+        default: false
+    attempts:
+      name: attempts
+      in: query
+      description: number of randomized Hierholzer trials used when solver=dopt; capped by LINKCOVER_MAX_ATTEMPTS, which defaults to 5000, and by LINKCOVER_MAX_ALL_ATTEMPTS, which defaults to 200 when all=true
+      required: false
+      schema:
+        type: integer
+        default: 1000
+        minimum: 1
+        maximum: 5000
     cache:
       name: cache
       in: query
@@ -363,6 +435,17 @@ components:
               esc:
                 type: string
                 example: '1'
+    solver:
+      name: solver
+      in: query
+      description: route solver for linkcover (cpp returns a single Chinese Postman solution, dopt evaluates multiple shortest candidates with D-opt)
+      required: false
+      schema:
+        type: string
+        enum:
+          - cpp
+          - dopt
+        default: dopt
     to:
       name: to
       description: end point for route search, either node id or lat/lng coordinates (latlng:`lat`:`lng`:`floor` | `node_id`)

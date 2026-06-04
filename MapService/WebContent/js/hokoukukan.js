@@ -286,11 +286,15 @@ $hulop.route = function() {
 			return;
 		}
 		sendData('post', 'routesearch', data, callback);
-		if (data.action == 'search') {
+		if (data.action == 'search' || data.action == 'linkcover') {
 			naviCondition = {
+				'action' : data.action,
 				'from' : data.from,
 				'to' : data.to
 			};
+			if (typeof data.allow_subgraph != 'undefined') {
+				naviCondition.allow_subgraph = data.allow_subgraph;
+			}
 		}
 	}
 
