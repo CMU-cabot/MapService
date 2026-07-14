@@ -40,16 +40,8 @@ import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
 import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.GraphTests;
-import org.jgrapht.alg.cycle.ChinesePostman;
-import org.jgrapht.alg.interfaces.MatchingAlgorithm;
-import org.jgrapht.alg.matching.blossom.v5.KolmogorovWeightedPerfectMatching;
-import org.jgrapht.alg.matching.blossom.v5.ObjectiveSense;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.DirectedWeightedMultigraph;
-import org.jgrapht.graph.SimpleWeightedGraph;
 import org.jgrapht.graph.WeightedMultigraph;
 
 import hulop.hokoukukan.servlet.RouteSearchServlet;
@@ -76,8 +68,8 @@ final class LinkCoverRouteBuilder {
 		this.elevatorNodes = elevatorNodes;
 	}
 
-	Object build(String from, Map<String, String> conditions, boolean allowSubgraph, String solver, boolean all,
-			int attempts) throws Exception {
+	Object build(String from, String to, LinkCoverCoverageState coverageState, Map<String, String> conditions,
+			boolean allowSubgraph, String solver, boolean all, int attempts) throws Exception {
 		JSONObject fromPoint = RouteSearchBean.getPoint(from);
 		Set<Double> floors;
 		String originalLinkID = null;
@@ -114,10 +106,38 @@ final class LinkCoverRouteBuilder {
 			floors = getFloorSet(owner.getHeight(from));
 		}
 
+		if (to == null || to.trim().isEmpty()) {
+			to = from;
+		} else {
+			JSONObject toPoint = RouteSearchBean.getPoint(to);
+			if (toPoint != null) {
+				JSONArray toFloors = toPoint.has("floors") ? toPoint.getJSONArray("floors") : new JSONArray();
+				if (toFloors.length() == 0) {
+					for (Double floor : floors) {
+						toFloors.add(floor);
+					}
+				}
+				to = RouteSearchBean.adapter.findNearestNode(
+						new double[] { toPoint.getDouble("lng"), toPoint.getDouble("lat") }, toFloors);
+			} else {
+				to = RouteSearchBean.extractNode(to);
+			}
+			if (to == null || !owner.isNode(to)) {
+				throw new Exception("Invalid end node");
+			}
+			if (!floors.contains(owner.getHeight(to))) {
+				throw new Exception("End node must be on the start floor");
+			}
+		}
+
+		if (originalLinkID != null && coverageState.isExcluded(originalLinkID)) {
+			throw new Exception("Current position is on an excluded link: " + originalLinkID);
+		}
+
 		// Hand the filtered graph construction and solver-specific route generation
 		// to LinkCoverHandler after the start node and target floor set are fixed.
-		LinkCoverHandler lch = new LinkCoverHandler(from, conditions, floors, originalLinkID, allowSubgraph, solver, all,
-				attempts);
+		LinkCoverHandler lch = new LinkCoverHandler(from, to, coverageState, conditions, floors, originalLinkID,
+				allowSubgraph, solver, all, attempts);
 		for (Object feature : features) {
 			lch.add(feature);
 		}
@@ -174,7 +194,12 @@ final class LinkCoverRouteBuilder {
 		private DirectedWeightedMultigraph<String, DefaultWeightedEdge> g = new DirectedWeightedMultigraph<String, DefaultWeightedEdge>(
 				DefaultWeightedEdge.class);
 		private Map<Object, JSONObject> linkMap = new HashMap<Object, JSONObject>();
+		private Map<Object, String> coverageLinkIdMap = new HashMap<Object, String>();
+		private Map<String, LinkCoverCoverageState.LinkEndpoints> knownLinkEndpoints = new LinkedHashMap<String, LinkCoverCoverageState.LinkEndpoints>();
+		private Set<String> availableCoverageLinkIds = new LinkedHashSet<String>();
 		private String from;
+		private String to;
+		private LinkCoverCoverageState coverageState;
 		private Map<String, String> conditions;
 		private Set<Double> floors;
 		private String originalLinkID;
@@ -185,9 +210,12 @@ final class LinkCoverRouteBuilder {
 		private Set<String> directionIgnoredLinkIds = new LinkedHashSet<String>();
 		private final double elevator_weight;
 
-		public LinkCoverHandler(String from, Map<String, String> conditions, Set<Double> floors, String originalLinkID,
-				boolean allowSubgraph, String solver, boolean all, int attempts) {
+		public LinkCoverHandler(String from, String to, LinkCoverCoverageState coverageState,
+				Map<String, String> conditions, Set<Double> floors, String originalLinkID, boolean allowSubgraph,
+				String solver, boolean all, int attempts) {
 			this.from = from;
+			this.to = to;
+			this.coverageState = coverageState;
 			this.conditions = conditions;
 			this.floors = floors;
 			this.originalLinkID = originalLinkID;
@@ -204,19 +232,7 @@ final class LinkCoverRouteBuilder {
 			// Build the traversable solver graph that linkcover will solve on.
 			// Only links that remain usable after accessibility filtering and start-floor
 			// restriction are kept in the solver graph.
-			if (!(properties.has("link_id") && Hokoukukan.available(properties))) {
-				return;
-			}
-			if (originalLinkID != null) {
-				try {
-					if (originalLinkID.equals(json.getString("_id")) || originalLinkID.equals(properties.getString("link_id"))) {
-						return;
-					}
-				} catch (Exception e) {
-				}
-			}
-			double weight = computeBaseWeight(properties);
-			if (weight == RouteSearchBean.WEIGHT_IGNORE) {
+			if (!properties.has("link_id")) {
 				return;
 			}
 			String start, end;
@@ -227,6 +243,32 @@ final class LinkCoverRouteBuilder {
 				return;
 			}
 			if (!owner.isNode(start) || !owner.isNode(end) || !isSameFloor(start, end, floors)) {
+				return;
+			}
+
+			String featureId = getLinkId(json, properties);
+			boolean isOriginalStartLink = originalLinkID != null && originalLinkID.equals(featureId);
+			boolean isTemporaryStartLink = originalLinkID != null
+					&& (RouteSearchBean.tempLink1ID.equals(featureId) || RouteSearchBean.tempLink2ID.equals(featureId));
+			String coverageLinkId = isTemporaryStartLink ? originalLinkID : featureId;
+			// Traversal history describes complete physical-link traversals. Always let
+			// the original start link override temporary split endpoints, regardless of
+			// feature iteration order.
+			if (!isTemporaryStartLink || !knownLinkEndpoints.containsKey(coverageLinkId)) {
+				knownLinkEndpoints.put(coverageLinkId, new LinkCoverCoverageState.LinkEndpoints(start, end));
+			}
+			if (!Hokoukukan.available(properties)) {
+				return;
+			}
+			double weight = computeBaseWeight(properties);
+			if (weight == RouteSearchBean.WEIGHT_IGNORE) {
+				return;
+			}
+			availableCoverageLinkIds.add(coverageLinkId);
+			if (isOriginalStartLink) {
+				return;
+			}
+			if (coverageState.isExcluded(coverageLinkId)) {
 				return;
 			}
 			g.addVertex(start);
@@ -249,11 +291,13 @@ final class LinkCoverRouteBuilder {
 				double add = !elevatorNodes.contains(start) && elevatorNodes.contains(end) ? elevator_weight : 0;
 				g.setEdgeWeight(startEnd, weight + add);
 				linkMap.put(startEnd, json);
+				coverageLinkIdMap.put(startEnd, coverageLinkId);
 			}
 			if (endStart != null) {
 				double add = elevatorNodes.contains(start) && !elevatorNodes.contains(end) ? elevator_weight : 0;
 				g.setEdgeWeight(endStart, weight + add);
 				linkMap.put(endStart, json);
+				coverageLinkIdMap.put(endStart, coverageLinkId);
 			}
 		}
 
@@ -293,30 +337,47 @@ final class LinkCoverRouteBuilder {
 		}
 
 		public Object getResult() throws Exception {
+			coverageState.validate(knownLinkEndpoints);
+
 			// Optionally shrink the graph to the part that is actually reachable from
 			// the start node before running either solver.
 			if (allowSubgraph) {
 				restrictToReachableSubgraph();
 			}
 
-			// Reject graphs that cannot produce a closed traversal from the requested start.
+			boolean hasRequiredKnownLink = false;
+			for (String linkId : availableCoverageLinkIds) {
+				if (!coverageState.isExcluded(linkId) && !coverageState.isCovered(linkId)) {
+					hasRequiredKnownLink = true;
+					break;
+				}
+			}
 			if (g.edgeSet().isEmpty()) {
+				if (!hasRequiredKnownLink && from.equals(to)) {
+					return new JSONObject().put("error", "zero-distance");
+				}
 				throw new Exception("No links to cover on the start floor");
 			}
 			if (!g.containsVertex(from)) {
 				throw new Exception("Start node is not connected");
 			}
-			if (!GraphTests.isStronglyConnected(g)) {
-				throw new Exception("Links on the start floor are not strongly connected");
+			if (!g.containsVertex(to)) {
+				throw new Exception("End node is not reachable through allowed links");
 			}
 
-			// Keep the original CPP path as a compatibility mode that returns one
-			// closed route without candidate enumeration or D-opt scoring.
+			AbstractGraphContext context = buildAbstractGraphContext();
+			AugmentedAbstractGraph augmentedGraph = buildRppAugmentedGraph(context);
+			if (augmentedGraph.edgeOrder.isEmpty()) {
+				return new JSONObject().put("error", "zero-distance");
+			}
+
+			// CPP compatibility mode now uses the same RPP augmentation but returns one
+			// deterministic Euler trail without D-opt candidate enumeration.
 			if ("cpp".equals(solver)) {
 				if (all) {
 					throw new Exception("all=true is only supported with solver=dopt");
 				}
-				LinkCoverCandidate candidate = buildCppCandidate(g, null);
+				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, null);
 				if (candidate == null) {
 					throw new Exception("Failed to build link cover route");
 				}
@@ -332,7 +393,7 @@ final class LinkCoverRouteBuilder {
 
 			// The D-opt solver enumerates candidate tours and then picks the
 			// highest-scoring order-sensitive route.
-			List<LinkCoverCandidate> candidates = buildDoptCandidates();
+			List<LinkCoverCandidate> candidates = buildDoptCandidates(augmentedGraph);
 			if (candidates.isEmpty()) {
 				throw new Exception("Failed to build link cover route");
 			}
@@ -348,34 +409,22 @@ final class LinkCoverRouteBuilder {
 			return buildAllResponse(candidates);
 		}
 
-		private List<LinkCoverCandidate> buildDoptCandidates() throws Exception {
+		private List<LinkCoverCandidate> buildDoptCandidates(AugmentedAbstractGraph augmentedGraph) throws Exception {
 			Map<String, LinkCoverCandidate> candidates = new LinkedHashMap<String, LinkCoverCandidate>();
 
 			// Build the undirected abstract graph used by the paper-inspired D-opt solver,
 			// augment it once to become Eulerian, then sample candidate tours by
 			// randomizing Hierholzer's next-edge choices.
-			AbstractGraphContext context = buildAbstractGraphContext();
-			MatchingSample sample = buildMatchingSample(context);
-			AugmentedAbstractGraph augmentedGraph = buildAugmentedAbstractGraph(context, sample);
-			Random random = new Random(from.hashCode() ^ g.edgeSet().size() ^ attempts);
+			int seed = from.hashCode() ^ to.hashCode() ^ coverageState.routingFingerprint().hashCode()
+					^ g.edgeSet().size() ^ attempts;
+			Random random = new Random(seed);
 			for (int i = 0; i < attempts; i++) {
-				LinkCoverCandidate candidate = buildAbstractCandidate(context, augmentedGraph, random);
+				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, random);
 				if (candidate != null) {
 					candidates.put(candidate.signature, candidate);
 				}
 			}
 			return new ArrayList<LinkCoverCandidate>(candidates.values());
-		}
-
-		private LinkCoverCandidate buildCppCandidate(Graph<String, DefaultWeightedEdge> graph,
-				Map<DefaultWeightedEdge, DefaultWeightedEdge> edgeMap) throws Exception {
-			GraphPath<String, DefaultWeightedEdge> path = new ChinesePostman<String, DefaultWeightedEdge>().getCPPSolution(graph);
-			if (path == null || path.getEdgeList().isEmpty()) {
-				return null;
-			}
-
-			List<DefaultWeightedEdge> rotated = rotateCircuit(graph, path.getEdgeList());
-			return buildDirectedCandidate(resolveOriginalEdges(rotated, edgeMap));
 		}
 
 		private AbstractGraphContext buildAbstractGraphContext() throws Exception {
@@ -400,6 +449,7 @@ final class LinkCoverRouteBuilder {
 					JSONObject properties = json.getJSONObject("properties");
 					info = new AbstractLink();
 					info.id = id;
+					info.coverageId = coverageLinkIdMap.get(edge);
 					info.json = json;
 					info.start = properties.getString("start_id");
 					info.end = properties.getString("end_id");
@@ -421,96 +471,31 @@ final class LinkCoverRouteBuilder {
 				DefaultWeightedEdge edge = context.graph.addEdge(info.start, info.end);
 				context.graph.setEdgeWeight(edge, info.weight);
 				context.linkMap.put(edge, info);
-			}
-			context.vertices = new ArrayList<String>(context.graph.vertexSet());
-			Collections.sort(context.vertices);
-			context.oddVertices = new ArrayList<String>();
-			for (String vertex : context.vertices) {
-				if ((context.graph.degreeOf(vertex) & 1) == 1) {
-					context.oddVertices.add(vertex);
-				}
-			}
-
-			// Precompute shortest paths between every odd-degree pair so the complete
-			// graph can reuse the same distances and expanded edge sequences.
-			for (int i = 0; i < context.oddVertices.size(); i++) {
-				String source = context.oddVertices.get(i);
-				for (int j = i + 1; j < context.oddVertices.size(); j++) {
-					String target = context.oddVertices.get(j);
-					GraphPath<String, DefaultWeightedEdge> path = DijkstraShortestPath.findPathBetween(context.graph, source, target);
-					if (path == null || path.getEdgeList().isEmpty()) {
-						throw new Exception("Failed to build odd-node shortest path");
-					}
-					ShortestPathInfo info = new ShortestPathInfo();
-					info.source = source;
-					info.target = target;
-					info.distance = path.getWeight();
-					info.edges = new ArrayList<DefaultWeightedEdge>(path.getEdgeList());
-					context.shortestPathMap.put(getPairKey(source, target), info);
-				}
+				context.edgeData.put(edge, new LinkCoverRppSolver.EdgeData<AbstractLink>(info.id, info,
+						!coverageState.isCovered(info.coverageId)));
 			}
 			return context;
 		}
 
-		private MatchingSample buildMatchingSample(AbstractGraphContext context) throws Exception {
-			MatchingSample sample = new MatchingSample();
-			if (context.oddVertices.isEmpty()) {
-				return sample;
+		private AugmentedAbstractGraph buildRppAugmentedGraph(AbstractGraphContext context) throws Exception {
+			LinkCoverRppSolver<AbstractLink> solver = new LinkCoverRppSolver<AbstractLink>(context.graph,
+					context.edgeData, from, to);
+			LinkCoverRppSolver.Result<AbstractLink> solved = solver.solve();
+			AugmentedAbstractGraph augmented = new AugmentedAbstractGraph();
+			augmented.graph = solved.graph;
+			augmented.edgeOrder.addAll(solved.edgeOrder);
+			for (Map.Entry<DefaultWeightedEdge, LinkCoverRppSolver.EdgeData<AbstractLink>> entry : solved.edgeData
+					.entrySet()) {
+				augmented.linkMap.put(entry.getKey(), entry.getValue().payload);
 			}
-
-			// Solve the odd-node pairing once to get the minimum augmentation needed
-			// to turn the abstract graph into an Eulerian graph.
-			CompleteGraphData completeGraph = buildOddCompleteGraph(context);
-			MatchingAlgorithm.Matching<String, DefaultWeightedEdge> matching = new KolmogorovWeightedPerfectMatching<String, DefaultWeightedEdge>(
-					completeGraph.graph, ObjectiveSense.MINIMIZE).getMatching();
-			if (matching == null || !matching.isPerfect()) {
-				throw new Exception("Failed to compute perfect matching");
-			}
-			for (DefaultWeightedEdge edge : matching.getEdges()) {
-				ShortestPathInfo info = completeGraph.pathMap.get(edge);
-				if (info == null) {
-					throw new Exception("Failed to resolve matching path");
-				}
-				sample.paths.add(info);
-				sample.cost += info.distance;
-			}
-			return sample;
+			return augmented;
 		}
 
-		private CompleteGraphData buildOddCompleteGraph(AbstractGraphContext context) throws Exception {
-			CompleteGraphData data = new CompleteGraphData();
-			data.graph = new SimpleWeightedGraph<String, DefaultWeightedEdge>(DefaultWeightedEdge.class);
-
-			// The complete graph encodes the cost of pairing any two odd-degree vertices
-			// by the shortest path distance between them in the abstract graph.
-			for (String vertex : context.oddVertices) {
-				data.graph.addVertex(vertex);
-			}
-			for (int i = 0; i < context.oddVertices.size(); i++) {
-				String source = context.oddVertices.get(i);
-				for (int j = i + 1; j < context.oddVertices.size(); j++) {
-					String target = context.oddVertices.get(j);
-					ShortestPathInfo info = context.shortestPathMap.get(getPairKey(source, target));
-					if (info == null) {
-						throw new Exception("Missing shortest path for odd nodes");
-					}
-					DefaultWeightedEdge edge = data.graph.addEdge(source, target);
-					data.graph.setEdgeWeight(edge, info.distance);
-					data.pathMap.put(edge, info);
-				}
-			}
-			return data;
-		}
-
-		private String getPairKey(String source, String target) {
-			return source.compareTo(target) <= 0 ? source + "|" + target : target + "|" + source;
-		}
-
-		private LinkCoverCandidate buildAbstractCandidate(AbstractGraphContext context, AugmentedAbstractGraph augmentedGraph, Random random)
+		private LinkCoverCandidate buildAbstractCandidate(AugmentedAbstractGraph augmentedGraph, Random random)
 				throws Exception {
 			// Enumerate one Eulerian tour by running Hierholzer on the augmented graph
 			// with randomized branch choices at vertices that still have multiple options.
-			List<AbstractTraversalStep> steps = buildRandomEulerianCircuit(augmentedGraph, random);
+			List<AbstractTraversalStep> steps = buildEulerianTrail(augmentedGraph, random);
 			if (steps == null || steps.isEmpty()) {
 				return null;
 			}
@@ -534,98 +519,16 @@ final class LinkCoverRouteBuilder {
 			return candidate;
 		}
 
-		private AugmentedAbstractGraph buildAugmentedAbstractGraph(AbstractGraphContext context, MatchingSample sample) {
-			AugmentedAbstractGraph augmented = new AugmentedAbstractGraph();
-			augmented.graph = new WeightedMultigraph<String, DefaultWeightedEdge>(DefaultWeightedEdge.class);
-
-			// Materialize the Eulerian graph by copying the abstract links and then
-			// duplicating the shortest-path edges selected by the odd-node matching.
-			for (String vertex : context.graph.vertexSet()) {
-				augmented.graph.addVertex(vertex);
-			}
-			copyAbstractEdges(context.graph, context.linkMap, augmented.graph, augmented.linkMap);
-			for (ShortestPathInfo path : sample.paths) {
-				for (DefaultWeightedEdge edge : path.edges) {
-					AbstractLink link = context.linkMap.get(edge);
-					DefaultWeightedEdge copy = augmented.graph.addEdge(context.graph.getEdgeSource(edge),
-							context.graph.getEdgeTarget(edge));
-					augmented.graph.setEdgeWeight(copy, context.graph.getEdgeWeight(edge));
-					augmented.linkMap.put(copy, link);
-				}
-			}
-			return augmented;
-		}
-
-		private void copyAbstractEdges(WeightedMultigraph<String, DefaultWeightedEdge> sourceGraph,
-				Map<DefaultWeightedEdge, AbstractLink> sourceMap, WeightedMultigraph<String, DefaultWeightedEdge> targetGraph,
-				Map<DefaultWeightedEdge, AbstractLink> targetMap) {
-			for (DefaultWeightedEdge edge : sourceGraph.edgeSet()) {
-				DefaultWeightedEdge copy = targetGraph.addEdge(sourceGraph.getEdgeSource(edge), sourceGraph.getEdgeTarget(edge));
-				targetGraph.setEdgeWeight(copy, sourceGraph.getEdgeWeight(edge));
-				targetMap.put(copy, sourceMap.get(edge));
-			}
-		}
-
-		private LinkCoverCandidate buildDirectedCandidate(List<DefaultWeightedEdge> edges) {
-			LinkCoverCandidate candidate = new LinkCoverCandidate();
-			double totalWeight = 0;
-			for (DefaultWeightedEdge edge : edges) {
-				totalWeight += g.getEdgeWeight(edge);
-			}
-			candidate.edges = edges;
-			candidate.distance = totalWeight;
-			candidate.signature = buildDirectedSignature(edges);
-			candidate.dOptimality = Double.NEGATIVE_INFINITY;
-			candidate.route = formatRoute(edges);
-			return candidate;
-		}
-
-		private List<DefaultWeightedEdge> resolveOriginalEdges(List<DefaultWeightedEdge> edges,
-				Map<DefaultWeightedEdge, DefaultWeightedEdge> edgeMap) throws Exception {
-			List<DefaultWeightedEdge> result = new ArrayList<DefaultWeightedEdge>();
-			for (DefaultWeightedEdge edge : edges) {
-				DefaultWeightedEdge original = edgeMap != null ? edgeMap.get(edge) : edge;
-				if (original == null) {
-					throw new Exception("Failed to resolve link cover edge");
-				}
-				result.add(original);
-			}
-			return result;
-		}
-
-		private List<DefaultWeightedEdge> rotateCircuit(Graph<String, DefaultWeightedEdge> graph,
-				List<DefaultWeightedEdge> edges) throws Exception {
-			if (edges.isEmpty()) {
-				throw new Exception("Empty link cover route");
-			}
-			int startIndex = -1;
-			for (int i = 0; i < edges.size(); i++) {
-				if (from.equals(graph.getEdgeSource(edges.get(i)))) {
-					startIndex = i;
-					break;
-				}
-			}
-			if (startIndex == -1) {
-				throw new Exception("Failed to align link cover route with start node");
-			}
-			List<DefaultWeightedEdge> rotated = new ArrayList<DefaultWeightedEdge>();
-			for (int i = 0; i < edges.size(); i++) {
-				rotated.add(edges.get((startIndex + i) % edges.size()));
-			}
-			if (!from.equals(graph.getEdgeSource(rotated.get(0)))
-					|| !from.equals(graph.getEdgeTarget(rotated.get(rotated.size() - 1)))) {
-				throw new Exception("Failed to rotate link cover route");
-			}
-			return rotated;
-		}
-
-		private List<AbstractTraversalStep> buildRandomEulerianCircuit(AugmentedAbstractGraph augmentedGraph, Random random)
+		private List<AbstractTraversalStep> buildEulerianTrail(AugmentedAbstractGraph augmentedGraph, Random random)
 				throws Exception {
 			Map<String, List<DefaultWeightedEdge>> adjacency = new HashMap<String, List<DefaultWeightedEdge>>();
 
-			// Prepare per-vertex edge lists and shuffle them once so Hierholzer explores
-			// equally valid next edges in a random order on each trial.
-			for (DefaultWeightedEdge edge : augmentedGraph.graph.edgeSet()) {
+			// C. Hierholzer, "Ueber die Moeglichkeit, einen Linienzug ohne
+			// Wiederholung und ohne Unterbrechung zu umfahren" (1873), supplies the
+			// traversal. For D-opt mode, random next-edge order implements the random
+			// exhaustive candidate search used by Gao et al., "Active Loop Closure for
+			// OSM-guided Robotic Mapping in Large-Scale Urban Environments" (2024).
+			for (DefaultWeightedEdge edge : augmentedGraph.edgeOrder) {
 				String source = augmentedGraph.graph.getEdgeSource(edge);
 				String target = augmentedGraph.graph.getEdgeTarget(edge);
 				List<DefaultWeightedEdge> list = adjacency.get(source);
@@ -639,8 +542,10 @@ final class LinkCoverRouteBuilder {
 				}
 				list.add(edge);
 			}
-			for (List<DefaultWeightedEdge> list : adjacency.values()) {
-				Collections.shuffle(list, random);
+			if (random != null) {
+				for (List<DefaultWeightedEdge> list : adjacency.values()) {
+					Collections.shuffle(list, random);
+				}
 			}
 
 			Map<String, Integer> nextIndex = new HashMap<String, Integer>();
@@ -674,11 +579,11 @@ final class LinkCoverRouteBuilder {
 
 			Collections.reverse(circuit);
 			if (circuit.size() != augmentedGraph.graph.edgeSet().size()) {
-				throw new Exception("Failed to build Eulerian circuit");
+				throw new Exception("Failed to build Eulerian trail");
 			}
 			if (!circuit.isEmpty() && (!from.equals(circuit.get(0).source)
-					|| !from.equals(circuit.get(circuit.size() - 1).target))) {
-				throw new Exception("Failed to align Hierholzer circuit with start node");
+					|| !to.equals(circuit.get(circuit.size() - 1).target))) {
+				throw new Exception("Failed to align Hierholzer trail with start and end nodes");
 			}
 			return circuit;
 		}
@@ -740,23 +645,6 @@ final class LinkCoverRouteBuilder {
 			return null;
 		}
 
-		private String buildDirectedSignature(List<DefaultWeightedEdge> edges) {
-			StringBuilder sb = new StringBuilder();
-			for (DefaultWeightedEdge edge : edges) {
-				if (sb.length() > 0) {
-					sb.append('|');
-				}
-				sb.append(g.getEdgeSource(edge)).append('>')
-						.append(g.getEdgeTarget(edge)).append('#');
-				try {
-					sb.append(linkMap.get(edge).getString("_id"));
-				} catch (Exception e) {
-					sb.append(System.identityHashCode(edge));
-				}
-			}
-			return sb.toString();
-		}
-
 		private String buildAbstractOrderedSignature(List<AbstractTraversalStep> steps) {
 			for (AbstractTraversalStep step : steps) {
 				if (step.link == null) {
@@ -794,8 +682,10 @@ final class LinkCoverRouteBuilder {
 				return Double.NEGATIVE_INFINITY;
 			}
 
-			// Build a route-ordered pose-graph-like Laplacian where every visit instance
-			// becomes a node in time order, not just a unique map node.
+			// Gao et al., "Active Loop Closure for OSM-guided Robotic Mapping in
+			// Large-Scale Urban Environments" (2024), evaluate candidate routes with
+			// TOED-based D-optimality. This v1 intentionally scores only the newly
+			// planned route and does not yet incorporate traversal_history.
 			List<String> visits = new ArrayList<String>();
 			visits.add(from);
 			String current = from;
@@ -893,6 +783,7 @@ final class LinkCoverRouteBuilder {
 					try {
 						link = new JSONObject(link.toString());
 						JSONObject properties = link.getJSONObject("properties");
+						properties.put("coverage_link_id", coverageLinkIdMap.get(edge));
 						String edgeSource = g.getEdgeSource(edge);
 						String edgeTarget = g.getEdgeTarget(edge);
 						int sourceDoor = owner.getDoor(edgeSource);
@@ -916,7 +807,7 @@ final class LinkCoverRouteBuilder {
 					}
 					route.add(link);
 				}
-				JSONObject toNode = (JSONObject) owner.getNode(from).clone();
+				JSONObject toNode = (JSONObject) owner.getNode(to).clone();
 				route.add(toNode);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -968,6 +859,7 @@ final class LinkCoverRouteBuilder {
 			DirectedWeightedMultigraph<String, DefaultWeightedEdge> subgraph = new DirectedWeightedMultigraph<String, DefaultWeightedEdge>(
 					DefaultWeightedEdge.class);
 			Map<Object, JSONObject> subLinkMap = new HashMap<Object, JSONObject>();
+			Map<Object, String> subCoverageLinkIdMap = new HashMap<Object, String>();
 			for (DefaultWeightedEdge edge : g.edgeSet()) {
 				String source = g.getEdgeSource(edge);
 				String target = g.getEdgeTarget(edge);
@@ -979,10 +871,12 @@ final class LinkCoverRouteBuilder {
 				DefaultWeightedEdge subEdge = subgraph.addEdge(source, target);
 				subgraph.setEdgeWeight(subEdge, g.getEdgeWeight(edge));
 				subLinkMap.put(subEdge, linkMap.get(edge));
+				subCoverageLinkIdMap.put(subEdge, coverageLinkIdMap.get(edge));
 			}
 
 			g = subgraph;
 			linkMap = subLinkMap;
+			coverageLinkIdMap = subCoverageLinkIdMap;
 		}
 	}
 
@@ -996,6 +890,7 @@ final class LinkCoverRouteBuilder {
 
 	private static class AbstractLink {
 		private String id;
+		private String coverageId;
 		private JSONObject json;
 		private String start;
 		private String end;
@@ -1005,34 +900,16 @@ final class LinkCoverRouteBuilder {
 		private DefaultWeightedEdge backwardEdge;
 	}
 
-	private static class ShortestPathInfo {
-		private String source;
-		private String target;
-		private double distance;
-		private List<DefaultWeightedEdge> edges = new ArrayList<DefaultWeightedEdge>();
-	}
-
-	private static class MatchingSample {
-		private List<ShortestPathInfo> paths = new ArrayList<ShortestPathInfo>();
-		private double cost;
-	}
-
-	private static class CompleteGraphData {
-		private SimpleWeightedGraph<String, DefaultWeightedEdge> graph;
-		private Map<DefaultWeightedEdge, ShortestPathInfo> pathMap = new HashMap<DefaultWeightedEdge, ShortestPathInfo>();
-	}
-
 	private static class AbstractGraphContext {
 		private WeightedMultigraph<String, DefaultWeightedEdge> graph;
 		private Map<DefaultWeightedEdge, AbstractLink> linkMap = new HashMap<DefaultWeightedEdge, AbstractLink>();
-		private Map<String, ShortestPathInfo> shortestPathMap = new HashMap<String, ShortestPathInfo>();
-		private List<String> vertices = new ArrayList<String>();
-		private List<String> oddVertices = new ArrayList<String>();
+		private Map<DefaultWeightedEdge, LinkCoverRppSolver.EdgeData<AbstractLink>> edgeData = new HashMap<DefaultWeightedEdge, LinkCoverRppSolver.EdgeData<AbstractLink>>();
 	}
 
 	private static class AugmentedAbstractGraph {
 		private WeightedMultigraph<String, DefaultWeightedEdge> graph;
 		private Map<DefaultWeightedEdge, AbstractLink> linkMap = new HashMap<DefaultWeightedEdge, AbstractLink>();
+		private List<DefaultWeightedEdge> edgeOrder = new ArrayList<DefaultWeightedEdge>();
 	}
 
 	private static class AbstractTraversalStep {

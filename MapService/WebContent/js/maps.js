@@ -1489,6 +1489,20 @@ $hulop.map = function() {
 			if (attempts) {
 				data.attempts = attempts;
 			}
+			var linkCoverTo = $('#linkcover_to').length ? $.trim($('#linkcover_to').val()) : '';
+			if (linkCoverTo) {
+				data.to = linkCoverTo;
+			}
+			var coverageState = $('#coverage_state').length ? $.trim($('#coverage_state').val()) : '';
+			if (coverageState) {
+				try {
+					JSON.parse(coverageState);
+				} catch (e) {
+					showAlert('Invalid coverage_state JSON: ' + e.message);
+					return null;
+				}
+				data.coverage_state = coverageState;
+			}
 		}
 		data.from = $('#from').val();
 		if (routeOptions.useDestination) {

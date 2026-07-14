@@ -210,13 +210,26 @@ paths:
     get:
       tags:
         - map
-      summary: Get a closed route covering links on the start floor
-      description: This returns a sequence of Node, Link as a closed route covering the traversable links on the start floor. Call `routesearch?action=start` first with the same `user` and `lang` to initialize the route search session.
-      operationId: linkcover
+      summary: Get an open or closed route covering required links on the start floor
+      description: >-
+        This returns a sequence of Node and Link features. Omit `to` and
+        `coverage_state` for the backward-compatible closed CPP route. For
+        replanning, covered links are optional RPP connector edges, excluded links
+        are removed, and other links are required. A metric-closure MST follows the
+        framework in Frederickson, "Approximation Algorithms for Some Postman
+        Problems" (1979); odd-degree matching follows Edmonds and Johnson,
+        "Matching, Euler Tours and the Chinese Postman" (1973); randomized
+        Hierholzer candidates and planned-route-only D-opt evaluation are based on
+        Gao et al., "Active Loop Closure for OSM-guided Robotic Mapping in
+        Large-Scale Urban Environments" (2024). Call `routesearch?action=start`
+        first with the same `user` and `lang`.
+      operationId: linkcoverGet
       parameters:
         - $ref: '#/components/parameters/user'
         - $ref: '#/components/parameters/lang'
         - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/linkcover_to'
+        - $ref: '#/components/parameters/coverage_state'
         - $ref: '#/components/parameters/allow_subgraph'
         - $ref: '#/components/parameters/solver'
         - $ref: '#/components/parameters/all'
@@ -231,6 +244,36 @@ paths:
                 $ref: '#/components/schemas/linkcover_response'
         '405':
           description: Invalid input
+        '400':
+          description: Invalid coverage state or unreachable required links/end point
+    post:
+      tags:
+        - map
+      summary: Plan or replan an open or closed link-cover route
+      description: >-
+        POST is recommended when coverage_state contains a long traversal history.
+        The behavior and algorithmic basis are identical to the GET operation.
+      operationId: linkcoverPost
+      parameters:
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/lang'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/linkcover_to'
+        - $ref: '#/components/parameters/coverage_state'
+        - $ref: '#/components/parameters/allow_subgraph'
+        - $ref: '#/components/parameters/solver'
+        - $ref: '#/components/parameters/all'
+        - $ref: '#/components/parameters/attempts'
+        - $ref: '#/components/parameters/preferences'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/linkcover_response'
+        '400':
+          description: Invalid coverage state or unreachable required links/end point
   /routesearch?action=toilets:
     get:
       tags:
@@ -313,6 +356,12 @@ components:
       oneOf:
         - $ref: '#/components/schemas/route'
         - $ref: '#/components/schemas/linkcover_candidates'
+        - type: object
+          properties:
+            error:
+              type: string
+              enum:
+                - zero-distance
   parameters:
     allow_subgraph:
       name: allow_subgraph
@@ -348,6 +397,18 @@ components:
       schema:
         type: string
         example: false
+    coverage_state:
+      name: coverage_state
+      in: query
+      description: >-
+        JSON object containing covered_link_ids, excluded_link_ids, and optional
+        traversal_history. IDs are route link properties.coverage_link_id values.
+        Excluded takes precedence over covered. History is validated but is not
+        included in D-opt scoring in this version.
+      required: false
+      schema:
+        type: string
+        example: '{"covered_link_ids":["EDITOR_link_1"],"excluded_link_ids":["EDITOR_link_2"],"traversal_history":[]}'
     dist:
       name: dist
       in: query
@@ -374,6 +435,14 @@ components:
         type: string
         pattern: ^[a-zA-Z]{2}$
         example: en
+    linkcover_to:
+      name: to
+      description: optional end point for linkcover; lat/lng input is rounded to the nearest node on the requested floor
+      in: query
+      required: false
+      schema:
+        type: string
+        example: latlng:35.61950:139.77700:1
     lat:
       name: lat
       in: query
@@ -438,7 +507,7 @@ components:
     solver:
       name: solver
       in: query
-      description: route solver for linkcover (cpp returns a single Chinese Postman solution, dopt evaluates multiple shortest candidates with D-opt)
+      description: route solver for linkcover (cpp returns one deterministic CPP/RPP trail, dopt evaluates randomized Hierholzer candidates with planned-route D-opt)
       required: false
       schema:
         type: string

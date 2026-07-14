@@ -149,12 +149,13 @@ public class RouteSearchBean {
 		return addStartArea(dh.getResult(), fromPoint);
 	}
 
-	public Object getLinkCover(String from, Map<String, String> conditions, boolean allowSubgraph, String solver,
-			boolean all, int attempts) throws Exception {
+	public Object getLinkCover(String from, String to, LinkCoverCoverageState coverageState,
+			Map<String, String> conditions, boolean allowSubgraph, String solver, boolean all, int attempts)
+			throws Exception {
 		mLastInit = System.currentTimeMillis();
 		mTempNode = mTempLink1 = mTempLink2 = null;
-		return new LinkCoverRouteBuilder(this, mNodeMap, mFeatures, mElevatorNodes).build(from, conditions, allowSubgraph,
-				solver, all, attempts);
+		return new LinkCoverRouteBuilder(this, mNodeMap, mFeatures, mElevatorNodes).build(from, to, coverageState,
+				conditions, allowSubgraph, solver, all, attempts);
 	}
 
 	private class DirectionHandler {

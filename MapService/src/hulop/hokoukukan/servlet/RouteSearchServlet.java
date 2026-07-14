@@ -41,6 +41,7 @@ import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONObject;
 
 import hulop.hokoukukan.bean.DatabaseBean;
+import hulop.hokoukukan.bean.LinkCoverCoverageState;
 import hulop.hokoukukan.bean.RouteData;
 import hulop.hokoukukan.bean.RouteSearchBean;
 import hulop.hokoukukan.utils.DBAdapter;
@@ -226,6 +227,9 @@ public class RouteSearchServlet extends HttpServlet {
 				// The defaults intentionally match the API contract for subgraph handling,
 				// solver selection, and randomized trial count.
 				String from = request.getParameter("from");
+				String to = request.getParameter("to");
+				LinkCoverCoverageState coverageState = LinkCoverCoverageState
+						.parse(request.getParameter("coverage_state"));
 				String sAllowSubgraph = request.getParameter("allow_subgraph");
 				boolean allowSubgraph = sAllowSubgraph == null || "true".equalsIgnoreCase(sAllowSubgraph);
 				String solver = request.getParameter("solver");
@@ -252,12 +256,14 @@ public class RouteSearchServlet extends HttpServlet {
 				JSONObject preferences = (JSONObject) JSON.parse(request.getParameter("preferences"));
 
 				// RouteSearchBean owns the graph preparation and solver-specific linkcover logic.
-				result = bean.getLinkCover(from, preferences, allowSubgraph, solver, all, attempts);
+				result = bean.getLinkCover(from, to, coverageState, preferences, allowSubgraph, solver, all, attempts);
 
 				// Record the exact linkcover request knobs so later analysis can reconstruct
 				// which solver mode and randomized trial count produced the response.
 				JSONObject route = new JSONObject();
 				route.put("from", from);
+				route.put("to", to);
+				route.put("coverage_state", coverageState.toJSONObject());
 				route.put("allow_subgraph", allowSubgraph);
 				route.put("solver", solver);
 				route.put("all", all);

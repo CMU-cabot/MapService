@@ -99,6 +99,14 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 						<td><input data-mini="true" id="linkcover_start_floor" name="linkcover_start_floor" type="number" step="1" value="1" required /></td>
 					</tr>
 					<tr class="basic_menu">
+						<td><label for="linkcover_to">to</label></td>
+						<td><input data-mini="true" id="linkcover_to" name="linkcover_to" type="text" placeholder="latlng:lat:lng:floor or node_id" /></td>
+					</tr>
+					<tr class="basic_menu">
+						<td><label for="coverage_state">coverage_state</label></td>
+						<td><textarea id="coverage_state" name="coverage_state" rows="7">{"covered_link_ids":[],"excluded_link_ids":[],"traversal_history":[]}</textarea></td>
+					</tr>
+					<tr class="basic_menu">
 						<td><label for="solver">solver</label></td>
 						<td><select data-mini="true" id="solver" name='solver'>
 								<option value="dopt" selected>dopt</option>
