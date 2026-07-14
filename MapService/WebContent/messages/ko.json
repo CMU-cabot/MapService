@@ -26,6 +26,7 @@
   "NO_ROUTE": "경로를 찾을 수 없습니다. 다른 목적지를 선택하십시오.",
   "NO_TARGET": "근처의 숙박 시설이 없습니다.",
   "FAR_ROUTE": "안내 가능한 위치에서%1 미터 떨어져 있습니다.",
+  "START_FLOOR": "시작 층",
   "PROCEED_TO": "%1에 진행",
   "GO_STRAIGHT": "직진",
   "TURN_RIGHT": "우회전",

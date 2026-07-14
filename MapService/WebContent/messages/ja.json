@@ -26,6 +26,7 @@
 	"NO_ROUTE": "経路が見つかりません。別の目的地を選んでください。",
 	"NO_TARGET": "近くの目的地がありません。",
 	"FAR_ROUTE": "案内可能な場所から%1メートル離れています。",
+	"START_FLOOR": "開始階",
 	"PROCEED_TO": "%1に進む",
 	"GO_STRAIGHT": "直進する",
 	"TURN_RIGHT": "右に曲がる",

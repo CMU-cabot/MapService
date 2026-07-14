@@ -95,6 +95,10 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 						<td><select data-mini="true" id="to" name='to'></select></td>
 					</tr>
 					<tr class="basic_menu">
+						<td><label for="linkcover_start_floor" i18n>START_FLOOR</label></td>
+						<td><input data-mini="true" id="linkcover_start_floor" name="linkcover_start_floor" type="number" step="1" value="1" required /></td>
+					</tr>
+					<tr class="basic_menu">
 						<td><label for="solver">solver</label></td>
 						<td><select data-mini="true" id="solver" name='solver'>
 								<option value="dopt" selected>dopt</option>

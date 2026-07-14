@@ -26,6 +26,7 @@
   "NO_ROUTE": "没有找到路径。请选择其他目的地。",
   "NO_TARGET": "附近没有目的地。",
   "FAR_ROUTE": "可进行向导的场所在%1米以外。",
+  "START_FLOOR": "起始楼层",
   "PROCEED_TO": "前进到%1",
   "GO_STRAIGHT": "直走",
   "TURN_RIGHT": "右转",

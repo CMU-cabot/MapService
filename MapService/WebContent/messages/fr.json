@@ -26,6 +26,7 @@
 	"NO_ROUTE": "Pas de routes pour les valeurs spécifiés. ",
 	"NO_TARGET": "Pas d'objectifs dans la zone de recherche.",
 	"FAR_ROUTE": "à %1 mètres du point de départ.",
+	"START_FLOOR": "Étage de départ",
 	"PROCEED_TO": "Dirigez-vous vers %1",
 	"GO_STRAIGHT": "Allez tout droit",
 	"TURN_RIGHT": "Tournez à droite",

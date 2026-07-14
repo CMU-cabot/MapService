@@ -1468,11 +1468,18 @@ $hulop.map = function() {
 	}
 
 	function buildRouteRequest(to_val) {
+		var linkCoverFloor;
 		var data = {
 			'action' : routeOptions.routeAction,
 			'preferences' : JSON.stringify($hulop.util.getPreferences())
 		};
 		if (routeOptions.routeAction == 'linkcover') {
+			var floorInput = $('#linkcover_start_floor')[0];
+			if (!floorInput || !floorInput.checkValidity()) {
+				floorInput && floorInput.reportValidity();
+				return null;
+			}
+			linkCoverFloor = floorInput.value;
 			data.allow_subgraph = !!routeOptions.allowSubgraph;
 			var solver = $('#solver').length ? $('#solver').val() : routeOptions.solver;
 			if (solver) {
@@ -1490,9 +1497,13 @@ $hulop.map = function() {
 		var from = startCurrentLocation();
 		if (from) {
 			data.from = 'latlng:' + from[1] + ':' + from[0];
-			var floor = $hulop.indoor && $hulop.indoor.getCurrentFloor() || 0;
-			if (floor != 0) {
-				data.from += ':' + floor;
+			if (routeOptions.routeAction == 'linkcover') {
+				data.from += ':' + linkCoverFloor;
+			} else {
+				var floor = $hulop.indoor && $hulop.indoor.getCurrentFloor() || 0;
+				if (floor != 0) {
+					data.from += ':' + floor;
+				}
 			}
 		}
 		return data;
@@ -1508,6 +1519,9 @@ $hulop.map = function() {
 		if (!all) {
 			devMode() || restoreSync();
 			data = buildRouteRequest(to_val);
+			if (!data) {
+				return;
+			}
 			if (currentLatLng) {
 				$hulop.util.logText("Route," + $('#from option:selected').text() + "," + getSelectedTargetLabel());
 				$hulop.util.logText("initTarget," + JSON.stringify({

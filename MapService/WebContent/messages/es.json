@@ -26,6 +26,7 @@
 	"NO_ROUTE": "No existe ninguna ruta para las condiciones especificadas. ",
 	"NO_TARGET": "No existen objetivos dentro del rango de búsqueda.",
 	"FAR_ROUTE": "a %1 metros del punto inicial.",
+	"START_FLOOR": "Planta de inicio",
 	"PROCEED_TO": "Dirígete hacia %1",
 	"GO_STRAIGHT": "Siga recto",
 	"TURN_RIGHT": "Gira a la derecha",
