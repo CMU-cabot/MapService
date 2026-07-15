@@ -24,6 +24,10 @@ package hulop.hokoukukan.bean;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +51,19 @@ import hulop.hokoukukan.utils.Hokoukukan;
 
 public class RouteSearchBean {
 
-	public static final DBAdapter adapter = DatabaseBean.adapter;
+	// Preserve the public adapter API without initializing DatabaseBean (and its
+	// database connection) until an adapter method is actually invoked.
+	public static final DBAdapter adapter = (DBAdapter) Proxy.newProxyInstance(DBAdapter.class.getClassLoader(),
+			new Class<?>[] { DBAdapter.class }, new InvocationHandler() {
+				@Override
+				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+					try {
+						return method.invoke(DatabaseBean.adapter, args);
+					} catch (InvocationTargetException e) {
+						throw e.getCause();
+					}
+				}
+			});
 	static final double WEIGHT_IGNORE = Double.MAX_VALUE;
 	private static final double ESCALATOR_WEIGHT = RouteSearchServlet.getEnvInt("ESCALATOR_WEIGHT", 100);
 	private static final double STAIR_WEIGHT = RouteSearchServlet.getEnvInt("STAIR_WEIGHT", 300);

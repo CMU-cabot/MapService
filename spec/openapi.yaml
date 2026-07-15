@@ -215,7 +215,12 @@ paths:
         This returns a sequence of Node and Link features. Omit `to` and
         `coverage_state` for the backward-compatible closed CPP route. For
         replanning, covered links are optional RPP connector edges, excluded links
-        are removed, and other links are required. A metric-closure MST follows the
+        are removed, and other links are required. If `from` is in the interior of
+        an excluded link, an explicit `to` and a traversal-history tail identifying
+        the entry endpoint allow one temporary split fragment to be prepended as a
+        fixed retreat. The excluded link remains outside the RPP graph, and this
+        fixed prefix is excluded from candidate distance, signature, and D-opt
+        comparison. A metric-closure MST follows the
         framework in Frederickson, "Approximation Algorithms for Some Postman
         Problems" (1979); odd-degree matching follows Edmonds and Johnson,
         "Matching, Euler Tours and the Chinese Postman" (1973); randomized
@@ -245,7 +250,10 @@ paths:
         '405':
           description: Invalid input
         '400':
-          description: Invalid coverage state or unreachable required links/end point
+          description: >-
+            Invalid coverage state, unreachable required links/end point, or an
+            excluded current-position link without explicit to and an unambiguous
+            entry endpoint in the traversal-history tail
     post:
       tags:
         - map
@@ -273,7 +281,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/linkcover_response'
         '400':
-          description: Invalid coverage state or unreachable required links/end point
+          description: >-
+            Invalid coverage state, unreachable required links/end point, or an
+            excluded current-position link without explicit to and an unambiguous
+            entry endpoint in the traversal-history tail
   /routesearch?action=toilets:
     get:
       tags:
@@ -404,7 +415,10 @@ components:
         JSON object containing covered_link_ids, excluded_link_ids, and optional
         traversal_history. IDs are route link properties.coverage_link_id values.
         Excluded takes precedence over covered. History is validated but is not
-        included in D-opt scoring in this version.
+        included in D-opt scoring in this version. If from is in the interior of
+        an excluded link, the last history target_node_id must identify exactly one
+        endpoint of that link; the server retreats to that endpoint using one
+        temporary prefix before starting the RPP.
       required: false
       schema:
         type: string
@@ -437,7 +451,11 @@ components:
         example: en
     linkcover_to:
       name: to
-      description: optional end point for linkcover; lat/lng input is rounded to the nearest node on the requested floor
+      description: >-
+        optional end point for linkcover; lat/lng input is rounded to the nearest
+        node on the requested floor. It is required when from is in the interior
+        of an excluded link so the fixed retreat cannot plan a closed route back
+        onto that excluded position
       in: query
       required: false
       schema:

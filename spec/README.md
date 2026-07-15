@@ -66,16 +66,99 @@ curl -X POST 'http://localhost:9090/map/routesearch' \
 
 - A covered link is no longer required, but can be traversed to connect required
   components or correct vertex parity.
-- An excluded link is removed from all future route calculations. Excluded takes
-  precedence when the same ID is also covered.
+- An excluded link is removed from the RPP graph. Excluded takes precedence when
+  the same ID is also covered. The only exception is the temporary prefix used
+  to leave an excluded link on which the current position is already located,
+  as described below.
 - Every other traversable link on the selected floor is required.
 - `to=latlng:...` is rounded to the nearest node on the requested floor. Omitting
-  `to` keeps the backward-compatible closed route ending at `from`.
+  `to` keeps the backward-compatible closed route ending at `from`, except that
+  an explicit `to` is required when leaving a current-position excluded link.
 - `traversal_history` is validated as an ordered, continuous sequence of complete
-  physical-link traversals. This version does not include it in D-opt scoring.
+  physical-link traversals. When the current position is on an excluded link,
+  the last history entry identifies the endpoint from which that link was
+  entered. This version does not include history in D-opt scoring.
 - With `allow_subgraph=true`, only links reachable from `from` remain in scope;
   `to` must still be reachable. With `false`, every required component must be
   connectable.
+
+### Replan from the middle of an excluded link
+
+If `from=latlng:...` projects onto a physical link that is included in
+`excluded_link_ids`, MapService can first retreat over the already traversed
+part of that link and then start the normal RPP from its entry endpoint. This
+keeps the returned route physically continuous without putting the excluded
+physical link back into the RPP graph.
+
+This fixed-egress behavior requires all of the following:
+
+- `from` projects into the interior of the excluded link and creates the existing
+  `_TEMP_NODE_` and temporary split links.
+- `to` is explicitly supplied.
+- `traversal_history` is non-empty, and its last `target_node_id` equals exactly
+  one of the excluded link's physical endpoints. That endpoint is treated as the
+  side from which the user entered the link.
+
+The response starts with `_TEMP_NODE_` followed by exactly one
+`_TEMP_LINK1_` or `_TEMP_LINK2_`, directed back to the inferred entry endpoint.
+That temporary link retains the excluded physical link's
+`properties.coverage_link_id`; it is the only allowed appearance of that ID.
+The excluded physical link and both temporary fragments remain outside the RPP
+graph, and the selected fragment is prepended only after route solving. The
+fixed prefix is common to every candidate, so it is not included in distance,
+route-signature, or D-optimality candidate comparison. If the RPP portion has
+zero distance, the successful route consists only of the temporary start node,
+the egress link, and the entry node. With `all=true`, that case returns one
+candidate whose empty RPP suffix has `d_optimality=0.0`.
+
+Replace the IDs below with links and nodes from the current site. In particular,
+`EDITOR_node_entry` must be an endpoint of `EDITOR_link_current` and the target
+of the last complete traversal:
+
+```bash
+curl -sS -X POST 'http://localhost:9090/map/routesearch' \
+  -d 'action=linkcover' \
+  -d 'user=test-user' \
+  -d 'lang=ja' \
+  -d 'from=latlng:35.61960:139.77720:1' \
+  -d 'to=latlng:35.61950:139.77700:1' \
+  -d 'allow_subgraph=true' \
+  -d 'solver=dopt' \
+  -d 'attempts=100' \
+  --data-urlencode 'coverage_state={"covered_link_ids":["EDITOR_link_previous"],"excluded_link_ids":["EDITOR_link_current"],"traversal_history":[{"link_id":"EDITOR_link_previous","source_node_id":"EDITOR_node_before","target_node_id":"EDITOR_node_entry"}]}' \
+  --data-urlencode 'preferences={"min_width":"9","slope":"9","road_condition":"9","stairs":"9","deff_LV":"9","esc":"9","mvw":"9","elv":"9"}' \
+  | tee egress-route.json
+```
+
+Verify that the first Link is the temporary egress, that it points from the
+temporary node to the history endpoint, and that the excluded physical link does
+not occur elsewhere:
+
+```bash
+jq '{
+  start_id: .[0]._id,
+  egress_link_id: .[1]._id,
+  egress_coverage_link_id: .[1].properties.coverage_link_id,
+  egress_source: .[1].properties.sourceNode,
+  egress_target: .[1].properties.targetNode,
+  end_id: .[-1]._id
+}' egress-route.json
+
+# Must print 0: the excluded ID may appear only on a temporary egress Link.
+jq '[.[] | select(
+  .properties.coverage_link_id == "EDITOR_link_current" and
+  ((._id // "") | startswith("_TEMP_LINK") | not)
+)] | length' egress-route.json
+
+# With all=true, inspect the same prefix and the unchanged candidate scores.
+jq '.best_route[0:2], (.routes | map(.d_optimality))' candidates.json
+```
+
+The request returns HTTP 400 if `to` is omitted, history is empty, the last
+history target does not identify exactly one endpoint of the current excluded
+link, or the inferred entry endpoint cannot reach `to` or the required
+components. Projection directly onto an endpoint does not need fixed egress and
+uses the normal node-start behavior.
 
 To inspect candidate scores, use `all=true` with at most 200 attempts:
 
@@ -99,14 +182,19 @@ jq -r '.[] | select(.properties.coverage_link_id) | .properties.coverage_link_id
 # Start and end features
 jq '.[0], .[-1]' route.json
 
-# Must print 0 for an excluded physical link
-jq '[.[] | select(.properties.coverage_link_id == "EDITOR_link_2")] | length' route.json
+# Must print 0 for an excluded physical link outside a fixed-egress prefix
+jq '[.[] | select(
+  .properties.coverage_link_id == "EDITOR_link_2" and
+  ((._id // "") | startswith("_TEMP_LINK") | not)
+)] | length' route.json
 ```
 
-Malformed state, unknown IDs, an excluded current-position link, an unreachable
-end point, or unconnectable required components return HTTP 400. If every link is
-complete and `from` equals `to`, the successful JSON result is
-`{"error":"zero-distance"}`.
+Malformed state, unknown IDs, an excluded current-position link without the
+fixed-egress prerequisites above, an unreachable end point, or unconnectable
+required components return HTTP 400. If every link is complete and `from` equals
+`to`, the successful JSON result is `{"error":"zero-distance"}`. A fixed-egress
+prefix is a real movement, so its result is a route rather than `zero-distance`
+even when the RPP suffix is empty.
 
 ## LinkCover GUI coverage workflow
 

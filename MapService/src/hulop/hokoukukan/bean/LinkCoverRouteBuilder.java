@@ -73,6 +73,8 @@ final class LinkCoverRouteBuilder {
 		JSONObject fromPoint = RouteSearchBean.getPoint(from);
 		Set<Double> floors;
 		String originalLinkID = null;
+		JSONObject originalStartLink = null;
+		boolean explicitTo = to != null && !to.trim().isEmpty();
 
 		// Resolve the caller-provided start location into a graph start node.
 		// Lat/lng input is converted into a temporary node on the nearest link so
@@ -93,6 +95,7 @@ final class LinkCoverRouteBuilder {
 						from = owner.createTempNode(fromPoint, json);
 						if (owner.getTempNode() != null) {
 							originalLinkID = json.getString("_id");
+							originalStartLink = json;
 						}
 						break;
 					}
@@ -130,13 +133,16 @@ final class LinkCoverRouteBuilder {
 			}
 		}
 
+		FixedEgress fixedEgress = null;
+		String solverFrom = from;
 		if (originalLinkID != null && coverageState.isExcluded(originalLinkID)) {
-			throw new Exception("Current position is on an excluded link: " + originalLinkID);
+			fixedEgress = resolveFixedEgress(originalStartLink, originalLinkID, coverageState, explicitTo);
+			solverFrom = fixedEgress.entryNodeId;
 		}
 
 		// Hand the filtered graph construction and solver-specific route generation
 		// to LinkCoverHandler after the start node and target floor set are fixed.
-		LinkCoverHandler lch = new LinkCoverHandler(from, to, coverageState, conditions, floors, originalLinkID,
+		LinkCoverHandler lch = new LinkCoverHandler(solverFrom, to, coverageState, conditions, floors, originalLinkID,
 				allowSubgraph, solver, all, attempts);
 		for (Object feature : features) {
 			lch.add(feature);
@@ -145,7 +151,132 @@ final class LinkCoverRouteBuilder {
 			lch.add(owner.getTempLink1());
 			lch.add(owner.getTempLink2());
 		}
-		return addStartAreaToLinkCoverResult(lch.getResult(), fromPoint);
+		Object result = lch.getResult();
+		if (fixedEgress != null) {
+			result = prependFixedEgress(result, fixedEgress, all, solver);
+		}
+		return addStartAreaToLinkCoverResult(result, fromPoint);
+	}
+
+	private FixedEgress resolveFixedEgress(JSONObject originalLink, String originalLinkId,
+			LinkCoverCoverageState coverageState, boolean explicitTo) throws Exception {
+		if (!explicitTo) {
+			throw new Exception("to is required when current position is on an excluded link: " + originalLinkId);
+		}
+		List<LinkCoverCoverageState.TraversalStep> history = coverageState.getTraversalHistory();
+		if (history.isEmpty()) {
+			throw new Exception(
+					"traversal_history is required to leave the current excluded link: " + originalLinkId);
+		}
+
+		JSONObject properties = originalLink.getJSONObject("properties");
+		String start = properties.getString("start_id");
+		String end = properties.getString("end_id");
+		String historyTarget = history.get(history.size() - 1).getTargetNodeId();
+		boolean enteredFromStart = historyTarget.equals(start);
+		boolean enteredFromEnd = historyTarget.equals(end);
+		if (enteredFromStart == enteredFromEnd) {
+			throw new Exception("traversal_history target does not identify the entry endpoint of current excluded link: "
+					+ originalLinkId);
+		}
+
+		FixedEgress egress = new FixedEgress();
+		egress.coverageLinkId = originalLinkId;
+		egress.entryNodeId = enteredFromStart ? start : end;
+		egress.link = enteredFromStart ? owner.getTempLink1() : owner.getTempLink2();
+		if (egress.link == null) {
+			throw new Exception("Failed to create temporary egress link for current excluded link: " + originalLinkId);
+		}
+		return egress;
+	}
+
+	private Object prependFixedEgress(Object result, FixedEgress egress, boolean all, String solver) throws Exception {
+		if (result instanceof JSONArray) {
+			return prependFixedEgressRoute((JSONArray) result, egress);
+		}
+		if (!(result instanceof JSONObject)) {
+			return result;
+		}
+
+		JSONObject json = (JSONObject) result;
+		if (json.has("error") && "zero-distance".equals(json.optString("error"))) {
+			if (all && (solver == null || "dopt".equalsIgnoreCase(solver))) {
+				JSONObject allResult = new JSONObject();
+				allResult.put("best_route", prependFixedEgressRoute(null, egress));
+				JSONObject candidate = new JSONObject();
+				candidate.put("d_optimality", 0.0);
+				candidate.put("route", prependFixedEgressRoute(null, egress));
+				allResult.put("routes", new JSONArray().put(candidate));
+				return allResult;
+			}
+			return prependFixedEgressRoute(null, egress);
+		}
+
+		if (json.has("best_route")) {
+			json.put("best_route", prependFixedEgressRoute(json.getJSONArray("best_route"), egress));
+		}
+		if (json.has("routes")) {
+			JSONArray routes = json.getJSONArray("routes");
+			for (int i = 0; i < routes.length(); i++) {
+				JSONObject candidate = routes.getJSONObject(i);
+				if (candidate.has("route")) {
+					candidate.put("route", prependFixedEgressRoute(candidate.getJSONArray("route"), egress));
+				}
+			}
+		}
+		return json;
+	}
+
+	private JSONArray prependFixedEgressRoute(JSONArray solverRoute, FixedEgress egress) throws Exception {
+		// The retreat is intentionally outside the RPP augmentation based on
+		// Frederickson, "Approximation Algorithms for Some Postman Problems" (1979),
+		// Edmonds and Johnson, "Matching, Euler Tours and the Chinese Postman" (1973),
+		// Hierholzer, "Ueber die Moeglichkeit, einen Linienzug ohne Wiederholung und
+		// ohne Unterbrechung zu umfahren" (1873), and Gao et al., "Active Loop Closure
+		// for OSM-guided Robotic Mapping in Large-Scale Urban Environments" (2024).
+		// Keeping both excluded fragments out of that graph prevents the solver from
+		// crossing or reusing the excluded physical link.
+		JSONArray route = new JSONArray();
+		route.add(new JSONObject(owner.getTempNode().toString()));
+		route.add(formatRouteLink(egress.link, egress.coverageLinkId, RouteSearchBean.tempNodeID,
+				egress.entryNodeId));
+		if (solverRoute == null || solverRoute.length() == 0) {
+			route.add(new JSONObject(owner.getNode(egress.entryNodeId).toString()));
+			return route;
+		}
+
+		JSONObject solverStart = solverRoute.getJSONObject(0);
+		if (!egress.entryNodeId.equals(solverStart.optString("_id"))) {
+			throw new Exception("RPP route does not start at the fixed-egress endpoint: " + egress.entryNodeId);
+		}
+		for (int i = 1; i < solverRoute.length(); i++) {
+			route.add(solverRoute.get(i));
+		}
+		return route;
+	}
+
+	private JSONObject formatRouteLink(JSONObject sourceLink, String coverageLinkId, String source, String target)
+			throws Exception {
+		JSONObject link = new JSONObject(sourceLink.toString());
+		JSONObject properties = link.getJSONObject("properties");
+		properties.put("coverage_link_id", coverageLinkId);
+		properties.put("sourceNode", source);
+		properties.put("targetNode", target);
+		properties.put("sourceHeight", owner.getHeight(source));
+		properties.put("targetHeight", owner.getHeight(target));
+		int sourceDoor = owner.getDoor(source);
+		int targetDoor = owner.getDoor(target);
+		if (sourceDoor != 100) {
+			properties.put("sourceDoor", sourceDoor);
+		} else {
+			properties.remove("sourceDoor");
+		}
+		if (targetDoor != 100) {
+			properties.put("targetDoor", targetDoor);
+		} else {
+			properties.remove("targetDoor");
+		}
+		return link;
 	}
 
 	private Set<Double> getFloorSet(double floor) {
@@ -338,6 +469,7 @@ final class LinkCoverRouteBuilder {
 
 		public Object getResult() throws Exception {
 			coverageState.validate(knownLinkEndpoints);
+			validateSolverOptions();
 
 			// Optionally shrink the graph to the part that is actually reachable from
 			// the start node before running either solver.
@@ -374,21 +506,11 @@ final class LinkCoverRouteBuilder {
 			// CPP compatibility mode now uses the same RPP augmentation but returns one
 			// deterministic Euler trail without D-opt candidate enumeration.
 			if ("cpp".equals(solver)) {
-				if (all) {
-					throw new Exception("all=true is only supported with solver=dopt");
-				}
 				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, null);
 				if (candidate == null) {
 					throw new Exception("Failed to build link cover route");
 				}
 				return candidate.route;
-			}
-
-			if (!"dopt".equals(solver)) {
-				throw new Exception("Unsupported solver: " + solver);
-			}
-			if (attempts <= 0) {
-				throw new Exception("attempts must be positive");
 			}
 
 			// The D-opt solver enumerates candidate tours and then picks the
@@ -407,6 +529,18 @@ final class LinkCoverRouteBuilder {
 				return candidates.get(0).route;
 			}
 			return buildAllResponse(candidates);
+		}
+
+		private void validateSolverOptions() throws Exception {
+			if (!("cpp".equals(solver) || "dopt".equals(solver))) {
+				throw new Exception("Unsupported solver: " + solver);
+			}
+			if (all && !"dopt".equals(solver)) {
+				throw new Exception("all=true is only supported with solver=dopt");
+			}
+			if ("dopt".equals(solver) && attempts <= 0) {
+				throw new Exception("attempts must be positive");
+			}
 		}
 
 		private List<LinkCoverCandidate> buildDoptCandidates(AugmentedAbstractGraph augmentedGraph) throws Exception {
@@ -781,27 +915,9 @@ final class LinkCoverRouteBuilder {
 				for (DefaultWeightedEdge edge : edges) {
 					JSONObject link = linkMap.get(edge);
 					try {
-						link = new JSONObject(link.toString());
-						JSONObject properties = link.getJSONObject("properties");
-						properties.put("coverage_link_id", coverageLinkIdMap.get(edge));
 						String edgeSource = g.getEdgeSource(edge);
 						String edgeTarget = g.getEdgeTarget(edge);
-						int sourceDoor = owner.getDoor(edgeSource);
-						int targetDoor = owner.getDoor(edgeTarget);
-						properties.put("sourceNode", edgeSource);
-						properties.put("targetNode", edgeTarget);
-						properties.put("sourceHeight", owner.getHeight(edgeSource));
-						properties.put("targetHeight", owner.getHeight(edgeTarget));
-						if (sourceDoor != 100) {
-							properties.put("sourceDoor", sourceDoor);
-						} else {
-							properties.remove("sourceDoor");
-						}
-						if (targetDoor != 100) {
-							properties.put("targetDoor", targetDoor);
-						} else {
-							properties.remove("targetDoor");
-						}
+						link = formatRouteLink(link, coverageLinkIdMap.get(edge), edgeSource, edgeTarget);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -886,6 +1002,12 @@ final class LinkCoverRouteBuilder {
 		private double dOptimality;
 		private String signature;
 		private JSONArray route;
+	}
+
+	private static class FixedEgress {
+		private JSONObject link;
+		private String coverageLinkId;
+		private String entryNodeId;
 	}
 
 	private static class AbstractLink {
