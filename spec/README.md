@@ -108,6 +108,46 @@ end point, or unconnectable required components return HTTP 400. If every link i
 complete and `from` equals `to`, the successful JSON result is
 `{"error":"zero-distance"}`.
 
+## LinkCover GUI coverage workflow
+
+Open `http://localhost:9090/map/linkcover.jsp?id=<user>` to edit and inspect the
+coverage state on the map. Start with an empty `coverage_state` and run the first
+route search to populate the selectable physical-link layer. The layer remains
+visible when the navigation route is cleared and uses these styles:
+
+- green: Covered
+- red: Excluded
+- red with a narrower green line: both Covered and Excluded
+
+Select **Covered** or **Excluded** in the map control, then select a physical
+link. Covered and Excluded are independent sets; adding Excluded never removes
+past Covered or traversal history. Excluded is applied to routing the next time
+route search runs.
+
+During navigation, reaching a turn or another instruction point marks every
+physical link in the preceding instruction segment Covered. If navigation moves
+past multiple instruction steps, every intervening planned link is included.
+Each complete traversal is appended to `traversal_history` with the directed
+`sourceNode` and `targetNode` values from the route. Repeated traversal of the
+same link produces repeated history entries while `covered_link_ids` remains a
+set. One temporary split fragment beginning at the projected current position
+is not treated as traversal of its entire physical link. If both temporary
+fragments are later traversed consecutively from one original endpoint to the
+other, the GUI combines them into one complete physical-link traversal.
+
+If a newly completed link would make the ordered history discontinuous, the GUI
+still marks it Covered but displays a warning and does not append the invalid
+history entry. Covered changes update only the current page state; they do not
+automatically run route search. The JSON field is kept synchronized and is sent
+in full on the next replan request.
+
+Manual Covered selection advances the recorded traversal through the next
+occurrence of that link in the initial plan. Removing a Covered link that is in
+history rewinds history to before its first occurrence so the remaining history
+stays continuous. **Reset coverage state** clears Covered, Excluded, and history;
+the next successful route replaces the selectable-link catalog. State is not
+persisted across a page reload.
+
 ## Algorithmic basis
 
 The implementation combines established postman algorithms with the mapping

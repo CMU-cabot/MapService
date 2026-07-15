@@ -38,6 +38,7 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 <script type="text/javascript">
 	$(document).ready(function(){
 		$hulop.map.init();
+		$hulop.linkcover.init();
 	});
 	console.log("linkcover.jsp started");
 </script>
@@ -45,6 +46,55 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 .ui-header .ui-title,
 .ui-footer .ui-title {
 	margin: 0 25%;
+}
+#map-container {
+	position: relative;
+}
+#linkcover_state_control {
+	position: absolute;
+	top: .5em;
+	left: .5em;
+	z-index: 1000;
+	max-width: calc(100% - 1em);
+	padding: .45em;
+	border: 1px solid rgba(0, 0, 0, .35);
+	border-radius: .35em;
+	background: rgba(255, 255, 255, .9);
+	font-size: 12px;
+}
+#linkcover_state_control .ui-controlgroup {
+	margin: 0 0 .35em 0;
+}
+#linkcover_state_control .coverage_counts,
+#linkcover_state_control .coverage_legend {
+	margin-top: .25em;
+	white-space: nowrap;
+}
+#linkcover_state_control .coverage_swatch {
+	display: inline-block;
+	width: 1.5em;
+	height: .45em;
+	margin: 0 .2em .1em .5em;
+	vertical-align: middle;
+}
+#linkcover_state_control .coverage_swatch:first-child {
+	margin-left: 0;
+}
+.coverage_swatch.covered {
+	background: #2e7d32;
+}
+.coverage_swatch.excluded {
+	background: #d32f2f;
+}
+#coverage_message {
+	max-width: 32em;
+	margin: .35em 0 0 0;
+	color: #424242;
+	white-space: normal;
+}
+#coverage_message.coverage_error {
+	color: #b71c1c;
+	font-weight: bold;
 }
 </style>
 </head>
@@ -71,6 +121,27 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 		</div>
 		<div role="main" class="ui-content" id="map-container">
 			<div id="map">
+			</div>
+			<div id="linkcover_state_control">
+				<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+					<input type="radio" name="linkcover_edit_mode" id="linkcover_mode_view" value="view" checked="checked" />
+					<label for="linkcover_mode_view">View</label>
+					<input type="radio" name="linkcover_edit_mode" id="linkcover_mode_covered" value="covered" />
+					<label for="linkcover_mode_covered">Covered</label>
+					<input type="radio" name="linkcover_edit_mode" id="linkcover_mode_excluded" value="excluded" />
+					<label for="linkcover_mode_excluded">Excluded</label>
+				</fieldset>
+				<div class="coverage_counts">
+					Covered: <span id="covered_count">0</span>
+					/ Excluded: <span id="excluded_count">0</span>
+					/ History: <span id="history_count">0</span>
+				</div>
+				<div class="coverage_legend">
+					<span class="coverage_swatch covered"></span>Covered
+					<span class="coverage_swatch excluded"></span>Excluded
+				</div>
+				<button type="button" id="coverage_reset" data-mini="true" data-inline="true">Reset coverage state</button>
+				<p id="coverage_message"></p>
 			</div>
 			<img id="map-center" class="my_location" src="images/round-blue.png" />
 			<img id="map-center-heading" src="images/heading-blue.png" />
@@ -104,7 +175,7 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 					</tr>
 					<tr class="basic_menu">
 						<td><label for="coverage_state">coverage_state</label></td>
-						<td><textarea id="coverage_state" name="coverage_state" rows="7">{"covered_link_ids":[],"excluded_link_ids":[],"traversal_history":[]}</textarea></td>
+						<td><textarea id="coverage_state" name="coverage_state" rows="9">{"covered_link_ids":[],"excluded_link_ids":[],"traversal_history":[]}</textarea></td>
 					</tr>
 					<tr class="basic_menu">
 						<td><label for="solver">solver</label></td>

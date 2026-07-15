@@ -39,6 +39,9 @@ $hulop.map = function() {
 	var POI_ANNOUNCE_DIST = 10, NEXT_ANNOUNCE_DIST = 10, NEXT_DETAIL_DIST = 10, NEXT_ELEVATOR_DIST = 25, NO_SOON_DIST = 10;
 	var map, currentLatLng, currentDist, currentStep, suppressAnnounce = 0, supressError = 0, lastErrorPos, rerouting, lastAdjust, lastTo;
 	var naviRoutes = [], routeReady, spokenDistance = Number.MAX_VALUE, minSpokenDistance = Number.MAX_VALUE, naviCondition = {};
+	// Keep confirmed arrival progress separate because users can browse instruction
+	// steps manually without physically completing the intervening links.
+	var lastNavigationProgressStep = 0;
 	var sync = true, rotationMode = 1, lastShowResult = false, landmarks;
 	var playback = location.search.substr(1).split('&').indexOf('playback') != -1;
 	var listeners = {};
@@ -474,6 +477,7 @@ $hulop.map = function() {
 			if (arrived) {
 				route.next_dist_span && route.next_dist_span.empty();
 				showStep(index, false);
+				notifyNavigationProgress(index);
 				if (index == naviRoutes.length - 1) {
 					$hulop.util.speak($m(getArrivalToken(), route.title), true);
 					$hulop.util.logText("endNavigation");
@@ -581,6 +585,28 @@ $hulop.map = function() {
 				spokenDistance = Math.min(distance, minSpokenDistance);
 				minSpokenDistance = Number.MAX_VALUE;
 			}
+		}
+
+		function notifyNavigationProgress(index) {
+			if (index <= lastNavigationProgressStep) {
+				return;
+			}
+			var fromStep = lastNavigationProgressStep;
+			var completedLinks = [];
+			for (var i = fromStep; i < index; i++) {
+				var step = naviRoutes[i];
+				step && step.links && step.links.forEach(function(link) {
+					link.geo && completedLinks.push(link.geo);
+				});
+			}
+			lastNavigationProgressStep = index;
+			listeners.navigationProgress && listeners.navigationProgress({
+				'fromStep' : fromStep,
+				'toStep' : index,
+				'skipped' : index > fromStep + 1,
+				'final' : index == naviRoutes.length - 1,
+				'links' : completedLinks
+			});
 		}
 
 		function findNextStep(pos, radiusList) {
@@ -865,6 +891,7 @@ $hulop.map = function() {
 			route.resttotal = total; 
 			total -= (route.subtotal || 0);
 		});
+		listeners.route && listeners.route(naviRoutes);
 		// Create step buttons
 		var tbody = $('<tbody>');
 		naviRoutes.forEach(function(item, index) {
@@ -1167,6 +1194,7 @@ $hulop.map = function() {
 
 	function clearRoute() {
 		listeners.clear && listeners.clear();
+		lastNavigationProgressStep = 0;
 		routeReady = false;
 		naviRoutes = [];
 		routeLayer.getSource().clear();
@@ -1494,6 +1522,14 @@ $hulop.map = function() {
 				data.to = linkCoverTo;
 			}
 			var coverageState = $('#coverage_state').length ? $.trim($('#coverage_state').val()) : '';
+			if ($hulop.linkcover && $hulop.linkcover.getStateText) {
+				try {
+					coverageState = $hulop.linkcover.getStateText();
+				} catch (e) {
+					showAlert('Invalid coverage_state: ' + e.message);
+					return null;
+				}
+			}
 			if (coverageState) {
 				try {
 					JSON.parse(coverageState);
@@ -1586,11 +1622,15 @@ $hulop.map = function() {
 		if (fix != 0) {
 			var height = $('#map').height() + fix;
 			$('#map').height(height);
+			// The map container can be positioned (for example, linkcover uses it
+			// to anchor coverage controls). Align the simulated-location marker
+			// with the map element instead of adding the page header offset twice.
+			var markerTop = $('#map').position().top + height / 2;
 			$('#map-center').css({
-				'top' : top + height / 2
+				'top' : markerTop
 			});
 			$('#map-center-heading').css({
-				'top' : top + height / 2
+				'top' : markerTop
 			});
 			map.updateSize();
 		}
