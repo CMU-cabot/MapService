@@ -1556,6 +1556,9 @@ $hulop.map = function() {
 				}
 			}
 		}
+		if (routeOptions.routeAction == 'linkcover' && $hulop.linkcover && $hulop.linkcover.prepareRouteRequest) {
+			$hulop.linkcover.prepareRouteRequest(data);
+		}
 		return data;
 	}
 

@@ -115,6 +115,18 @@ coverage state on the map. Start with an empty `coverage_state` and run the firs
 route search to populate the selectable physical-link layer. The layer remains
 visible when the navigation route is cleared and uses these styles:
 
+When the first GUI route search succeeds with an empty `to` field, the page
+stores that request's `from` value and displays it in `to (return point)`.
+Subsequent searches on the same page send the stored value as `to`, while
+`from` continues to follow the current position. A non-empty value entered by
+the user overrides the automatic return point. A failed first search does not
+store its `from`. **Reset coverage state** clears both the coverage state and
+the stored return point, and a page reload also starts a new in-memory session.
+As with API requests, a `latlng` return point is resolved to its nearest node.
+Reaching the final navigation destination also clears the stored return point
+and the `to` field, while retaining Covered, Excluded, and traversal history.
+Manually ending navigation does not clear the return point.
+
 - green: Covered
 - red: Excluded
 - red with a narrower green line: both Covered and Excluded

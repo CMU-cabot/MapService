@@ -21,6 +21,7 @@ $hulop.linkcover = function() {
 	var catalogById = {};
 	var styleCache = {};
 	var pendingNavigationTemporary;
+	var initialSearchFrom, pendingSearchFrom;
 
 	function emptyState() {
 		return {
@@ -272,6 +273,9 @@ $hulop.linkcover = function() {
 	}
 
 	function onNavigationProgress(progress) {
+		if (progress.final) {
+			clearReturnPoint();
+		}
 		try {
 			readTextarea();
 		} catch (e) {
@@ -311,6 +315,7 @@ $hulop.linkcover = function() {
 		progress.skipped && messages.push('skipped navigation steps included');
 		ignoredTemporaryCount && messages.push(ignoredTemporaryCount + ' partial temporary link(s) ignored');
 		result.notRecorded && messages.push(result.notRecorded + ' link(s) not added to history because it would be discontinuous');
+		progress.final && messages.push('return point cleared after arrival');
 		setMessage(messages.join('; '), result.notRecorded > 0);
 	}
 
@@ -347,6 +352,14 @@ $hulop.linkcover = function() {
 
 	function captureInitialRoute(naviRoutes) {
 		pendingNavigationTemporary = null;
+		if (!initialSearchFrom && pendingSearchFrom) {
+			initialSearchFrom = pendingSearchFrom;
+			var toInput = $('#linkcover_to');
+			if (toInput.length && !$.trim(toInput.val())) {
+				toInput.val(initialSearchFrom);
+			}
+		}
+		pendingSearchFrom = null;
 		if (catalogInitialized && !replaceCatalogOnNextRoute) {
 			return;
 		}
@@ -532,15 +545,39 @@ $hulop.linkcover = function() {
 		$('#history_count').text(state.traversal_history.length);
 	}
 
+	function clearReturnPoint() {
+		initialSearchFrom = null;
+		pendingSearchFrom = null;
+		$('#linkcover_to').val('');
+	}
+
 	function resetState() {
 		state = emptyState();
 		manualCovered = {};
 		initialPlanIndex = 0;
 		pendingNavigationTemporary = null;
+		clearReturnPoint();
 		replaceCatalogOnNextRoute = true;
 		syncTextarea();
 		renderState();
-		setMessage('Coverage state was reset; the next route will replace the selectable link catalog', false);
+		setMessage('Coverage state and return point were reset; the next route will replace the selectable link catalog', false);
+	}
+
+	function prepareRouteRequest(data) {
+		if (!data || typeof data.from != 'string' || !data.from) {
+			return;
+		}
+		if (!initialSearchFrom) {
+			// Commit this value only after captureInitialRoute confirms that the
+			// route search succeeded. A failed first request must not lock in an
+			// unusable return point.
+			pendingSearchFrom = data.from;
+			return;
+		}
+		if (!data.to) {
+			data.to = initialSearchFrom;
+			$('#linkcover_to').val(initialSearchFrom);
+		}
 	}
 
 	function init() {
@@ -595,6 +632,7 @@ $hulop.linkcover = function() {
 			syncTextarea();
 			return JSON.stringify(state);
 		},
+		'prepareRouteRequest' : prepareRouteRequest,
 		'resetState' : resetState,
 		'onNavigationProgress' : onNavigationProgress
 	};

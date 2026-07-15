@@ -170,8 +170,8 @@ if (id == null || (agreeBean.isAgreementSupported() && !agreeBean.getAgreed(id))
 						<td><input data-mini="true" id="linkcover_start_floor" name="linkcover_start_floor" type="number" step="1" value="1" required /></td>
 					</tr>
 					<tr class="basic_menu">
-						<td><label for="linkcover_to">to</label></td>
-						<td><input data-mini="true" id="linkcover_to" name="linkcover_to" type="text" placeholder="latlng:lat:lng:floor or node_id" /></td>
+						<td><label for="linkcover_to">to (return point)</label></td>
+						<td><input data-mini="true" id="linkcover_to" name="linkcover_to" type="text" placeholder="Auto-filled after the first successful search" title="latlng:lat:lng:floor or node_id" /></td>
 					</tr>
 					<tr class="basic_menu">
 						<td><label for="coverage_state">coverage_state</label></td>
