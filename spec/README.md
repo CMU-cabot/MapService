@@ -28,6 +28,7 @@ curl -X POST 'http://localhost:9090/map/routesearch' \
   -d 'user=test-user' \
   -d 'lang=ja' \
   -d 'from=latlng:35.61950:139.77700:1' \
+  -d 'from_heading_deg=90' \
   -d 'allow_subgraph=true' \
   --data-urlencode 'preferences={"min_width":"9","slope":"9","road_condition":"9","stairs":"9","deff_LV":"9","esc":"9","mvw":"9","elv":"9"}'
 ```
@@ -38,6 +39,14 @@ curl -X POST 'http://localhost:9090/map/routesearch' \
 The D-opt scoring weights can be tuned with
 `LINKCOVER_ODOMETRY_WEIGHT_SCALE` or `10.0` and
 `LINKCOVER_LOOP_CLOSURE_WEIGHT` or `100.0`.
+
+`from_heading_deg` is optional and represents the robot heading in degrees
+clockwise from north (`0`/`360` north, `90` east). When supplied, every CPP or
+D-opt candidate starts with the available RPP-augmented edge whose departure
+tangent has the smallest circular difference from the heading. Only the first
+edge is constrained; subsequent D-opt edge choices remain randomized. The
+heading does not cause RPP augmentation to be recomputed, so a covered optional
+start edge that is absent from the augmented graph is not added back.
 
 ## Replan a link-cover route
 
@@ -106,7 +115,9 @@ That temporary link retains the excluded physical link's
 The excluded physical link and both temporary fragments remain outside the RPP
 graph, and the selected fragment is prepended only after route solving. The
 fixed prefix is common to every candidate, so it is not included in distance,
-route-signature, or D-optimality candidate comparison. If the RPP portion has
+route-signature, or D-optimality candidate comparison. It also takes precedence
+over `from_heading_deg`; the heading is not applied to the RPP suffix after the
+forced retreat. If the RPP portion has
 zero distance, the successful route consists only of the temporary start node,
 the egress link, and the entry node. With `all=true`, that case returns one
 candidate whose empty RPP suffix has `d_optimality=0.0`.
@@ -258,7 +269,7 @@ component; the implementation-specific differences below are intentional.
 | --- | --- | --- |
 | CPP parity correction | Jack Edmonds and Ellis L. Johnson, **“Matching, Euler Tours and the Chinese Postman”**, *Mathematical Programming*, 1973 | Computes a minimum-weight perfect matching over shortest-path distances. For an open route it corrects `O symmetric-difference {from,to}` directly. |
 | Required-component connection | Greg N. Frederickson, **“Approximation Algorithms for Some Postman Problems”**, *Journal of the ACM*, 1979 | Builds one shortest-path metric closure and expands one Kruskal MST. This is a Frederickson-type construction; MapService does not claim Frederickson's approximation guarantee. |
-| Euler traversal | Carl Hierholzer, **“Ueber die Möglichkeit, einen Linienzug ohne Wiederholung und ohne Unterbrechung zu umfahren”**, *Mathematische Annalen*, 1873 | Uses Hierholzer traversal from `from` to `to`; `solver=cpp` uses stable edge order. |
+| Euler traversal | Carl Hierholzer, **“Ueber die Möglichkeit, einen Linienzug ohne Wiederholung und ohne Unterbrechung zu umfahren”**, *Mathematische Annalen*, 1873 | Uses Hierholzer traversal from `from` to `to`; `solver=cpp` uses stable edge order. When `from_heading_deg` is present, the closest valid departure tangent is fixed as the first edge before normal traversal continues. |
 | Candidate generation and D-opt | Wei Gao et al., **“Active Loop Closure for OSM-guided Robotic Mapping in Large-Scale Urban Environments”**, arXiv:2407.17078, 2024 | Implements the paper's random exhaustive candidate search by randomizing Hierholzer's next-edge order. D-opt evaluates only the newly planned route in this version, not historical traversal. |
 
 Gao et al. describe open RPP conversion using a virtual edge. MapService instead

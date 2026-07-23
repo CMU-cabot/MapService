@@ -56,6 +56,7 @@ public class RouteSearchServlet extends HttpServlet {
 	private static final long CACHE_EXPIRE = 30 * 60 * 1000;
 	private static final int LINKCOVER_MAX_ATTEMPTS = getEnvInt("LINKCOVER_MAX_ATTEMPTS", 5000);
 	private static final int LINKCOVER_MAX_ALL_ATTEMPTS = getEnvInt("LINKCOVER_MAX_ALL_ATTEMPTS", 200);
+	private static final String FROM_HEADING_DEG_ERROR = "from_heading_deg must be a finite number between 0 and 360";
 
 	private final Map<String, JSONObject> startMap = new LinkedHashMap<String, JSONObject>(16, 0.75f, true) {
 		private static final long serialVersionUID = 1L;
@@ -227,6 +228,7 @@ public class RouteSearchServlet extends HttpServlet {
 				// The defaults intentionally match the API contract for subgraph handling,
 				// solver selection, and randomized trial count.
 				String from = request.getParameter("from");
+				Double fromHeadingDeg = parseFromHeadingDeg(request.getParameter("from_heading_deg"));
 				String to = request.getParameter("to");
 				LinkCoverCoverageState coverageState = LinkCoverCoverageState
 						.parse(request.getParameter("coverage_state"));
@@ -256,12 +258,16 @@ public class RouteSearchServlet extends HttpServlet {
 				JSONObject preferences = (JSONObject) JSON.parse(request.getParameter("preferences"));
 
 				// RouteSearchBean owns the graph preparation and solver-specific linkcover logic.
-				result = bean.getLinkCover(from, to, coverageState, preferences, allowSubgraph, solver, all, attempts);
+				result = bean.getLinkCover(from, to, coverageState, preferences, allowSubgraph, solver, all, attempts,
+						fromHeadingDeg);
 
 				// Record the exact linkcover request knobs so later analysis can reconstruct
 				// which solver mode and randomized trial count produced the response.
 				JSONObject route = new JSONObject();
 				route.put("from", from);
+				if (fromHeadingDeg != null) {
+					route.put("from_heading_deg", fromHeadingDeg);
+				}
 				route.put("to", to);
 				route.put("coverage_state", coverageState.toJSONObject());
 				route.put("allow_subgraph", allowSubgraph);
@@ -291,6 +297,26 @@ public class RouteSearchServlet extends HttpServlet {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 		}
+	}
+
+	static Double parseFromHeadingDeg(String value) throws Exception {
+		if (value == null) {
+			return null;
+		}
+		String trimmed = value.trim();
+		if (trimmed.isEmpty()) {
+			throw new Exception(FROM_HEADING_DEG_ERROR);
+		}
+		double heading;
+		try {
+			heading = Double.parseDouble(trimmed);
+		} catch (NumberFormatException e) {
+			throw new Exception(FROM_HEADING_DEG_ERROR);
+		}
+		if (Double.isNaN(heading) || Double.isInfinite(heading) || heading < 0 || heading > 360) {
+			throw new Exception(FROM_HEADING_DEG_ERROR);
+		}
+		return heading == 360 ? 0.0 : heading;
 	}
 
 	/**

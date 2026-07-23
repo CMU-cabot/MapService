@@ -55,6 +55,8 @@ final class LinkCoverRouteBuilder {
 			"LINKCOVER_ODOMETRY_WEIGHT_SCALE", 10.0);
 	private static final double LINKCOVER_LOOP_CLOSURE_WEIGHT = RouteSearchServlet.getEnvDouble(
 			"LINKCOVER_LOOP_CLOSURE_WEIGHT", 100.0);
+	private static final double HEADING_EPS = 1.0e-9;
+	private static final double BEARING_VECTOR_EPS = 1.0e-15;
 
 	private final RouteSearchBean owner;
 	private final JSONObject nodeMap;
@@ -69,7 +71,7 @@ final class LinkCoverRouteBuilder {
 	}
 
 	Object build(String from, String to, LinkCoverCoverageState coverageState, Map<String, String> conditions,
-			boolean allowSubgraph, String solver, boolean all, int attempts) throws Exception {
+			boolean allowSubgraph, String solver, boolean all, int attempts, Double fromHeadingDeg) throws Exception {
 		JSONObject fromPoint = RouteSearchBean.getPoint(from);
 		Set<Double> floors;
 		String originalLinkID = null;
@@ -143,7 +145,7 @@ final class LinkCoverRouteBuilder {
 		// Hand the filtered graph construction and solver-specific route generation
 		// to LinkCoverHandler after the start node and target floor set are fixed.
 		LinkCoverHandler lch = new LinkCoverHandler(solverFrom, to, coverageState, conditions, floors, originalLinkID,
-				allowSubgraph, solver, all, attempts);
+				allowSubgraph, solver, all, attempts, fixedEgress == null ? fromHeadingDeg : null);
 		for (Object feature : features) {
 			lch.add(feature);
 		}
@@ -338,12 +340,13 @@ final class LinkCoverRouteBuilder {
 		private String solver;
 		private boolean all;
 		private int attempts;
+		private Double fromHeadingDeg;
 		private Set<String> directionIgnoredLinkIds = new LinkedHashSet<String>();
 		private final double elevator_weight;
 
 		public LinkCoverHandler(String from, String to, LinkCoverCoverageState coverageState,
 				Map<String, String> conditions, Set<Double> floors, String originalLinkID, boolean allowSubgraph,
-				String solver, boolean all, int attempts) {
+				String solver, boolean all, int attempts, Double fromHeadingDeg) {
 			this.from = from;
 			this.to = to;
 			this.coverageState = coverageState;
@@ -354,6 +357,7 @@ final class LinkCoverRouteBuilder {
 			this.solver = solver != null ? solver.toLowerCase() : "dopt";
 			this.all = all;
 			this.attempts = attempts > 0 ? attempts : LINKCOVER_ATTEMPTS;
+			this.fromHeadingDeg = fromHeadingDeg;
 			this.elevator_weight = RouteSearchBean.ELEVATOR_WEIGHT * ("8".equals(conditions.get("elv")) ? 10 : 1);
 		}
 
@@ -502,11 +506,12 @@ final class LinkCoverRouteBuilder {
 			if (augmentedGraph.edgeOrder.isEmpty()) {
 				return new JSONObject().put("error", "zero-distance");
 			}
+			Set<DefaultWeightedEdge> preferredInitialEdges = findPreferredInitialEdges(augmentedGraph);
 
 			// CPP compatibility mode now uses the same RPP augmentation but returns one
 			// deterministic Euler trail without D-opt candidate enumeration.
 			if ("cpp".equals(solver)) {
-				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, null);
+				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, null, preferredInitialEdges);
 				if (candidate == null) {
 					throw new Exception("Failed to build link cover route");
 				}
@@ -515,7 +520,7 @@ final class LinkCoverRouteBuilder {
 
 			// The D-opt solver enumerates candidate tours and then picks the
 			// highest-scoring order-sensitive route.
-			List<LinkCoverCandidate> candidates = buildDoptCandidates(augmentedGraph);
+			List<LinkCoverCandidate> candidates = buildDoptCandidates(augmentedGraph, preferredInitialEdges);
 			if (candidates.isEmpty()) {
 				throw new Exception("Failed to build link cover route");
 			}
@@ -543,7 +548,8 @@ final class LinkCoverRouteBuilder {
 			}
 		}
 
-		private List<LinkCoverCandidate> buildDoptCandidates(AugmentedAbstractGraph augmentedGraph) throws Exception {
+		private List<LinkCoverCandidate> buildDoptCandidates(AugmentedAbstractGraph augmentedGraph,
+				Set<DefaultWeightedEdge> preferredInitialEdges) throws Exception {
 			Map<String, LinkCoverCandidate> candidates = new LinkedHashMap<String, LinkCoverCandidate>();
 
 			// Build the undirected abstract graph used by the paper-inspired D-opt solver,
@@ -553,7 +559,7 @@ final class LinkCoverRouteBuilder {
 					^ g.edgeSet().size() ^ attempts;
 			Random random = new Random(seed);
 			for (int i = 0; i < attempts; i++) {
-				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, random);
+				LinkCoverCandidate candidate = buildAbstractCandidate(augmentedGraph, random, preferredInitialEdges);
 				if (candidate != null) {
 					candidates.put(candidate.signature, candidate);
 				}
@@ -625,11 +631,11 @@ final class LinkCoverRouteBuilder {
 			return augmented;
 		}
 
-		private LinkCoverCandidate buildAbstractCandidate(AugmentedAbstractGraph augmentedGraph, Random random)
-				throws Exception {
+		private LinkCoverCandidate buildAbstractCandidate(AugmentedAbstractGraph augmentedGraph, Random random,
+				Set<DefaultWeightedEdge> preferredInitialEdges) throws Exception {
 			// Enumerate one Eulerian tour by running Hierholzer on the augmented graph
 			// with randomized branch choices at vertices that still have multiple options.
-			List<AbstractTraversalStep> steps = buildEulerianTrail(augmentedGraph, random);
+			List<AbstractTraversalStep> steps = buildEulerianTrail(augmentedGraph, random, preferredInitialEdges);
 			if (steps == null || steps.isEmpty()) {
 				return null;
 			}
@@ -653,8 +659,8 @@ final class LinkCoverRouteBuilder {
 			return candidate;
 		}
 
-		private List<AbstractTraversalStep> buildEulerianTrail(AugmentedAbstractGraph augmentedGraph, Random random)
-				throws Exception {
+		private List<AbstractTraversalStep> buildEulerianTrail(AugmentedAbstractGraph augmentedGraph, Random random,
+				Set<DefaultWeightedEdge> preferredInitialEdges) throws Exception {
 			Map<String, List<DefaultWeightedEdge>> adjacency = new HashMap<String, List<DefaultWeightedEdge>>();
 
 			// C. Hierholzer, "Ueber die Moeglichkeit, einen Linienzug ohne
@@ -681,6 +687,7 @@ final class LinkCoverRouteBuilder {
 					Collections.shuffle(list, random);
 				}
 			}
+			preferInitialEdge(adjacency.get(from), preferredInitialEdges);
 
 			Map<String, Integer> nextIndex = new HashMap<String, Integer>();
 			Set<DefaultWeightedEdge> usedEdges = new LinkedHashSet<DefaultWeightedEdge>();
@@ -720,6 +727,110 @@ final class LinkCoverRouteBuilder {
 				throw new Exception("Failed to align Hierholzer trail with start and end nodes");
 			}
 			return circuit;
+		}
+
+		private Set<DefaultWeightedEdge> findPreferredInitialEdges(AugmentedAbstractGraph augmentedGraph)
+				throws Exception {
+			Set<DefaultWeightedEdge> preferred = new LinkedHashSet<DefaultWeightedEdge>();
+			if (fromHeadingDeg == null) {
+				return preferred;
+			}
+
+			// Heading changes only the traversal order, never the RPP augmentation.
+			double bestDifference = Double.POSITIVE_INFINITY;
+			for (DefaultWeightedEdge edge : augmentedGraph.edgeOrder) {
+				String source = augmentedGraph.graph.getEdgeSource(edge);
+				String target = augmentedGraph.graph.getEdgeTarget(edge);
+				if (!from.equals(source) && !from.equals(target)) {
+					continue;
+				}
+				String next = getOppositeVertex(augmentedGraph.graph, edge, from);
+				Double bearing = getDepartureBearing(augmentedGraph.linkMap.get(edge), from, next);
+				if (bearing == null) {
+					continue;
+				}
+				double difference = getHeadingDifference(fromHeadingDeg, bearing);
+				if (difference < bestDifference - HEADING_EPS) {
+					bestDifference = difference;
+					preferred.clear();
+					preferred.add(edge);
+				} else if (Math.abs(difference - bestDifference) <= HEADING_EPS) {
+					preferred.add(edge);
+				}
+			}
+			return preferred;
+		}
+
+		private Double getDepartureBearing(AbstractLink link, String source, String target) {
+			if (link == null) {
+				return null;
+			}
+			boolean forward = link.start.equals(source) && link.end.equals(target);
+			boolean backward = link.start.equals(target) && link.end.equals(source);
+			if (!forward && !backward) {
+				return null;
+			}
+			try {
+				JSONArray coordinates = link.json.getJSONObject("geometry").getJSONArray("coordinates");
+				if (coordinates.length() < 2) {
+					return null;
+				}
+				int start = forward ? 0 : coordinates.length() - 1;
+				int step = forward ? 1 : -1;
+				JSONArray origin = coordinates.getJSONArray(start);
+				for (int i = start + step; i >= 0 && i < coordinates.length(); i += step) {
+					Double bearing = calculateBearing(origin, coordinates.getJSONArray(i));
+					if (bearing != null) {
+						return bearing;
+					}
+				}
+			} catch (Exception e) {
+				return null;
+			}
+			return null;
+		}
+
+		private Double calculateBearing(JSONArray origin, JSONArray destination) throws JSONException {
+			double lng1 = origin.getDouble(0);
+			double lat1 = origin.getDouble(1);
+			double lng2 = destination.getDouble(0);
+			double lat2 = destination.getDouble(1);
+			if (lng1 == lng2 && lat1 == lat2) {
+				return null;
+			}
+
+			double lat1Rad = Math.toRadians(lat1);
+			double lat2Rad = Math.toRadians(lat2);
+			double deltaLngRad = Math.toRadians(lng2 - lng1);
+			double y = Math.sin(deltaLngRad) * Math.cos(lat2Rad);
+			double x = Math.cos(lat1Rad) * Math.sin(lat2Rad)
+					- Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLngRad);
+			if (Math.abs(x) <= BEARING_VECTOR_EPS && Math.abs(y) <= BEARING_VECTOR_EPS) {
+				return null;
+			}
+			double bearing = Math.toDegrees(Math.atan2(y, x));
+			return (bearing + 360.0) % 360.0;
+		}
+
+		private double getHeadingDifference(double heading, double bearing) {
+			return Math.abs(((bearing - heading + 540.0) % 360.0) - 180.0);
+		}
+
+		private void preferInitialEdge(List<DefaultWeightedEdge> edges,
+				Set<DefaultWeightedEdge> preferredInitialEdges) {
+			if (edges == null || edges.isEmpty() || preferredInitialEdges.isEmpty()) {
+				return;
+			}
+			// Move only the first choice so all remaining shuffled order is preserved.
+			for (int i = 0; i < edges.size(); i++) {
+				if (preferredInitialEdges.contains(edges.get(i))) {
+					if (i > 0) {
+						DefaultWeightedEdge preferred = edges.remove(i);
+						edges.add(0, preferred);
+					}
+					return;
+				}
+			}
 		}
 
 		private DefaultWeightedEdge getNextEulerianEdge(Map<String, List<DefaultWeightedEdge>> adjacency,

@@ -196,6 +196,110 @@ public class LinkCoverRouteBuilderTest {
 		assertEquals(0, countLinks(route, RouteSearchBean.tempLink2ID));
 	}
 
+	@Test
+	public void prefersHeadingAtProjectedMidpointForCppAndDopt() throws Exception {
+		for (String solver : new String[] { "cpp", "dopt" }) {
+			Fixture fixture = new Fixture(START);
+			LinkCoverCoverageState state = LinkCoverCoverageState.empty();
+
+			JSONArray eastbound = fixture.buildRouteWithHeading(solver, state, null, 90.0);
+			JSONArray westbound = fixture.buildRouteWithHeading(solver, state, null, 270.0);
+
+			assertFirstTraversal(eastbound, RouteSearchBean.tempLink2ID, END);
+			assertFirstTraversal(westbound, RouteSearchBean.tempLink1ID, START);
+		}
+	}
+
+	@Test
+	public void appliesHeadingToEveryDoptCandidate() throws Exception {
+		Fixture fixture = new Fixture(START);
+
+		JSONObject response = fixture.buildAllWithHeading(LinkCoverCoverageState.empty(), null, 90.0);
+
+		assertFirstTraversal(response.getJSONArray("best_route"), RouteSearchBean.tempLink2ID, END);
+		JSONArray candidates = response.getJSONArray("routes");
+		assertFalse(candidates.length() == 0);
+		for (int i = 0; i < candidates.length(); i++) {
+			assertFirstTraversal(candidates.getJSONObject(i).getJSONArray("route"),
+					RouteSearchBean.tempLink2ID, END);
+		}
+	}
+
+	@Test
+	public void usesCircularHeadingDifferenceAtNodeStart() throws Exception {
+		Fixture fixture = new Fixture(START);
+
+		JSONArray route = fixture.buildRouteFromWithHeading(START, "cpp", LinkCoverCoverageState.empty(), null, 359.0);
+
+		assertFirstTraversal(route, REQUIRED_LINK, TARGET);
+	}
+
+	@Test
+	public void usesDepartureTangentForCurvedLink() throws Exception {
+		Fixture fixture = new Fixture(START);
+		fixture.configureCurvedDeparture();
+
+		JSONArray route = fixture.buildRouteFromWithHeading(START, "cpp", fixture.stateExcludingOtherBranches(), null,
+				0.0);
+
+		assertFirstTraversal(route, CURRENT_LINK, END);
+	}
+
+	@Test
+	public void fallsBackToExistingOrderWhenNoBearingCanBeComputed() throws Exception {
+		Fixture fixture = new Fixture(START);
+		fixture.invalidateLinkGeometries();
+
+		JSONArray withoutHeading = fixture.buildRouteFromWithHeading(START, "cpp", LinkCoverCoverageState.empty(), null,
+				null);
+		JSONArray withHeading = fixture.buildRouteFromWithHeading(START, "cpp", LinkCoverCoverageState.empty(), null,
+				45.0);
+
+		assertEquals(routeLinkSequence(withoutHeading), routeLinkSequence(withHeading));
+	}
+
+	@Test
+	public void fixedEgressTakesPrecedenceOverHeading() throws Exception {
+		Fixture fixture = new Fixture(START);
+
+		JSONArray route = fixture.buildRouteWithHeading("dopt", fixture.validState(), TARGET, 90.0);
+
+		assertEgressRoute(route, RouteSearchBean.tempLink1ID, START);
+	}
+
+	@Test
+	public void equalHeadingDifferenceStillBuildsRoute() throws Exception {
+		Fixture fixture = new Fixture(START);
+
+		JSONArray route = fixture.buildRouteWithHeading("cpp", LinkCoverCoverageState.empty(), null, 0.0);
+
+		assertTrue(route.length() > 2);
+	}
+
+	private void assertFirstTraversal(JSONArray route, String linkId, String targetNode) throws Exception {
+		JSONObject link = route.getJSONObject(1);
+		assertEquals(linkId, link.getString("_id"));
+		assertEquals(targetNode, link.getJSONObject("properties").getString("targetNode"));
+	}
+
+	private String routeLinkSequence(JSONArray route) throws Exception {
+		StringBuilder sequence = new StringBuilder();
+		for (int i = 0; i < route.length(); i++) {
+			JSONObject feature = route.getJSONObject(i);
+			JSONObject properties = feature.optJSONObject("properties");
+			if (properties == null || !properties.has("sourceNode")) {
+				continue;
+			}
+			if (sequence.length() > 0) {
+				sequence.append('|');
+			}
+			sequence.append(feature.optString("_id")).append(':')
+					.append(properties.getString("sourceNode")).append('>')
+					.append(properties.getString("targetNode"));
+		}
+		return sequence.toString();
+	}
+
 	private void assertEgressRoute(JSONArray route, String egressLinkId, String entryNode) throws Exception {
 		assertEquals(RouteSearchBean.tempNodeID, route.getJSONObject(0).getString("_id"));
 		JSONObject egress = route.getJSONObject(1);
@@ -280,6 +384,12 @@ public class LinkCoverRouteBuilderTest {
 					+ "\"target_node_id\":\"" + entryNode + "\"}]}");
 		}
 
+		LinkCoverCoverageState stateExcludingOtherBranches() throws Exception {
+			return LinkCoverCoverageState.parse("{"
+					+ "\"covered_link_ids\":[],"
+					+ "\"excluded_link_ids\":[\"" + REQUIRED_LINK + "\",\"" + BLOCKED_LINK + "\"]}");
+		}
+
 		LinkCoverCoverageState stateExcludingRequired() throws Exception {
 			return LinkCoverCoverageState.parse("{"
 					+ "\"covered_link_ids\":[\"" + HISTORY_LINK + "\"],"
@@ -292,17 +402,32 @@ public class LinkCoverRouteBuilderTest {
 		}
 
 		JSONArray buildRoute(String solver, LinkCoverCoverageState state, String to) throws Exception {
-			return buildRouteFrom(MIDPOINT, solver, state, to);
+			return buildRouteWithHeading(solver, state, to, null);
+		}
+
+		JSONArray buildRouteWithHeading(String solver, LinkCoverCoverageState state, String to, Double fromHeadingDeg)
+				throws Exception {
+			return buildRouteFromWithHeading(MIDPOINT, solver, state, to, fromHeadingDeg);
 		}
 
 		JSONArray buildRouteFrom(String from, String solver, LinkCoverCoverageState state, String to) throws Exception {
-			Object result = build(from, to, state, solver, false);
+			return buildRouteFromWithHeading(from, solver, state, to, null);
+		}
+
+		JSONArray buildRouteFromWithHeading(String from, String solver, LinkCoverCoverageState state, String to,
+				Double fromHeadingDeg) throws Exception {
+			Object result = build(from, to, state, solver, false, fromHeadingDeg);
 			assertTrue(result instanceof JSONArray);
 			return (JSONArray) result;
 		}
 
 		JSONObject buildAll(LinkCoverCoverageState state, String to) throws Exception {
-			Object result = build(MIDPOINT, to, state, "dopt", true);
+			return buildAllWithHeading(state, to, null);
+		}
+
+		JSONObject buildAllWithHeading(LinkCoverCoverageState state, String to, Double fromHeadingDeg)
+				throws Exception {
+			Object result = build(MIDPOINT, to, state, "dopt", true, fromHeadingDeg);
 			assertTrue(result instanceof JSONObject);
 			return (JSONObject) result;
 		}
@@ -314,7 +439,7 @@ public class LinkCoverRouteBuilderTest {
 		void assertBuildFails(String messagePart, LinkCoverCoverageState state, String to, String solver, boolean all)
 				throws Exception {
 			try {
-				build(MIDPOINT, to, state, solver, all);
+				build(MIDPOINT, to, state, solver, all, null);
 				fail("Expected build to fail with: " + messagePart);
 			} catch (Exception e) {
 				assertTrue("Unexpected error: " + e.getMessage(), e.getMessage() != null
@@ -322,10 +447,48 @@ public class LinkCoverRouteBuilderTest {
 			}
 		}
 
-		private Object build(String from, String to, LinkCoverCoverageState state, String solver, boolean all)
-				throws Exception {
+		private Object build(String from, String to, LinkCoverCoverageState state, String solver, boolean all,
+				Double fromHeadingDeg) throws Exception {
 			return new LinkCoverRouteBuilder(owner, nodes, features, Collections.<String>emptySet()).build(from, to,
-					state, new HashMap<String, String>(), false, solver, all, 8);
+					state, new HashMap<String, String>(), false, solver, all, 8, fromHeadingDeg);
+		}
+
+		void configureCurvedDeparture() throws Exception {
+			nodes.getJSONObject(HISTORY_START).getJSONObject("geometry").put("coordinates", coordinate(0.0005, 0.001));
+			feature(CURRENT_LINK).getJSONObject("geometry").put("coordinates", new JSONArray()
+					.put(coordinate(0.0, 0.0))
+					.put(coordinate(0.0, 0.0005))
+					.put(coordinate(0.002, 0.0)));
+			feature(HISTORY_LINK).getJSONObject("geometry").put("coordinates", new JSONArray()
+					.put(coordinate(0.0005, 0.001))
+					.put(coordinate(0.0, 0.0)));
+		}
+
+		void invalidateLinkGeometries() throws Exception {
+			for (Object feature : features) {
+				JSONObject link = (JSONObject) feature;
+				String start = link.getJSONObject("properties").getString("start_id");
+				JSONArray startCoordinate = nodes.getJSONObject(start).getJSONObject("geometry")
+						.getJSONArray("coordinates");
+				JSONArray duplicate = coordinate(startCoordinate.getDouble(0), startCoordinate.getDouble(1));
+				link.getJSONObject("geometry").put("coordinates", new JSONArray()
+						.put(coordinate(startCoordinate.getDouble(0), startCoordinate.getDouble(1)))
+						.put(duplicate));
+			}
+		}
+
+		private JSONObject feature(String id) throws Exception {
+			for (Object feature : features) {
+				JSONObject json = (JSONObject) feature;
+				if (id.equals(json.getString("_id"))) {
+					return json;
+				}
+			}
+			throw new Exception("Unknown fixture link: " + id);
+		}
+
+		private JSONArray coordinate(double lng, double lat) {
+			return new JSONArray().put(lng).put(lat);
 		}
 
 		private void addNode(String id, double lng, double lat) throws Exception {

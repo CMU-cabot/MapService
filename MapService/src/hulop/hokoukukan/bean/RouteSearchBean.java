@@ -168,10 +168,16 @@ public class RouteSearchBean {
 	public Object getLinkCover(String from, String to, LinkCoverCoverageState coverageState,
 			Map<String, String> conditions, boolean allowSubgraph, String solver, boolean all, int attempts)
 			throws Exception {
+		return getLinkCover(from, to, coverageState, conditions, allowSubgraph, solver, all, attempts, null);
+	}
+
+	public Object getLinkCover(String from, String to, LinkCoverCoverageState coverageState,
+			Map<String, String> conditions, boolean allowSubgraph, String solver, boolean all, int attempts,
+			Double fromHeadingDeg) throws Exception {
 		mLastInit = System.currentTimeMillis();
 		mTempNode = mTempLink1 = mTempLink2 = null;
 		return new LinkCoverRouteBuilder(this, mNodeMap, mFeatures, mElevatorNodes).build(from, to, coverageState,
-				conditions, allowSubgraph, solver, all, attempts);
+				conditions, allowSubgraph, solver, all, attempts, fromHeadingDeg);
 	}
 
 	private class DirectionHandler {

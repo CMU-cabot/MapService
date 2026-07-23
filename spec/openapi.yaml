@@ -220,7 +220,10 @@ paths:
         the entry endpoint allow one temporary split fragment to be prepended as a
         fixed retreat. The excluded link remains outside the RPP graph, and this
         fixed prefix is excluded from candidate distance, signature, and D-opt
-        comparison. A metric-closure MST follows the
+        comparison. When `from_heading_deg` is supplied, the first Euler edge is
+        constrained to the edge in the RPP-augmented graph whose departure tangent
+        has the smallest circular difference from the robot heading. The fixed
+        retreat takes precedence over this heading preference. A metric-closure MST follows the
         framework in Frederickson, "Approximation Algorithms for Some Postman
         Problems" (1979); odd-degree matching follows Edmonds and Johnson,
         "Matching, Euler Tours and the Chinese Postman" (1973); randomized
@@ -233,6 +236,7 @@ paths:
         - $ref: '#/components/parameters/user'
         - $ref: '#/components/parameters/lang'
         - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/from_heading_deg'
         - $ref: '#/components/parameters/linkcover_to'
         - $ref: '#/components/parameters/coverage_state'
         - $ref: '#/components/parameters/allow_subgraph'
@@ -251,9 +255,9 @@ paths:
           description: Invalid input
         '400':
           description: >-
-            Invalid coverage state, unreachable required links/end point, or an
-            excluded current-position link without explicit to and an unambiguous
-            entry endpoint in the traversal-history tail
+            Invalid heading or coverage state, unreachable required links/end
+            point, or an excluded current-position link without explicit to and an
+            unambiguous entry endpoint in the traversal-history tail
     post:
       tags:
         - map
@@ -266,6 +270,7 @@ paths:
         - $ref: '#/components/parameters/user'
         - $ref: '#/components/parameters/lang'
         - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/from_heading_deg'
         - $ref: '#/components/parameters/linkcover_to'
         - $ref: '#/components/parameters/coverage_state'
         - $ref: '#/components/parameters/allow_subgraph'
@@ -282,9 +287,9 @@ paths:
                 $ref: '#/components/schemas/linkcover_response'
         '400':
           description: >-
-            Invalid coverage state, unreachable required links/end point, or an
-            excluded current-position link without explicit to and an unambiguous
-            entry endpoint in the traversal-history tail
+            Invalid heading or coverage state, unreachable required links/end
+            point, or an excluded current-position link without explicit to and an
+            unambiguous entry endpoint in the traversal-history tail
   /routesearch?action=toilets:
     get:
       tags:
@@ -440,6 +445,22 @@ components:
       schema:
         type: string
         example: latlng:35.61950:139.77700:1
+    from_heading_deg:
+      name: from_heading_deg
+      description: >-
+        optional robot heading for linkcover, in degrees clockwise from north.
+        Values must be finite and between 0 and 360 inclusive; 360 is normalized
+        to 0. The closest departure direction is selected only from start edges
+        already present in the RPP-augmented graph. A fixed retreat from an
+        excluded current-position link takes precedence.
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+        minimum: 0
+        maximum: 360
+        example: 90
     lang:
       name: lang
       in: query
